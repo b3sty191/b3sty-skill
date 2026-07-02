@@ -1,5 +1,7 @@
 # b3sty-skill
 
+[![skills.sh](https://skills.sh/b/b3sty191/b3sty-skill)](https://skills.sh/b3sty191/b3sty-skill)
+
 Reusable rules and working memory for b3sty RedM/FiveM Lua development.
 
 ## Install

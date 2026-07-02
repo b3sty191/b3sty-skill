@@ -1,0 +1,11 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "RedM/FiveM",
+      "description": "Lua rules, natives, memory, and performance guidance for b3sty resources.",
+      "skills": ["b3sty-skill"]
+    }
+  ]
+}
