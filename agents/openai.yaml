@@ -1,0 +1,4 @@
+interface:
+  display_name: "b3sty RedM/FiveM Lua"
+  short_description: "RedM/FiveM Lua resource guidance"
+  default_prompt: "Use $b3sty-skill to review a RedM/FiveM Lua resource for event naming, server validation, natives, and performance."

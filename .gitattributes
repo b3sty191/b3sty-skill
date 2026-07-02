@@ -1,0 +1,8 @@
+# Generated native references are intentionally large lookup documents.
+references/natives/fivem-gta5-natives.md linguist-generated=true diff=markdown
+references/natives/redm-rdr3-natives.md linguist-generated=true diff=markdown
+
+# Markdown docs should stay text-normalized in git.
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
