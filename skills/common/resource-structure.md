@@ -37,6 +37,9 @@ Use this file for rules that apply to both RedM and FiveM. Use `skills/fivem/rul
 - The client should mainly render, attach objects, show UI, and clean up local entities.
 - `Player(source).state` and state bags are acceptable for syncing visible state to clients.
 - When using state bags, keep the server responsible for changing the state and let clients react to render changes.
+- Prefer server config `setr sv_stateBagStrictMode true` so clients cannot modify replicated player/entity state bags directly.
+- Client-side non-replicated entity state is local-only; do not design gameplay authority around it.
+- Design client flows to request state changes through validated `:server:` events or callbacks, then let the server update the state bag.
 
 ## Entities And Objects
 

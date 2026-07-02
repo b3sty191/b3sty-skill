@@ -13,6 +13,7 @@ These patterns have paid off repeatedly in real b3sty resources:
 - Per-key server throttles for state update requests plus action throttles for item use cover the common spam surface.
 - Optimistic client state works only when paired with a rejection/rollback path.
 - Sequence numbers and signatures help reject old/spoofed client sync packets, but client-held secrets are tamper resistance only - never real security.
+- `setr sv_stateBagStrictMode true` keeps replicated player/entity state bag writes server-side and forces clients to request changes through validated server paths; local-only entity state stays local and is not gameplay authority.
 - Dirty-tracking player data and debouncing database saves cuts write load.
 - Saving raw encoded JSON for unchanged fields avoids re-encoding large data every save.
 - Batching/capping logs and redacting secret-looking fields before logging keeps logs safe.
@@ -35,6 +36,7 @@ Condensed reminders - the full rules and examples live in `skills/common/securit
 - Spam-prone events have server-side throttles.
 - Valuable actions have duplicate/replay protection, not just cooldowns.
 - Rewards, money, items, jobs, permissions, and ownership are checked server-side.
+- Replicated state bag writes are server-side; clients only request changes and render from state.
 - Client-provided coords, entity IDs, and net IDs are validated against server-side state or ignored.
 - Shared/client config is public; secrets and authoritative economy logic stay server-side.
 - Public inter-resource interfaces validate bad input at the boundary.

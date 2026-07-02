@@ -9,7 +9,9 @@ Track common errors and fixes here.
 - Cause: Lua applies `not` before `==`, so the expression can be read or evaluated differently than intended.
 - Fix:
   ```lua
-  if attach[tostring(i)] ~= true then
+  local attachIndex = tostring(index)
+
+  if attach[attachIndex] ~= true then
       -- ...
   end
   ```

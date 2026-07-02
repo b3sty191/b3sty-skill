@@ -8,12 +8,12 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
 - Use when: a resource needs shared indexes, active entities, cached data, or lifecycle methods.
 - Example:
   ```lua
-  local Attacher = {
+  local Controller = {
       ["Visible"] = "all",
-      ["Players"] = {}
+      ["Players"] = {},
   }
 
-  function Attacher:Initialize()
+  function Controller:Initialize()
       self.ObjectsIndex = {}
   end
   ```
@@ -26,17 +26,21 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
 - Also use when: code repeatedly loops through a list to find one entry by name, ID, hash, category, or source.
 - Example:
   ```lua
-  self.ObjectsIndex = {}
-  self.ObjectsIndexKey = {}
+  local Controller = {}
 
-  for name in pairs(objects) do
-      table.insert(self.ObjectsIndex, name)
-  end
+  function Controller:BuildObjectIndex(objects)
+      self.ObjectsIndex = {}
+      self.ObjectsIndexKey = {}
 
-  table.sort(self.ObjectsIndex)
+      for objectName in pairs(objects) do
+          table.insert(self.ObjectsIndex, objectName)
+      end
 
-  for index, name in ipairs(self.ObjectsIndex) do
-      self.ObjectsIndexKey[name] = index
+      table.sort(self.ObjectsIndex)
+
+      for index, objectName in ipairs(self.ObjectsIndex) do
+          self.ObjectsIndexKey[objectName] = index
+      end
   end
   ```
 - Notes: useful for inventory items, object attachers, clothing sets, and other editable data maps.
@@ -46,8 +50,9 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
 
 - Pattern: server changes `Player(source).state`, client listens and renders local entities.
 - Use when: clients need to see visual state for nearby or known players.
-- Example: server sets `LocalPlayer:set("attach", attach, true)`, client uses `AddStateBagChangeHandler("attach", ...)`.
+- Example: server sets `Player(source).state:set("attach", attach, true)`, client uses `AddStateBagChangeHandler("attach", ...)`.
 - Notes: keep validation and important state changes server-side.
+- Notes: this pattern is compatible with `setr sv_stateBagStrictMode true` because the replicated state write happens on the server and clients only render from state.
 
 ## Local Attached Prop Pattern
 
@@ -62,17 +67,24 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
   }, true)
 
   -- Client: render from state
-  AddStateBagChangeHandler("attach", nil, function(bagName, key, value)
-      local player = GetPlayerFromStateBagName(bagName)
-      if player == 0 or type(value) ~= "table" then return end
+  local Controller = {}
 
+  function Controller:RenderAttachState(player, attachState)
       -- CreateObject(model, x, y, z, false, false, false)
       -- AttachEntityToEntity(object, GetPlayerPed(player), boneIndex, ...)
+  end
+
+  AddStateBagChangeHandler("attach", nil, function(bagName, _, attachState)
+      local player = GetPlayerFromStateBagName(bagName)
+      if player == 0 or type(attachState) ~= "table" then return end
+
+      Controller:RenderAttachState(player, attachState)
   end)
   ```
 - Notes: local attached props need cleanup on state removal, player stream-out/drop, and resource stop.
 - Notes: a light reattach loop is acceptable for tracked props because attached objects can detach, stream out, or be deleted by the game.
 - Notes: never use a client-created local prop handle as proof of ownership, reward eligibility, or saved state.
+- Notes: do not set replicated attach state from the client when strict state bag mode is enabled; send a validated server request and let the server update the state bag.
 
 ## Event Naming Pattern
 
@@ -80,11 +92,11 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
 - Rule: every custom event is `resource_name:server:action` or `resource_name:client:action` (see `skills/common/resource-structure.md` -> Events).
 - Concrete shape used in b3sty resources:
   ```lua
-  RegisterNetEvent("resource_name:server:add", function(item, state)
+  RegisterNetEvent("resource_name:server:add", function(itemName, state)
       -- handled on server
   end)
 
-  RegisterNetEvent("resource_name:client:playerDropped", function(player)
+  RegisterNetEvent("resource_name:client:playerDropped", function(playerId)
       -- handled on client
   end)
   ```
@@ -108,8 +120,8 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
 - Use when: a resource has many positions, zones, objects, categories, shops, rewards, or other long lists.
 - Example:
   ```lua
-  local locations = require("configs.locations")
-  local items = require("configs.items")
+  local locationsConfig = require("configs.locations")
+  local itemsConfig = require("configs.items")
   ```
 - Notes: full rules in `skills/common/style.md` -> Config Splitting and `skills/common/fxserver.md`.
 
@@ -122,24 +134,32 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
   ```lua
   -- RAM cache + dirty tracking + spread autosave + force-save on exit.
   -- Async so it never blocks the main thread; never lose more than the autosave interval on crash.
-  local PlayerData = {}    -- [source] = loaded state
-  local PlayerDirty = {}   -- [source] = true when changed since last save
-  local PlayerSaving = {}  -- [source] = true while a save is in flight (dedupe)
+  local Controller = {
+      ["PlayerData"] = {},
+      ["PlayerDirty"] = {},
+      ["PlayerSaving"] = {},
+  }
 
-  -- Used by the autosave loop, playerDropped, and onResourceStop, so it stays a function.
-  local function SavePlayer(source)
-      if PlayerSaving[source] then return end          -- a save is already running
-      local data = PlayerData[source]
+  function Controller:SavePlayer(source)
+      if self.PlayerSaving[source] then return end
+
+      local data = self.PlayerData[source]
       if not data then return end
 
-      PlayerSaving[source] = true
-      PlayerDirty[source] = nil
+      self.PlayerSaving[source] = true
+      self.PlayerDirty[source] = nil
 
       MySQL.async.execute("UPDATE players SET data = ? WHERE identifier = ?", {
           json.encode(data), data.identifier,
       }, function()
-          PlayerSaving[source] = nil
+          self.PlayerSaving[source] = nil
       end)
+  end
+
+  function Controller:ClearPlayer(source)
+      self.PlayerData[source] = nil
+      self.PlayerDirty[source] = nil
+      self.PlayerSaving[source] = nil
   end
 
   -- Spread autosave: save at most 10 dirty players per 60s pass, then yield.
@@ -147,9 +167,10 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
       while true do
           Wait(60 * 1000)
           local saved = 0
-          for source in pairs(PlayerDirty) do
+
+          for source in pairs(Controller.PlayerDirty) do
               if saved >= 10 then break end
-              SavePlayer(source)
+              Controller:SavePlayer(source)
               saved += 1
           end
       end
@@ -157,28 +178,28 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
 
   -- Force-save on leave (primary save point).
   AddEventHandler("playerDropped", function()
-      local src = source
-      if src then
-          SavePlayer(src)
-          PlayerData[src] = nil
-          PlayerDirty[src] = nil
-          PlayerSaving[src] = nil
+      local source = source
+
+      if source then
+          Controller:SavePlayer(source)
+          Controller:ClearPlayer(source)
       end
   end)
 
   -- Force-save all dirty players when this resource stops (covers restart/stop).
   AddEventHandler("onResourceStop", function(resourceName)
       if resourceName ~= GetCurrentResourceName() then return end
-      for source in pairs(PlayerDirty) do
-          SavePlayer(source)
+
+      for source in pairs(Controller.PlayerDirty) do
+          Controller:SavePlayer(source)
       end
   end)
 
   -- Gameplay code marks a player dirty inline wherever state changes:
-  --   PlayerDirty[source] = true
+  --   Controller.PlayerDirty[source] = true
   ```
 - Notes: interval is a trade-off - shorter = less data loss but more DB load; 60-120s is a sane default.
-- Notes: `SavePlayer` is kept as a function because it is used in three places (real duplication); dirty marking is inlined because it is one line.
+- Notes: `Controller:SavePlayer` is kept as a method because it is used in three places (real duplication); dirty marking is inlined because it is one line.
 - Notes: async queries are mandatory here - sync DB calls block the single FXServer Lua thread.
 
 ## Template

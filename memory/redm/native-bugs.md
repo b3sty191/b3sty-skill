@@ -27,7 +27,11 @@ Track recurring RDR3 / RedM-only native issues here. Bugs that reproduce in both
 - Source: citizenfx/fivem#4006.
 
 ```lua
-local function GetCurrentVehicle(ped)
+local Controller = {}
+
+---@param ped number
+---@return number
+function Controller:GetCurrentVehicle(ped)
     if not IsPedInAnyVehicle(ped, false) then
         return 0
     end
@@ -50,18 +54,20 @@ end
 - Source: citizenfx/fivem#3980.
 
 ```lua
-local function GetCurrentAmmoMap()
+local Controller = {}
+
+function Controller:GetCurrentAmmoMap()
     -- Read from this resource's player data/state cache.
     return {}
 end
 
 ---@param ammoType string Native ammo type name.
 ---@param amount integer Reserve ammo amount to apply.
-function SetAmmoByType(ammoType, amount)
+function Controller:SetAmmoByType(ammoType, amount)
     local ped = PlayerPedId()
     RemoveAllPedAmmo(ped)
 
-    local ammoMap = GetCurrentAmmoMap()
+    local ammoMap = self:GetCurrentAmmoMap()
     ammoMap = type(ammoMap) == "table" and ammoMap or {}
 
     for ammo, reserve in pairs(ammoMap) do

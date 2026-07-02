@@ -35,6 +35,14 @@
 - Keep permission checks server-side.
 - Avoid storing important gameplay state only on the client.
 
+## Server Config
+
+- Prefer `setr sv_stateBagStrictMode true` when the target artifact supports it.
+- With strict state bag mode enabled, only the server can modify networked entity state and player state.
+- Client-side non-replicated entities are not affected, but they must not be treated as authoritative replicated state.
+- Client code should request state changes through validated `:server:` events or callbacks, then render from the replicated state.
+- Audit existing resources before enabling strict mode because client-side replicated state bag writes will stop working.
+
 ## Resource Lifecycle
 
 - Handle resource start and stop cleanly.

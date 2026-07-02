@@ -46,23 +46,26 @@ Use these rules for RedM/FiveM resources where player input, server state, entit
 ## Required Event Pattern
 
 ```lua
-local ACTION_THROTTLE = {}
-local ITEM_INDEX = Items["INDEX"]
-local ITEM_LIST = Items["LIST"]
+local Controller = {
+    ["ActionThrottle"] = {},
+    ["ItemIndex"] = Items["INDEX"],
+    ["ItemList"] = Items["LIST"],
+}
 
-local function IsActionThrottled(source, key, limit)
+function Controller:IsActionThrottled(source, key, limit)
     local now = GetGameTimer()
-    local playerThrottle = ACTION_THROTTLE[source]
-    if not playerThrottle then
-        playerThrottle = {}
-        ACTION_THROTTLE[source] = playerThrottle
+    local actionThrottle = self.ActionThrottle[source]
+
+    if not actionThrottle then
+        actionThrottle = {}
+        self.ActionThrottle[source] = actionThrottle
     end
 
-    if now - (playerThrottle[key] or 0) < limit then
+    if now - (actionThrottle[key] or 0) < limit then
         return true
     end
 
-    playerThrottle[key] = now
+    actionThrottle[key] = now
     return false
 end
 
@@ -71,28 +74,29 @@ RegisterNetEvent("resource_name:server:action", function(payload)
     if not source or source <= 0 then return end
     if type(payload) ~= "table" then return end
 
-    if IsActionThrottled(source, "action", 500) then return end
+    if Controller:IsActionThrottled(source, "action", 500) then return end
 
-    local item = payload["Item"]
+    local itemName = payload["Item"]
     local amount = tonumber(payload["Amount"])
 
-    if type(item) ~= "string" or item == "" then return end
+    if type(itemName) ~= "string" or itemName == "" then return end
     if not amount or amount ~= amount then return end
 
     amount = math.floor(amount)
     if amount <= 0 or amount > 100 then return end
 
-    local itemIndex = ITEM_INDEX[item]
-    local itemData = itemIndex and ITEM_LIST[itemIndex]
+    local itemIndex = Controller.ItemIndex[itemName]
+    local itemData = itemIndex and Controller.ItemList[itemIndex]
     if not itemData then return end
 
     -- permission, ownership, cooldown, and action checks go here
 end)
 
 AddEventHandler("playerDropped", function()
-    local src = source
-    if src then
-        ACTION_THROTTLE[src] = nil
+    local source = source
+
+    if source then
+        Controller.ActionThrottle[source] = nil
     end
 end)
 ```
@@ -122,6 +126,11 @@ end)
 ## Sync Safety
 
 - State bags are fine for visual state, but important state must be changed server-side.
+- Prefer enabling `setr sv_stateBagStrictMode true` in server config when the target artifact supports it.
+- With strict state bag mode enabled, only the server can modify networked entity and player state bags; clients should request changes through validated server events/callbacks.
+- Client-side non-replicated entity state is still local client state and must not be used as authoritative replicated state.
+- Clients may still read state bags and react with `AddStateBagChangeHandler`.
+- Audit dependencies before enabling strict mode because resources that set replicated state from the client must be moved server-side.
 - For custom sync events, prefer sequence numbers to reject old packets.
 - When spoofing would matter for client-side local sync, add a per-player sync secret/signature and reject messages with invalid signatures.
 - Treat client-held sync secrets as tamper resistance only, not real server-side security.

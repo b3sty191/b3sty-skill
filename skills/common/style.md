@@ -35,9 +35,9 @@
 - Use table modules or local controller objects for resource logic.
 - Prefer method syntax for controller behavior:
   ```lua
-  local Attacher = {}
+  local Controller = {}
 
-  function Attacher:Initialize()
+  function Controller:Initialize()
       -- ...
   end
   ```
@@ -46,7 +46,7 @@
   return {
       ["Category Limit"] = {
           ["Head"] = 10,
-      }
+      },
   }
   ```
 - Use `require(...)` for config/data modules when the runtime supports it.
@@ -77,8 +77,8 @@
 - Prefer compound assignment for simple updates such as counters, bit flags, and accumulated values:
   ```lua
   count += 1
-  flags |= FLAG_VISIBLE
-  mask &= FLAG_ALLOWED
+  flags |= visibleFlag
+  mask &= allowedFlag
   ```
 - Avoid compound assignment when the expression becomes harder to read than the expanded form.
 
