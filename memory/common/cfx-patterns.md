@@ -2,6 +2,19 @@
 
 Track reusable FXServer/CfxLua implementation patterns here. These apply to both RedM and FiveM unless noted.
 
+## Contents
+
+- Table Controller Pattern
+- Index Map Pattern
+- State Bag Render Pattern
+- Local Attached Prop Pattern
+- Event Naming Pattern
+- Cleanup Pattern
+- Simple Resource Pattern
+- Config Split Pattern
+- Player Persistence Pattern
+- Template
+
 ## Table Controller Pattern
 
 - Pattern: keep resource state and methods in one local table.

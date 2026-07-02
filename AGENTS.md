@@ -21,3 +21,14 @@ The rest of the repo:
 - Record recurring fixes or patterns in the right `memory/` namespace (include date and game build).
 - Keep `skills/` focused on rules reused across projects; keep `memory/` focused on learned facts, cross-linking to `skills/` instead of duplicating rule text.
 - Keep large generated reference files in `references/`; do not duplicate their content into `skills/` or `memory/`.
+- Run `scripts/validate_b3sty_skill.py` and the `skill-creator` `quick_validate.py` check before publishing changes.
+
+## Communication
+
+- Be direct and practical.
+- Explain tradeoffs only when they affect the implementation.
+- Mention verification steps and any remaining risks.
+
+## Agent Configs
+
+- `agents/openai.yaml` - OpenAI Codex agent configuration; points Codex to `SKILL.md` and `AGENTS.md`.

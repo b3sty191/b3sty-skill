@@ -102,9 +102,7 @@
 - Avoid unnecessary loops, repeated native calls, and repeated table scans.
 - Prefer simple direct code, but do not trade away performance for convenience.
 
-## Communication
+## Documentation
 
 - Write skill and memory documentation in English.
-- Be direct and practical.
-- Explain tradeoffs only when they affect the implementation.
-- Mention verification steps and any remaining risks.
+- Add comments only for non-obvious behavior or temporary workarounds.

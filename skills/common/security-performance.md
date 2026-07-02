@@ -2,6 +2,30 @@
 
 Use these rules for RedM/FiveM resources where player input, server state, entities, database writes, callbacks, or loops are involved.
 
+## Contents
+
+- Priority
+- Server Authority
+- Server Event Validation
+- Network Exposure
+- Commands, Exports, And Public Interfaces
+- Required Event Pattern
+- Throttle And Cooldown
+- Callback Safety
+- Sync Safety
+- Client Requests
+- Entity And Net ID Validation
+- Position And Interaction Checks
+- Atomic State Changes And Replay Protection
+- Database And Persistence
+- Config And Inter-Resource Boundaries
+- Abuse Handling
+- Logging And Secrets
+- Performance Rules
+- Cleanup
+- Anti-Overengineering
+- Review Questions
+
 ## Priority
 
 - Security and performance are core requirements, not cleanup tasks.

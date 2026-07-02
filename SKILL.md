@@ -1,11 +1,42 @@
 ---
 name: b3sty-skill
-description: b3sty rules for RedM/FiveM Lua development. Use when working on b3sty resources, FXServer manifests, Lua scripts, native/entity/event code, server validation, throttles, callbacks, state bags, config splitting, performance optimization, or RedM/FiveM debugging.
+description: b3sty rules for implementing, reviewing, debugging, refactoring, or optimizing RedM/FiveM Lua resources. Use for FXServer manifests, client/server Lua, natives/entities, events/callbacks/exports/NUI, server validation, throttles/cooldowns, state bags, config splitting, ox_lib, SQL/OxMySQL persistence, multi-resource integration, performance, cleanup, and learned memory updates.
 ---
 
 # b3sty Skill
 
 Use this skill when working on b3sty RedM/FiveM resources or related Lua code. The defaults below are the high-frequency rules applied on every task; open the reference files only when the task touches that area.
+
+## Operating Workflow
+
+1. Identify the target before editing: RedM, FiveM, or shared; client, server, NUI, database, or cross-resource; resource name; framework/dependency assumptions.
+2. Inspect the local project first and follow its existing patterns unless they conflict with the rules below.
+3. Load only the relevant reference files from this skill. For broad reviews, start with the changed surfaces, then open the matching files listed below.
+4. Treat public server events, callbacks, commands, exports, NUI callbacks, and inter-resource calls as untrusted boundaries.
+5. Verify native names, hashes, signatures, and game-specific behavior against the matching native reference before relying on uncertain native behavior.
+6. Finish with concrete verification: resource start/load order, event names, server validation, cleanup paths, performance hot paths, and any manual repro steps.
+7. Record recurring fixes or newly verified engine quirks in the right `memory/` namespace with date and game build.
+
+## Task Routing
+
+- Start with `skills/common/fxserver.md` when the manifest, load order, dependency list, UI files, or resource layout changes.
+- Start with `skills/common/security-performance.md` for any server event, callback, command, export, NUI callback, state sync, database mutation, reward, item, money, permission, cooldown, or hot loop.
+- Add `skills/common/database.md` when SQL, OxMySQL/mysql-async, schema, transactions, migrations, dirty saves, or persisted state is involved.
+- Add `skills/common/native-rules.md` and the matching game rules when code calls natives, handles entities, weapons, ammo, vehicles, horses, peds, blips, props, or routing buckets.
+- Search the matching native reference only when verifying a specific native name, hash, namespace, signature, parameter behavior, or game difference.
+- Add `skills/common/debugging.md` and the relevant `memory/` files when the task is diagnosis, reproduction, traces, NUI errors, database failures, native bugs, or performance investigation.
+- Add `skills/common/ox-lib.md` only when the resource already uses ox_lib or the user explicitly accepts adding it.
+- Add `skills/common/multi-resource.md` when the feature crosses resources through exports, events, callbacks, dependencies, shared scripts, convars, state bags, or framework integration.
+- Add `skills/fivem/rules.md` or `skills/redm/rules.md` whenever the resource is game-specific or shared behavior might differ.
+- Run `scripts/validate_b3sty_skill.py` after editing this skill package and before publishing it.
+
+## Review Priorities
+
+- Check server authority before style.
+- Check public input boundaries before internal helpers.
+- Check cleanup and lifecycle before adding caches, timers, callbacks, entities, zones, or state.
+- Check RedM/FiveM portability before moving code into shared files.
+- Keep fixes local and direct unless repeated use justifies a helper or reference update.
 
 ## Core Defaults
 
@@ -52,6 +83,10 @@ Open lazily by task - do not preload all of them.
 - `skills/common/native-rules.md` - when calling natives, handling entities/ammo, or debugging native behavior.
 - `skills/common/resource-structure.md` - shared client/server/config/event/state structure.
 - `skills/common/security-performance.md` - when writing `:server:` events, callbacks, sync, DB writes, or hot loops.
+- `skills/common/database.md` - when writing SQL, OxMySQL/mysql-async persistence, migrations, transactions, or saved state.
+- `skills/common/debugging.md` - when diagnosing resource failures, traces, client/server/NUI issues, DB issues, load order, or performance bugs.
+- `skills/common/ox-lib.md` - when a resource already uses ox_lib or the task explicitly accepts adding ox_lib.
+- `skills/common/multi-resource.md` - when resources communicate through exports, events, callbacks, dependencies, state bags, or shared libraries.
 
 ### Game-Specific
 
