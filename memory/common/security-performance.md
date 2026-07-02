@@ -30,10 +30,14 @@ Condensed reminders - the full rules and examples live in `skills/common/securit
 ### Security
 - Server owns important state.
 - Every `:server:` event validates payload type and bounds.
-- Every public callback/export validates input.
+- Internal server logic stays local unless it must be network-callable.
+- Every public command, callback, export, and NUI callback validates input.
 - Spam-prone events have server-side throttles.
+- Valuable actions have duplicate/replay protection, not just cooldowns.
 - Rewards, money, items, jobs, permissions, and ownership are checked server-side.
-- Client-provided coords/entity IDs are validated or ignored.
+- Client-provided coords, entity IDs, and net IDs are validated against server-side state or ignored.
+- Shared/client config is public; secrets and authoritative economy logic stay server-side.
+- Public inter-resource interfaces validate bad input at the boundary.
 - Secrets are server-only; logs redact and cap.
 
 ### Performance

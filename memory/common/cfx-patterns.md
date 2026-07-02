@@ -49,6 +49,31 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
 - Example: server sets `LocalPlayer:set("attach", attach, true)`, client uses `AddStateBagChangeHandler("attach", ...)`.
 - Notes: keep validation and important state changes server-side.
 
+## Local Attached Prop Pattern
+
+- Pattern: server validates the item/action and syncs a small attach state; each client creates local non-networked props and attaches them to the relevant ped.
+- Use when: props are cosmetic, attached, preview-only, or otherwise render-only.
+- Avoid when: the prop is a shared gameplay entity such as a pickup, storage object, placed world object, blocker, or persistent owned object.
+- Example:
+  ```lua
+  -- Server: after validation
+  Player(source).state:set("attach", {
+      ["1"] = true,
+  }, true)
+
+  -- Client: render from state
+  AddStateBagChangeHandler("attach", nil, function(bagName, key, value)
+      local player = GetPlayerFromStateBagName(bagName)
+      if player == 0 or type(value) ~= "table" then return end
+
+      -- CreateObject(model, x, y, z, false, false, false)
+      -- AttachEntityToEntity(object, GetPlayerPed(player), boneIndex, ...)
+  end)
+  ```
+- Notes: local attached props need cleanup on state removal, player stream-out/drop, and resource stop.
+- Notes: a light reattach loop is acceptable for tracked props because attached objects can detach, stream out, or be deleted by the game.
+- Notes: never use a client-created local prop handle as proof of ownership, reward eligibility, or saved state.
+
 ## Event Naming Pattern
 
 - Pattern: name events with the resource prefix and the side that handles the event.

@@ -20,6 +20,7 @@
 - Check that entities exist before reading or mutating them.
 - Avoid assuming a native behaves the same across RedM and FiveM.
 - Use `skills/fivem/rules.md` or `skills/redm/rules.md` when native behavior is game-specific.
+- In server-side `entityCreating`, do not cancel an entity solely because `GetEntityModel(entity)` returns `0`; model data can be unavailable at that point. Defer model-dependent checks when possible.
 
 ## Performance
 

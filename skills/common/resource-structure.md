@@ -46,6 +46,17 @@ Use this file for rules that apply to both RedM and FiveM. Use `skills/fivem/rul
 - Clean up entities on resource stop, player drop, or when synced state disables them.
 - Reattach loops are acceptable when objects may detach or disappear, but keep the wait time appropriate.
 
+## Local Vs Networked Props
+
+- Default to local client-created props for cosmetic, preview, attached, UI, marker, and render-only objects.
+- Use networked/server-owned props only when the object is shared gameplay state: pickup, loot, storage, placement, blocking collision, ownership, persistence, or multi-player interaction.
+- For local attached props, keep the server authoritative over the attach state and let clients render/delete local objects from state bags or validated sync.
+- Do not network attached cosmetic props just so other players can see them; sync the state and let each client render its own local copy.
+- Do not trust client-created prop handles, entity IDs, or net IDs for rewards, ownership, permissions, or saved state.
+- If a prop becomes interactable or valuable after being placed in the world, promote it to server-owned state and validate the entity/model/distance/bucket before use.
+- Local props must have cleanup on state disable, player out of range, player drop, and resource stop.
+- Networked props must have a server registry, ownership rules, validation, and cleanup path.
+
 ## Performance
 
 - Avoid tight loops with `Wait(0)` unless frame-level work is required.

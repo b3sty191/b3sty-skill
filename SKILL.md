@@ -22,6 +22,7 @@ Apply these on every b3sty Lua task unless the task says otherwise.
 
 - Every custom event uses `resource_name:server:action` or `resource_name:client:action`.
 - The server is the source of truth for money, items, jobs, permissions, ownership, rewards, cooldowns, and saved state.
+- Treat public server events, callbacks, commands, and exports as untrusted input; validate payloads and permissions server-side.
 
 ### CfxLua
 
@@ -35,6 +36,7 @@ Apply these on every b3sty Lua task unless the task says otherwise.
 
 ### Performance & Cleanup
 
+- Render cosmetic/attached/preview props locally from server-owned state; use networked props only for shared gameplay entities.
 - Cache hot lookups in locals; build reverse indexes (`Items["INDEX"][name]`) for repeated searches.
 - No `Wait(0)` unless frame-level work is required; stage waits by distance/activeness.
 - Clean up entities, blips, zones, timers, callbacks, throttles, and caches on player drop / resource stop. Guard entity cleanup with `DoesEntityExist`.
@@ -77,5 +79,6 @@ Read only when debugging or reusing a learned pattern. Memory files hold facts l
 ### Game-Specific
 
 - `memory/fivem/README.md` - FiveM-specific memory namespace.
+- `memory/fivem/native-bugs.md` - FiveM-only native issues and workarounds.
 - `memory/redm/README.md` - RedM-specific memory namespace.
 - `memory/redm/native-bugs.md` - RedM-only native issues and workarounds (e.g. `SetPedAmmoByType` reserve ammo).

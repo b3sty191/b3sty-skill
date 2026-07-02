@@ -11,7 +11,9 @@ Use these rules for RedM/FiveM resources where player input, server state, entit
 ## Server Authority
 
 - The server must be the source of truth for money, items, jobs, groups, permissions, ownership, rewards, cooldowns, and saved player data.
+- Read jobs, groups, licenses, ownership, balances, inventory, and permission state from server-side framework/state only.
 - Client code may request an action, render UI, play effects, attach objects, or apply optimistic local state.
+- Client-provided permission, job, group, ownership, balance, or inventory values are display hints only and must not decide access.
 - Server code must validate and either accept or reject the requested action.
 - If client code applies optimistic state, it must support rollback when the server rejects the request.
 
@@ -24,6 +26,22 @@ Use these rules for RedM/FiveM resources where player input, server state, entit
 - Reject `NaN`, negative values, empty strings, invalid keys, unknown items, unknown jobs, unknown weapons, and unknown config names.
 - Check requested item/action names against server-side config or indexes.
 - Never trust client-provided price, reward amount, inventory count, permission group, job, target ownership, or cooldown state.
+
+## Network Exposure
+
+- Use `RegisterNetEvent` only for handlers that clients or other resources are allowed to call.
+- Treat every networked `:server:` event as client-callable, even when the current UI is the only intended caller.
+- Keep internal server logic in local functions or non-networked handlers, then call it from validated network handlers.
+- Do not create generic public dispatchers that call arbitrary actions, functions, exports, or config keys from a client-provided string.
+- If a handler is intended only for another server resource, document that contract and still validate the payload at the boundary.
+
+## Commands, Exports, And Public Interfaces
+
+- Treat commands, exports, framework callbacks, and NUI callbacks as public input boundaries.
+- Validate command args, callback payloads, export params, and any `source` argument before doing work.
+- Server commands that affect players, money, inventory, jobs, permissions, entities, or saved state must check permission server-side.
+- Public exports that accept a player `source` must verify that the source is a real player and is allowed to perform the action.
+- Do not let an export or callback bypass the validation required for the matching server event.
 
 ## Required Event Pattern
 
@@ -118,6 +136,32 @@ end)
 - If a client sends coordinates, entity IDs, weapon data, or status values, the server must validate them against server-side state or reasonable bounds.
 - For position snapshots, compare against server position, snapshot age, and a distance threshold before accepting.
 
+## Entity And Net ID Validation
+
+- Treat client-provided entity handles, net IDs, vehicle IDs, object IDs, and ped IDs as untrusted.
+- Validate that the entity exists before using it.
+- Validate entity type, model, owner, routing bucket, health/alive state, and distance when those fields matter to the action.
+- Prefer checking against a server-owned spawned entity registry or server-side state instead of accepting arbitrary world entities.
+- Do not trust a client claim that an entity belongs to them, is nearby, is empty, is damaged, or is eligible for a reward.
+- For destructive or valuable actions, reject entities that are not server-created, not in the expected registry, or not owned/controlled by the expected player.
+
+## Position And Interaction Checks
+
+- Treat client coordinates as hints; never use them alone to award money, items, progress, or access.
+- For shops, crafting, rewards, gathering, storage, doors, and interactions, compare the player's server-side position to server-side config coordinates.
+- Use explicit max-distance checks and reject requests outside the allowed radius.
+- For delayed interactions, check that the player is still valid, alive when required, and near the target before applying the result.
+- When accepting position snapshots, reject stale snapshots and movement that exceeds reasonable distance or speed thresholds.
+
+## Atomic State Changes And Replay Protection
+
+- Check and mutate valuable state in one server-side flow for purchases, crafting, rewards, item transfers, payments, and ownership changes.
+- Do not check a balance, inventory item, or cooldown, then delay before applying the mutation unless the state is reserved or rechecked.
+- Use the framework, database transaction, conditional update, lock, or per-player in-flight flag that best fits the resource.
+- Add request IDs, claim state, or server-side in-flight markers for reward, claim, crafting, payment, and transfer actions that can be replayed.
+- Cooldowns reduce spam but are not enough for high-value actions; reject duplicate requests before granting rewards or writing saved state.
+- Make retry behavior explicit so a failed request cannot grant twice and a successful request can be recognized if the client retries.
+
 ## Database And Persistence
 
 - Use parameterized SQL queries only.
@@ -129,6 +173,23 @@ end)
 - On resource stop or player drop, force-save dirty player state.
 - Do not run a database write every tick or every client update.
 - See `memory/common/cfx-patterns.md` -> Player Persistence Pattern for a concrete RAM-cache + spread-autosave + force-save shape.
+
+## Config And Inter-Resource Boundaries
+
+- Treat shared and client config as public data.
+- Do not put webhook URLs, API tokens, admin secrets, hidden reward logic, or server-only economy controls in shared/client files.
+- Keep authoritative prices, rewards, drop rates, permission gates, and item mutation rules in server config or validate them again server-side.
+- Validate server events and exports even when they are intended for another local resource.
+- Do not assume another resource is trusted just because it runs on the same server; validate public/shared interfaces at the boundary.
+- For internal cross-resource APIs, prefer explicit exports with narrow params over generic event payloads that can trigger arbitrary behavior.
+
+## Abuse Handling
+
+- Invalid input should usually be rejected and logged, not automatically punished.
+- Log security-sensitive rejections with source, event/interface name, reason, and bounded key fields.
+- Track repeated invalid calls per player/action when abuse response matters.
+- Use counters, backoff, temporary ignore windows, or staff-visible alerts before escalating to kicks or bans.
+- Do not let rejection logging become a spam path; rate-limit or batch abuse logs.
 
 ## Logging And Secrets
 
@@ -186,8 +247,14 @@ end)
 
 - What can a malicious client fake in this feature?
 - Which server-side checks reject fake values?
+- Is this network event actually meant to be public, or should it be a local function?
+- Do commands, exports, callbacks, and NUI callbacks validate the same things as server events?
 - Does this event need a throttle or cooldown?
+- Does this valuable action need a request ID, in-flight flag, transaction, or duplicate-claim check?
 - Does this callback/event clean up pending state on disconnect?
+- Are client-provided coords, entity IDs, net IDs, jobs, permissions, and ownership claims verified server-side?
+- Are prices, rewards, drop rates, and permission gates kept out of shared/client config or revalidated server-side?
+- Can another resource call this interface with bad input?
 - Is any secret or webhook visible to the client?
 - Is this loop always necessary, or can it be event-driven?
 - Is any hot path scanning a large table repeatedly?
