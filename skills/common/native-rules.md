@@ -29,14 +29,6 @@
 - Load models before creating entities; release models with `SetModelAsNoLongerNeeded` when the resource no longer needs to keep them loaded.
 - Avoid per-frame native calls unless the behavior must update every frame.
 
-## Ammo
-
-- Do not rely on `SetPedAmmoByType` alone when setting reserve ammo by type.
-- Use a wrapper that clears ammo with `RemoveAllPedAmmo(ped)`, reads the current ammo map from the resource's local player state/helper, reapplies that map, then applies the requested ammo type and amount.
-- Keep the public helper signature clean, such as `SetAmmoByType(ammoType, amount)`.
-- This avoids the RedM/FiveM ammo reserve bug where ammo may not decrease correctly after using only `SetPedAmmoByType`.
-- Document the wrapper inputs with LuaDoc params.
-
 ## Debugging
 
 - Record shared native issues and workarounds in `memory/common/native-bugs.md`.

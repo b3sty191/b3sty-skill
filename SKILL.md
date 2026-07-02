@@ -69,7 +69,7 @@ Read only when debugging or reusing a learned pattern. Memory files hold facts l
 
 ### Common
 
-- `memory/common/native-bugs.md` - known shared native issues and workarounds (e.g. `SetPedAmmoByType` reserve ammo).
+- `memory/common/native-bugs.md` - known shared native issues and workarounds.
 - `memory/common/common-errors.md` - recurring shared Lua/resource errors and fixes.
 - `memory/common/cfx-patterns.md` - reusable shared FXServer/CfxLua implementation patterns (controller, index map, cleanup, config split, persistence).
 - `memory/common/security-performance.md` - learned shared security/performance patterns and quick-reference checklists.
@@ -78,3 +78,4 @@ Read only when debugging or reusing a learned pattern. Memory files hold facts l
 
 - `memory/fivem/README.md` - FiveM-specific memory namespace.
 - `memory/redm/README.md` - RedM-specific memory namespace.
+- `memory/redm/native-bugs.md` - RedM-only native issues and workarounds (e.g. `SetPedAmmoByType` reserve ammo).
