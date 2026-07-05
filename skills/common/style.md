@@ -3,7 +3,7 @@
 ## Core Principles
 
 - Prefer direct, readable code over heavy abstraction.
-- Hardcoded values are acceptable when they make the logic easier to read in place.
+- Hardcoded values are preferred when they make the logic easier to read in place.
 - Treat performance and optimization as important requirements, not optional cleanup.
 - Keep related logic and data close together when jumping between files would make the flow harder to understand.
 - Add abstraction only when it removes real duplication or clearly improves maintenance.
@@ -14,6 +14,9 @@
 
 - Use explicit names and straightforward control flow.
 - Keep functions focused, but do not split tiny helpers just for the sake of splitting.
+- Do not create helper functions for one-off code unless the inline version is genuinely hard to read or unsafe.
+- Do not create local variables just to avoid hardcoded literals; inline one-off model names, event names, config keys, vector values, and limits when they read clearly beside the logic.
+- Create a local only when the value is reused, expensive to compute, validated before use, mutated, or the inline expression would hide intent.
 - Prefer a clear single-file flow for small resources.
 - Split files when the data or logic becomes large enough that separation improves scanning.
 - Add comments only for non-obvious behavior or temporary workarounds.

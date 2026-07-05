@@ -47,6 +47,8 @@ Apply these on every b3sty Lua task unless the task says otherwise.
 - Direct, readable code over heavy abstraction. No frameworks, dispatchers, or class systems for small resources.
 - 4 spaces indentation. Spaces after commas in calls, params, and tables.
 - Hardcoded inline values (model names, positions, event names) are fine when clearer beside the logic.
+- Do not create helper functions or throwaway locals for one-off values; inline hardcoded values when they keep the flow easier to read.
+- Name locals only when reused, expensive, validated, or clearer than the inline expression.
 - Controller pattern: one local table with `function Controller:Method() ... end`.
 
 ### Events
