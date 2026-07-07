@@ -1,18 +1,22 @@
 # Native Rules
 
+This file is the policy layer for native calls. For the mechanics — translating a doc entry into a Lua call, name conversion, `Citizen.InvokeNative` marshalling, struct natives, build gating — open `skills/common/native-usage.md`.
+
 ## Usage
 
 - Verify native hashes and parameter order before use.
 - Prefer named wrapper functions for repeated native calls.
 - Keep native calls close to the behavior they control unless a wrapper improves clarity.
 - Add LuaDoc `---@param` annotations to helper functions with important inputs, especially native wrappers.
+- Follow `skills/common/native-usage.md` when calling a native by hash, handling out-pointer params, packing RDR3 struct arguments, or working from a low-confidence doc entry.
 
 ## Native References
 
 - Use `references/natives/fivem-gta5-natives.md` for GTA V / FiveM native lookup.
 - Use `references/natives/redm-rdr3-natives.md` for RDR3 / RedM native lookup.
-- These files are large generated references; search the matching file with `rg` instead of opening both.
+- These files are large generated references; search the matching file with `rg` instead of opening both. Search recipes are in `skills/common/native-usage.md` -> Search Recipes.
 - If a native appears in both games, verify the signature and behavior in the target game's reference before sharing code.
+- Calibrate trust to the RedM entry's confidence level (`documented`/`high`/`medium`/`inferred`/`low`); see `skills/common/native-usage.md` -> RedM Confidence Policy.
 
 ## Safety
 

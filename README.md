@@ -40,7 +40,8 @@ If this repository is private, the installer needs existing GitHub credentials o
 
 - `skills/common/style.md` - coding and communication style.
 - `skills/common/fxserver.md` - FXServer resource and manifest rules.
-- `skills/common/native-rules.md` - native call usage rules.
+- `skills/common/native-rules.md` - native call policy: safety, caching, wrappers.
+- `skills/common/native-usage.md` - calling natives from Lua: doc-entry translation, `Citizen.InvokeNative`, marshalling, RDR3 struct natives, build gates.
 - `skills/common/resource-structure.md` - shared resource structure, events, state, and cleanup shape.
 - `skills/common/security-performance.md` - server validation, anti-spam, optimization, persistence, and cleanup rules.
 - `skills/common/database.md` - SQL, OxMySQL/mysql-async, migrations, transactions, and persistence rules.

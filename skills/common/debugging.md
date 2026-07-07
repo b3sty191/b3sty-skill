@@ -50,6 +50,7 @@ Use this file when diagnosing RedM/FiveM resource failures, crashes, bad state, 
 ## Native And Entity Bugs
 
 - Check `skills/common/native-rules.md` before changing native-heavy code.
+- Check `skills/common/native-usage.md` when a native call compiles but misbehaves - wrong float subtype, BOOL `0` treated as truthy, missing `Citizen.ResultAs*`, wrong struct layout, or a build/apiset mismatch are the usual causes.
 - Check the matching native reference only when verifying name, hash, namespace, signature, or game-specific behavior.
 - Check `memory/common/native-bugs.md`, `memory/fivem/native-bugs.md`, or `memory/redm/native-bugs.md` for known behavior.
 - Guard entity handles with existence checks before reads, writes, deletes, and attachments.

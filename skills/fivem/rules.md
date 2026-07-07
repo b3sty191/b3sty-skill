@@ -19,6 +19,7 @@ Use this file for FiveM-only resources or when a shared resource needs GTA V-spe
 ## Entities And Natives
 
 - Use `references/natives/fivem-gta5-natives.md` when checking GTA V / FiveM native names, hashes, signatures, or parameters.
+- Use `skills/common/native-usage.md` to turn a doc entry into the Lua call: name conversion, `Citizen.InvokeNative` marshalling, out-pointer params, and game-build gates.
 - Verify GTA V native hashes, parameter order, and return values before sharing a native wrapper with RedM.
 - Treat GTA V vehicles, peds, props, weapons, and network ownership as FiveM-specific until confirmed portable.
 - Do not rely on `SetBlipAsShortRange` for `AddBlipForArea` area blips; handle distance visibility manually when needed.

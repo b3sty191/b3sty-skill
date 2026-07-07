@@ -1,6 +1,6 @@
 ---
 name: b3sty-skill
-description: b3sty rules for implementing, reviewing, debugging, refactoring, or optimizing RedM/FiveM Lua resources. Use for FXServer manifests, client/server Lua, natives/entities, events/callbacks/exports/NUI, server validation, throttles/cooldowns, state bags, config splitting, ox_lib, SQL/OxMySQL persistence, multi-resource integration, performance, cleanup, and learned memory updates.
+description: b3sty rules for implementing, reviewing, debugging, refactoring, or optimizing RedM/FiveM Lua resources. Use for FXServer manifests, client/server Lua, natives/entities, native invocation from docs (hashes, InvokeNative, marshalling, RDR3 structs), events/callbacks/exports/NUI, server validation, throttles/cooldowns, state bags, config splitting, ox_lib, SQL/OxMySQL persistence, multi-resource integration, performance, cleanup, and learned memory updates.
 ---
 
 # b3sty Skill
@@ -23,6 +23,7 @@ Use this skill when working on b3sty RedM/FiveM resources or related Lua code. T
 - Start with `skills/common/security-performance.md` for any server event, callback, command, export, NUI callback, state sync, database mutation, reward, item, money, permission, cooldown, or hot loop.
 - Add `skills/common/database.md` when SQL, OxMySQL/mysql-async, schema, transactions, migrations, dirty saves, or persisted state is involved.
 - Add `skills/common/native-rules.md` and the matching game rules when code calls natives, handles entities, weapons, ammo, vehicles, horses, peds, blips, props, or routing buckets.
+- Add `skills/common/native-usage.md` when translating a native reference entry into a Lua call, invoking by hash with `Citizen.InvokeNative`, handling out-pointer params, packing RDR3 struct arguments, or gating natives by game build.
 - Search the matching native reference only when verifying a specific native name, hash, namespace, signature, parameter behavior, or game difference.
 - Add `skills/common/debugging.md` and the relevant `memory/` files when the task is diagnosis, reproduction, traces, NUI errors, database failures, native bugs, or performance investigation.
 - Add `skills/common/ox-lib.md` only when the resource already uses ox_lib or the user explicitly accepts adding it.
@@ -62,6 +63,14 @@ Apply these on every b3sty Lua task unless the task says otherwise.
 - In RedM/FiveM code, supported compound operators (`+=`, `-=`, `*=`, `/=`, `<<=`, `>>=`, `&=`, `|=`, `^=`) are fine when clearer. Do **not** use `++`/`--`.
 - These operators are CfxLua-only - never use them in standard Lua or standalone Lua tooling.
 
+### Natives
+
+- Docs name `GET_ENTITY_HEALTH` -> Lua global `GetEntityHealth`; leading-underscore names drop the underscore; hash-only natives use `Citizen.InvokeNative(hash, ...)` with a `--[[NAME]]` comment.
+- `Citizen.InvokeNative` BOOL results are `1`/`0`, and `0` is truthy in Lua - compare `== 1`, never use the raw result in an `if`.
+- Float params in hash calls must be float-subtype numbers - write `1.0`, coerce computed values with `+ 0.0`.
+- Prefer hash constants via backtick literals or `joaat`; compare hashes to hashes, never to hex strings.
+- Full mechanics (out params, marshalling, RDR3 structs, builds, confidence): `skills/common/native-usage.md`.
+
 ### Config
 
 - Small/shared config in `config.lua`; large datasets split into `configs/*.lua`, each returning a table.
@@ -83,6 +92,7 @@ Open lazily by task - do not preload all of them.
 - `skills/common/style.md` - full style, formatting, and CfxLua rules.
 - `skills/common/fxserver.md` - when editing `fxmanifest.lua` or resource layout.
 - `skills/common/native-rules.md` - when calling natives, handling entities/ammo, or debugging native behavior.
+- `skills/common/native-usage.md` - when turning a native reference entry into a Lua call: name conversion, `Citizen.InvokeNative`, result/pointer marshalling, RDR3 struct natives, build gates, confidence policy.
 - `skills/common/resource-structure.md` - shared client/server/config/event/state structure.
 - `skills/common/security-performance.md` - when writing `:server:` events, callbacks, sync, DB writes, or hot loops.
 - `skills/common/database.md` - when writing SQL, OxMySQL/mysql-async persistence, migrations, transactions, or saved state.

@@ -19,6 +19,7 @@ Use this file for RedM-only resources or when a shared resource needs RDR3-speci
 ## Entities And Natives
 
 - Use `references/natives/redm-rdr3-natives.md` when checking RDR3 / RedM native names, hashes, signatures, or parameters.
+- Use `skills/common/native-usage.md` to turn a doc entry into the Lua call: hash-only natives via `Citizen.InvokeNative`, `Any*` struct packing, confidence policy, and build gates all apply heavily to RDR3.
 - Verify RDR3 native hashes, parameter order, and return values before sharing a native wrapper with FiveM.
 - Treat horses, mounts, wagons, ped components, weapons, ammo, and scenario behavior as RedM-specific until confirmed portable.
 - Do not rely on server-side `GetEntityHealth` for RedM health checks; it can return `0` for live entities. See `memory/redm/native-bugs.md`.

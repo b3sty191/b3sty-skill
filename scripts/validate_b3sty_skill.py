@@ -17,6 +17,7 @@ REQUIRED_PATHS = [
     "skills/common/style.md",
     "skills/common/fxserver.md",
     "skills/common/native-rules.md",
+    "skills/common/native-usage.md",
     "skills/common/resource-structure.md",
     "skills/common/security-performance.md",
     "skills/common/database.md",
