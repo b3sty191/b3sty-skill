@@ -162,10 +162,14 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
       self.PlayerSaving[source] = true
       self.PlayerDirty[source] = nil
 
-      MySQL.async.execute("UPDATE players SET data = ? WHERE identifier = ?", {
+      MySQL.update("UPDATE players SET data = ? WHERE identifier = ?", {
           json.encode(data), data.identifier,
-      }, function()
+      }, function(affectedRows)
           self.PlayerSaving[source] = nil
+
+          if not affectedRows and self.PlayerData[source] then
+              self.PlayerDirty[source] = true   -- failed save stays dirty for the next pass
+          end
       end)
   end
 
@@ -175,16 +179,21 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
       self.PlayerSaving[source] = nil
   end
 
-  -- Spread autosave: save at most 10 dirty players per 60s pass, then yield.
+  -- Spread autosave: snapshot the dirty set, then save with a small yield between
+  -- players so one pass never stalls the main thread and the backlog cannot grow
+  -- unbounded. Never mutate/iterate PlayerDirty across a yield without a snapshot.
   CreateThread(function()
       while true do
           Wait(60 * 1000)
-          local saved = 0
 
+          local dirty = {}
           for source in pairs(Controller.PlayerDirty) do
-              if saved >= 10 then break end
-              Controller:SavePlayer(source)
-              saved += 1
+              dirty[#dirty + 1] = source
+          end
+
+          for i = 1, #dirty do
+              Controller:SavePlayer(dirty[i])
+              Wait(50)
           end
       end
   end)
@@ -200,11 +209,18 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
   end)
 
   -- Force-save all dirty players when this resource stops (covers restart/stop).
+  -- Await here: fire-and-forget saves can be killed mid-flight on shutdown.
   AddEventHandler("onResourceStop", function(resourceName)
       if resourceName ~= GetCurrentResourceName() then return end
 
       for source in pairs(Controller.PlayerDirty) do
-          Controller:SavePlayer(source)
+          local data = Controller.PlayerData[source]
+
+          if data then
+              MySQL.update.await("UPDATE players SET data = ? WHERE identifier = ?", {
+                  json.encode(data), data.identifier,
+              })
+          end
       end
   end)
 
@@ -213,7 +229,9 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
   ```
 - Notes: interval is a trade-off - shorter = less data loss but more DB load; 60-120s is a sane default.
 - Notes: `Controller:SavePlayer` is kept as a method because it is used in three places (real duplication); dirty marking is inlined because it is one line.
-- Notes: async queries are mandatory here - sync DB calls block the single FXServer Lua thread.
+- Notes: async queries are mandatory on gameplay paths - sync DB calls block the single FXServer Lua thread. The one exception is `onResourceStop`, where `.await` is required so the writes finish before the runtime tears the resource down.
+- Notes: a failed save must re-mark the player dirty (see the callback above) so data is retried instead of silently lost; on `playerDropped` the final save is best-effort because the RAM cache is cleared right after.
+- Notes: uses the oxmysql API (`MySQL.update` / `MySQL.update.await`), not the legacy `MySQL.async.*` aliases - see `skills/common/database.md` -> OxMySQL API Shape.
 
 ## Template
 

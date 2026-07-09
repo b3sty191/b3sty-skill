@@ -2,7 +2,7 @@
 
 Use this file when a RedM/FiveM resource has an in-game browser UI (NUI): HTML/CSS/JS (React, Svelte, Vue, or plain JS), `SendNUIMessage`, `RegisterNUICallback`, `SetNuiFocus`, or a `ui_page` in the manifest.
 
-NUI is client-local only. It never carries authority. Treat the Lua<->browser bridge as a one more untrusted boundary and keep the server as the source of truth (see `skills/common/security-performance.md`).
+NUI is client-local only. It never carries authority. Treat the Lua<->browser bridge as one more untrusted boundary and keep the server as the source of truth (see `skills/common/security-performance.md`).
 
 ## Contents
 

@@ -62,53 +62,8 @@ RegisterNetEvent("shop:buy", function(item, price)
 end)
 ```
 
-Hardened - the client only requests; the server resolves identity, catalog, price, and bounds from server-held state:
-
-```lua
--- GOOD: client sends only an item key and quantity; server decides everything else
-local Controller = {
-    ["Catalog"] = Items,          -- server-side: name -> { price, stack, purchasable }
-    ["Throttle"] = {},
-    ["InFlight"] = {},            -- per-source in-flight guard (see Give-Value Event Hardening)
-}
-
-RegisterNetEvent("shop:buy", function(payload)
-    local source = source
-    if not source or source <= 0 or source == 65535 then return end
-    if type(payload) ~= "table" then return end
-
-    if Controller:IsThrottled(source, "buy", 250) then return end
-
-    local itemName = payload["Item"]
-    local amount = tonumber(payload["Amount"])
-    if type(itemName) ~= "string" or itemName == "" then return end
-    if not amount or amount ~= amount then return end   -- reject NaN
-    amount = math.floor(amount)
-    if amount <= 0 or amount > 100 then return end       -- reject 0, negative, float, huge
-
-    local entry = Controller.Catalog[itemName]
-    if not entry or not entry.purchasable then return end
-
-    -- recipient is always `source`; never a payload field
-    local player = Framework.GetPlayer(source)
-    if not player then return end
-
-    -- affordability from server-held balance, at the moment of the transaction
-    if player.getMoney() < entry.price * amount then return end
-
-    -- debit + grant atomically under a per-source in-flight guard
-    if Controller.InFlight[source] then return end
-    Controller.InFlight[source] = true
-
-    player.removeMoney(entry.price * amount)
-    player.addItem(itemName, amount)
-
-    Controller.InFlight[source] = nil
-end)
-```
-
-- The vulnerable version is a direct dupe: a client passes a negative `price` (money goes up) or an item it should never receive. The hardened version resolves price and item from `Controller.Catalog`, clamps quantity, checks affordability, and locks the mutation.
-- This is the canonical pattern from CFX's own [Secure your events](https://docs.fivem.net/docs/developers/server-security/) guide; the full, race-safe version is in Give-Value Event Hardening below.
+- The vulnerable version is a direct dupe: a client passes a negative `price` (money goes up) or an item it should never receive.
+- The hardened shape: identity from `source` only, item/price resolved from a server-side catalog, quantity clamped to a positive bounded integer, affordability read from server-held balance at transaction time, and the debit+grant made atomic. The full, race-safe version - the canonical pattern from CFX's own [Secure your events](https://docs.fivem.net/docs/developers/server-security/) guide - is in Give-Value Event Hardening below; use that as the template instead of re-deriving it per resource.
 
 
 
@@ -167,7 +122,7 @@ RegisterCommand("giveitem", function(source, args)
     local itemName = args[2]
     local amount = math.floor(tonumber(args[3]) or 0)
     if not target or target <= 0 then return end
-    if not GetPlayerIdentifiers(target) then return end   -- target must be a real player
+    if not GetPlayerName(target) then return end          -- target must be a real player
     if not itemName or amount <= 0 or amount > 1000 then return end
 
     local entry = Controller.Catalog[itemName]
@@ -178,6 +133,7 @@ RegisterCommand("giveitem", function(source, args)
 end, false)
 ```
 
+- Do not use `GetPlayerIdentifiers(target)` as an existence check: it returns a table (truthy even when empty) for invalid IDs. Use `GetPlayerName(target)` or `DoesPlayerExist(target)` to confirm the target is a real connected player.
 - Note: polling `IsPlayerAceAllowed` for every player on a tight timer has caused crashes (citizenfx/fivem#2547); check it on the action path, not in a per-player loop.
 
 ## Required Event Pattern
@@ -328,8 +284,14 @@ RegisterNetEvent("shop:buy", function(payload)
         return                                                  -- keep state consistent, do not grant in RAM
     end
 
-    player.setMoney(player.getMoney() - cost)
-    player.addItem(itemName, amount)
+    -- the await yielded: the player may have dropped, and server IDs are recycled,
+    -- so `source` can already belong to a different player. Re-resolve and compare
+    -- identity before touching RAM; the DB commit above is correct either way.
+    local current = Framework.GetPlayer(source)
+    if current and current.identifier == player.identifier then
+        current.setMoney(current.getMoney() - cost)
+        current.addItem(itemName, amount)
+    end
     Controller.InFlight[source] = nil
 end)
 
@@ -343,6 +305,7 @@ end)
 ```
 
 - `MySQL.transaction.await` runs the queries in one transaction and commits only if all succeed; a `false` return means rolled back - treat it as a rejected mutation ([oxmysql transaction](https://overextended.dev/docs/oxmysql/Functions/transaction)). `?` placeholders are mandatory; see Database And Persistence and `skills/common/database.md`.
+- Every `.await` is a yield. After it resumes, re-validate the player before applying RAM state: FXServer recycles server IDs, so a `source` captured before the yield can point at a *different* player after a drop + reconnect. Compare a pre-yield identifier against the current one, never just the source number. See `skills/common/runtime.md` -> The `source` Variable.
 - The `UPDATE ... AND money >= ?` conditional acts as a server-side lock: if two buy requests race, only the one that still satisfies the balance commits.
 
 ### Give-value event checklist
@@ -448,6 +411,10 @@ AddEventHandler("explosionEvent", function(sender, ev)
     if ev.damageScale > 1.0 then                          -- server rule, not the client's claim
         CancelEvent()
     end
+end)
+
+AddEventHandler("playerDropped", function()
+    lastExplosion[source] = nil                           -- per-player tables always clean up on drop
 end)
 ```
 

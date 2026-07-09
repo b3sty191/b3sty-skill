@@ -85,6 +85,47 @@ def check_backticked_paths(markdown_path: Path, failures: list[str]) -> None:
             fail(f"{relative} references missing path: {normalized}", failures)
 
 
+SECTION_REF = re.compile(r"`((?:skills|memory|references)/[^`]+\.md)` -> ([^\n]+)")
+_HEADING_CACHE: dict[Path, set[str]] = {}
+
+
+def _headings(path: Path) -> set[str]:
+    if path not in _HEADING_CACHE:
+        _HEADING_CACHE[path] = {
+            line.lstrip("#").strip()
+            for line in read_text(path).splitlines()
+            if line.startswith("#")
+        }
+    return _HEADING_CACHE[path]
+
+
+def check_section_references(markdown_path: Path, failures: list[str]) -> None:
+    """Validate `path.md` -> Section cross-references against real headings.
+
+    Section names may be followed by prose ("... for the full rules") or list
+    several sections; only the first section is validated, using the longest
+    word-prefix that matches a heading in the target file.
+    """
+    text = read_text(markdown_path)
+    for match in SECTION_REF.finditer(text):
+        target = ROOT / match.group(1)
+        if not target.exists():
+            continue  # reported by check_backticked_paths
+
+        headings = _headings(target)
+        words = match.group(2).strip().split(" ")
+        if not any(
+            " ".join(words[:end]).rstrip(",.;:)") in headings
+            for end in range(len(words), 0, -1)
+        ):
+            relative = markdown_path.relative_to(ROOT).as_posix()
+            shown = " ".join(words[:8])
+            fail(
+                f"{relative} references missing section: {match.group(1)} -> {shown}",
+                failures,
+            )
+
+
 def check_openai_yaml(failures: list[str]) -> None:
     text = read_text(ROOT / "agents/openai.yaml")
     if "display_name:" not in text:
@@ -134,6 +175,7 @@ def main() -> int:
     ]
     for markdown_path in cross_link_files:
         check_backticked_paths(markdown_path, failures)
+        check_section_references(markdown_path, failures)
 
     if failures:
         print("b3sty-skill validation failed:")

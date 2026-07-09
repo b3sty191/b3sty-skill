@@ -36,7 +36,7 @@ These are the mechanics every RedM/FiveM Lua author hits. Native call mechanics 
       -- safe to Wait / await here; `source` is now a stable local
   end)
   ```
-- After a yield, the implicit `source` can be stale/invalid. Re-validate with `GetPlayer(source)`, `DoesPlayerExist`, or `source` bounds after yielding before mutating state.
+- After a yield, the captured `source` can be stale: the player may have dropped, and FXServer recycles server IDs, so the same number can already belong to a **different** player. Re-validate after yielding (`DoesPlayerExist(source)`, or the framework's `GetPlayer(source)`), and for valuable mutations compare an identifier captured before the yield (e.g. `license`) against the current one before applying.
 - Never accept a `source` value from a client payload as identity. Real `source` comes from the runtime, not the data. See Players And Identifiers.
 
 ## Exports And Stale References
@@ -57,7 +57,8 @@ These are the mechanics every RedM/FiveM Lua author hits. Native call mechanics 
 - `license:` (the player's Rockstar/Cfx license) is the usual stable primary key across sessions. Pick one identifier scheme and keep it server-side.
 - Identity is only reliable server-side. Never trust an identifier sent by the client in an event payload; identity comes from `GetPlayerIdentifiers(source)` on the server, keyed by the runtime `source`. Do not trust a single identifier type in isolation - `ip` is weak (shared NAT, rotates), so ban/whitelist on the strongest available identifier (commonly `license`).
 - Run ban/whitelist and auth checks during `playerConnecting` using the `deferrals` API (`defer`, `update`, `done` called exactly once) for async DB/license lookups, not after the player is in-game. Tune trust with `sv_authMinTrust` (1-5, spoof-resistance) and `sv_authMaxVariance` (1-5, stability per provider). ([Server Commands](https://docs.fivem.net/docs/server-manual/server-commands/))
-- `GetPlayer(source)`, `GetPlayerName(source)`, `GetPlayerPed(source)`, `GetPlayerPing(source)` read server-side player state. `GetPlayers()` returns connected sources (also see the player state bag API in `skills/common/resource-structure.md`).
+- `GetPlayerName(source)`, `GetPlayerPed(source)`, `GetPlayerPing(source)` read server-side player state; `DoesPlayerExist(source)` checks existence, and `GetPlayers()` returns connected sources (also see the player state bag API in `skills/common/resource-structure.md`). `GetPlayer(...)` is a framework function (ESX/QBCore/VORP style), not a CFX native - do not use it as an existence check in framework-free code.
+- Do not use `GetPlayerIdentifiers(source)` as an existence check; it returns a table (truthy even when empty) for invalid IDs. Use `GetPlayerName`/`DoesPlayerExist`.
 - Validate `source` is a real connected player before using it (`source > 0` and the player exists), especially after a yield.
 - See `skills/common/security-performance.md` -> Identifier Trust for the full trust rules.
 
