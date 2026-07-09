@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import sys
 from pathlib import Path
@@ -42,6 +43,7 @@ REQUIRED_PATHS = [
     "references/natives/redm-rdr3-natives.md",
     "references/server.cfg.example",
     ".github/workflows/validate.yml",
+    ".claude-plugin/marketplace.json",
 ]
 
 
@@ -138,6 +140,25 @@ def check_openai_yaml(failures: list[str]) -> None:
         fail("agents/openai.yaml default_prompt must mention $b3sty-skill", failures)
 
 
+def check_marketplace_json(failures: list[str]) -> None:
+    path = ROOT / ".claude-plugin/marketplace.json"
+    if not path.exists():
+        return  # reported by check_required_paths
+    try:
+        data = json.loads(read_text(path))
+    except json.JSONDecodeError as exc:
+        fail(f".claude-plugin/marketplace.json is not valid JSON: {exc}", failures)
+        return
+
+    if not data.get("name"):
+        fail(".claude-plugin/marketplace.json is missing name", failures)
+    if not (data.get("owner") or {}).get("name"):
+        fail(".claude-plugin/marketplace.json is missing owner.name", failures)
+    plugins = data.get("plugins") or []
+    if not any(p.get("name") == "b3sty-skill" for p in plugins):
+        fail(".claude-plugin/marketplace.json must define the b3sty-skill plugin", failures)
+
+
 def check_memory_readmes(failures: list[str]) -> None:
     for relative in ["memory/common/README.md", "memory/fivem/README.md", "memory/redm/README.md"]:
         text = read_text(ROOT / relative)
@@ -159,6 +180,7 @@ def main() -> int:
     check_required_paths(failures)
     check_skill_frontmatter(skill_text, failures)
     check_openai_yaml(failures)
+    check_marketplace_json(failures)
     check_memory_readmes(failures)
     check_reference_toc(failures)
 

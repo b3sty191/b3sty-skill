@@ -1,0 +1,13 @@
+{
+    "name": "b3sty",
+    "owner": { "name": "b3sty" },
+    "plugins": [
+        {
+            "name": "b3sty-skill",
+            "source": "./",
+            "description": "b3sty rules for RedM/FiveM Lua resources: server-authority security, event hardening, natives, NUI, OxMySQL persistence, performance, and cleanup.",
+            "skills": ["./"],
+            "strict": false
+        }
+    ]
+}

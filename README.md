@@ -8,16 +8,39 @@ Reusable rules and working memory for b3sty RedM/FiveM Lua development.
 
 `SKILL.md` is the skill manifest. It works as a first-class skill in **Claude Code**, **OpenAI Codex**, and on **skills.sh**. Pick your platform.
 
-### Claude Code
+### Claude Code - plugin (easiest)
 
-Claude Code discovers skills from a `SKILL.md` placed in a skills directory. Clone or copy this repo so that `SKILL.md` lands at:
+Run these two commands inside Claude Code:
 
 ```text
-~/.claude/skills/b3sty-skill/SKILL.md        (personal, all projects)
-.claude/skills/b3sty-skill/SKILL.md           (project-local)
+/plugin marketplace add b3sty191/b3sty-skill
+/plugin install b3sty-skill@b3sty
 ```
 
-On Windows the personal path is `C:\Users\<you>\.claude\skills\b3sty-skill\`. Restart Claude Code (or open a new session) so the skill is loaded, then verify it appears in your skills list. The only required frontmatter is `name: b3sty-skill` and `description: ...`, which this repo already provides - no separate Claude Code config file is needed.
+Done - the skill auto-triggers on RedM/FiveM Lua work. Manage or update it later from the `/plugin` menu.
+
+### Claude Code - git clone
+
+Clone straight into a skills directory (personal, all projects):
+
+```bash
+# macOS / Linux
+git clone https://github.com/b3sty191/b3sty-skill.git ~/.claude/skills/b3sty-skill
+
+# Windows (PowerShell)
+git clone https://github.com/b3sty191/b3sty-skill.git "$env:USERPROFILE\.claude\skills\b3sty-skill"
+
+# project-local (this project only)
+git clone https://github.com/b3sty191/b3sty-skill.git .claude/skills/b3sty-skill
+```
+
+Restart Claude Code (or open a new session) so the skill is loaded. Update any time with:
+
+```bash
+git -C ~/.claude/skills/b3sty-skill pull
+```
+
+Clone rather than copy: a copied snapshot goes stale silently and misses security fixes, while a clone updates with one `git pull`.
 
 Use it by asking Claude Code to work on b3sty RedM/FiveM Lua resources (it auto-triggers from the description), or invoke it directly:
 
@@ -83,6 +106,7 @@ These files are generated lookup references and are intentionally kept outside `
 ## Agent Configs
 
 - **Claude Code** - uses `SKILL.md` directly as the skill manifest (frontmatter `name` + `description`); no separate config file.
+- `.claude-plugin/marketplace.json` - Claude Code plugin marketplace manifest for `/plugin` install.
 - `agents/openai.yaml` - OpenAI Codex agent configuration; points Codex to `SKILL.md` and `AGENTS.md`.
 - `skills.sh.json` - skills.sh grouping/visibility.
 
