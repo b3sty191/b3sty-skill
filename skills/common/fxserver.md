@@ -39,6 +39,7 @@
 
 ## Server Config
 
+- A security hardening baseline for `server.cfg` is in `references/server.cfg.example`; the rules behind it are in `skills/common/security-performance.md` -> Server Hardening And Operations.
 - Prefer `setr sv_stateBagStrictMode true` when the target artifact supports it.
 - With strict state bag mode enabled, only the server can modify networked entity state and player state.
 - Client-side non-replicated entities are not affected, but they must not be treated as authoritative replicated state.

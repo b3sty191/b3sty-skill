@@ -134,6 +134,7 @@ These are large generated lookup files. Open only the matching file when verifyi
 
 - `references/natives/fivem-gta5-natives.md` - GTA V / FiveM native reference.
 - `references/natives/redm-rdr3-natives.md` - RDR3 / RedM native reference.
+- `references/server.cfg.example` - copyable server hardening baseline (open when setting up or reviewing `server.cfg`).
 
 ## Memory
 

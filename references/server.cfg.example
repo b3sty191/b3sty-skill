@@ -1,0 +1,31 @@
+# b3sty server.cfg hardening baseline.
+# Merge into your server.cfg and adjust per server; the rules behind every line
+# are in skills/common/security-performance.md -> Server Hardening And Operations.
+# Convar reference: https://docs.fivem.net/docs/server-manual/server-commands/
+
+## Core
+set onesync on                              # required for entityCreating gates, ownership, routing buckets
+# sv_enforceGameBuild 3407                  # pick your build (RedM: 1491); startup-only
+
+## Anti-cheat / client integrity
+sv_scriptHookAllowed 0                      # keep ScriptHook-style client plugins blocked
+sv_pureLevel 1                              # reject modified client files; 2 = strictest (FiveM; verify RedM support before relying on it)
+sv_requestParanoia 1                        # stricter client request handling; raise gradually, watch for false kicks
+sv_filterRequestControl 4                   # do not route REQUEST_CONTROL_EVENT (entity hijack/explosion-by-proxy vector)
+sv_enableNetworkedPhoneExplosions false
+sv_enableNetworkedSounds false
+sv_enableNetworkedScriptEntityStates false
+setr sv_stateBagStrictMode true             # audit resources first: client replicated state bag writes stop working
+
+## Identity / connection
+sv_authMinTrust 5                           # 1-5, spoof resistance required from identity providers
+sv_authMaxVariance 1                        # 1-5, identifier stability required
+sv_endpointPrivacy true                     # hide player IPs from other clients
+
+## Exposure
+# sv_master1 ""                             # uncomment to delist a private server
+# rcon stays disabled by leaving rcon_password unset; if you must use it, long unique password
+
+## Secrets - real values live only in secrets.cfg (gitignored), never here.
+# secrets.cfg holds: sv_licenseKey, set mysql_connection_string, set steam_webApiKey, webhook URLs (set, never setr/sets)
+exec secrets.cfg

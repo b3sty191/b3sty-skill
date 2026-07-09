@@ -528,7 +528,7 @@ end)
 
 ## Server Hardening And Operations
 
-Resource-level validation cannot compensate for a soft server platform. These are `server.cfg`/operator-level controls; they complement, never replace, the per-event rules above. ([Server Commands](https://docs.fivem.net/docs/server-manual/server-commands/))
+Resource-level validation cannot compensate for a soft server platform. These are `server.cfg`/operator-level controls; they complement, never replace, the per-event rules above. A copyable baseline lives in `references/server.cfg.example`. ([Server Commands](https://docs.fivem.net/docs/server-manual/server-commands/))
 
 ### Convar checklist
 

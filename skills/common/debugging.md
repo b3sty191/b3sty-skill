@@ -85,7 +85,11 @@ Use this file when diagnosing RedM/FiveM resource failures, crashes, bad state, 
 
 ## Performance Debugging
 
-- Find the hot path before optimizing.
+- Find the hot path before optimizing - measure, do not guess:
+  - `resmon 1` in the client F8 console shows per-resource frame time (ms) and memory; a resource idling above ~0.10ms or spiking on interaction is the place to look. Recent server artifacts support `resmon` in the server console too.
+  - `profiler record 500` then `profiler view` (client F8 or server console) captures a tick-level trace of every resource; `profiler saveJSON <file>` exports it for `chrome://tracing` / Perfetto when the in-game view is not enough.
+  - txAdmin's performance chart shows server tick-time trends over hours - use it to catch slow leaks and load-correlated stalls that a live snapshot misses.
+- Measure once before changing anything and once after; an optimization that does not move the number gets reverted.
 - Look for `Wait(0)` loops, repeated natives, table scans, repeated config requires, N+1 SQL, and spammy NUI messages.
 - Increase waits based on distance/active state before adding complex caches.
 - Cache only values that are expensive or hot enough to justify ownership and cleanup.
