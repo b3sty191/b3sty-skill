@@ -31,9 +31,24 @@ Use this file when a RedM/FiveM resource reads or writes SQL, owns persisted pla
 - Never build SQL by concatenating player input, NUI input, item names, identifiers, job names, or config keys.
 - Validate and normalize values before passing them as query parameters.
 - Keep dynamic table/column names out of public input. If dynamic names are unavoidable, choose from a server-side allowlist.
-- Prefer `?` placeholders for ordinary OxMySQL queries.
+- Prefer `?` placeholders for ordinary OxMySQL queries. Named placeholders (`@name`) are supported too (require the resource's `namedPlaceholders` setting). ([oxmysql](https://overextended.dev/docs/oxmysql))
 - Backtick fixed table and column names when they may conflict with reserved words.
 - Check affected row counts for updates that are expected to mutate exactly one row.
+
+### SQL Injection
+
+A bound parameter is treated as data, never as SQL. A concatenated string lets one quote break out. ([oxmysql](https://overextended.dev/docs/oxmysql), [Secure your events](https://docs.fivem.net/docs/developers/server-security/))
+
+```lua
+-- BAD: item is spliced into the query; a value like  x'; DROP TABLE logs;--  runs arbitrary SQL
+MySQL.query("INSERT INTO logs (item) VALUES ('" .. item .. "')")
+
+-- GOOD: the ? placeholder is bound by the engine; item is data
+MySQL.insert.await("INSERT INTO logs (item) VALUES (?)", { item })
+```
+
+- Bind every value. For a dynamic identifier (table/column name) choose from a server-side allowlist and interpolate only the allowlisted constant - never the raw input.
+- Wrap multi-step valuable writes (debit + grant) in one `MySQL.transaction.await({ ... })` so they commit together or roll back together ([oxmysql transaction](https://overextended.dev/docs/oxmysql/Functions/transaction)). See `skills/common/security-performance.md` -> Database And Persistence and Give-Value Event Hardening for the race-safe pattern.
 
 ## OxMySQL API Shape
 

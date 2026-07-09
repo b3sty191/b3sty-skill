@@ -6,19 +6,34 @@ Reusable rules and working memory for b3sty RedM/FiveM Lua development.
 
 ## Install
 
+`SKILL.md` is the skill manifest. It works as a first-class skill in **Claude Code**, **OpenAI Codex**, and on **skills.sh**. Pick your platform.
+
+### Claude Code
+
+Claude Code discovers skills from a `SKILL.md` placed in a skills directory. Clone or copy this repo so that `SKILL.md` lands at:
+
+```text
+~/.claude/skills/b3sty-skill/SKILL.md        (personal, all projects)
+.claude/skills/b3sty-skill/SKILL.md           (project-local)
+```
+
+On Windows the personal path is `C:\Users\<you>\.claude\skills\b3sty-skill\`. Restart Claude Code (or open a new session) so the skill is loaded, then verify it appears in your skills list. The only required frontmatter is `name: b3sty-skill` and `description: ...`, which this repo already provides - no separate Claude Code config file is needed.
+
+Use it by asking Claude Code to work on b3sty RedM/FiveM Lua resources (it auto-triggers from the description), or invoke it directly:
+
+```text
+Use the b3sty-skill skill to implement or review this FiveM resource for server authority, events, natives, persistence, cleanup, and performance.
+```
+
+### OpenAI Codex
+
 Ask Codex to install this skill from GitHub:
 
 ```text
 Use $skill-installer to install from repo b3sty191/b3sty-skill path . with name b3sty-skill
 ```
 
-Then restart Codex so the new skill is loaded.
-
-After restart, use it by asking Codex to work on b3sty RedM/FiveM Lua resources, or invoke it explicitly:
-
-```text
-Use $b3sty-skill to implement or review this FiveM resource for server authority, events, natives, persistence, cleanup, and performance.
-```
+Then restart Codex so the new skill is loaded, and invoke it with `$b3sty-skill`.
 
 ### Private Repo Install
 
@@ -43,7 +58,10 @@ If this repository is private, the installer needs existing GitHub credentials o
 - `skills/common/native-rules.md` - native call policy: safety, caching, wrappers.
 - `skills/common/native-usage.md` - calling natives from Lua: doc-entry translation, `Citizen.InvokeNative`, marshalling, RDR3 struct natives, build gates.
 - `skills/common/resource-structure.md` - shared resource structure, events, state, and cleanup shape.
-- `skills/common/security-performance.md` - server validation, anti-spam, optimization, persistence, and cleanup rules.
+- `skills/common/networking.md` - OneSync, net IDs vs handles, entity ownership, routing buckets, scoped vs broadcast messages, player scope, entity lifecycle events, and built-in client events.
+- `skills/common/nui.md` - in-game browser UI (NUI): Lua<->browser bridge, focus, JSON contracts, validation, frontend hygiene, performance, and security.
+- `skills/common/runtime.md` - threads/waits, the `source` variable, exports and stale references, identifiers, convars, resource lifecycle, yield hazards, and game builds.
+- `skills/common/security-performance.md` - client-hostile/server-authoritative security: event trust boundary, give-value (give-item/give-money) hardening, ACE permissions, built-in client event exploits, SQL injection, secrets/convars, identifier trust, throttles, persistence, cleanup, and the security review checklist.
 - `skills/common/database.md` - SQL, OxMySQL/mysql-async, migrations, transactions, and persistence rules.
 - `skills/common/debugging.md` - reproducible debugging flow for resource, native, NUI, DB, and performance failures.
 - `skills/common/ox-lib.md` - ox_lib usage rules when the project already depends on ox_lib or explicitly accepts it.
@@ -64,7 +82,9 @@ These files are generated lookup references and are intentionally kept outside `
 
 ## Agent Configs
 
+- **Claude Code** - uses `SKILL.md` directly as the skill manifest (frontmatter `name` + `description`); no separate config file.
 - `agents/openai.yaml` - OpenAI Codex agent configuration; points Codex to `SKILL.md` and `AGENTS.md`.
+- `skills.sh.json` - skills.sh grouping/visibility.
 
 ## Maintenance
 

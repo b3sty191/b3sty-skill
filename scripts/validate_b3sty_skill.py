@@ -20,6 +20,9 @@ REQUIRED_PATHS = [
     "skills/common/native-usage.md",
     "skills/common/resource-structure.md",
     "skills/common/security-performance.md",
+    "skills/common/networking.md",
+    "skills/common/nui.md",
+    "skills/common/runtime.md",
     "skills/common/database.md",
     "skills/common/debugging.md",
     "skills/common/ox-lib.md",
@@ -116,8 +119,21 @@ def main() -> int:
     check_memory_readmes(failures)
     check_reference_toc(failures)
 
-    for relative in ["SKILL.md", "README.md", "AGENTS.md"]:
-        check_backticked_paths(ROOT / relative, failures)
+    # Validate cross-links (backticked skill/memory/references paths) everywhere
+    # rules live, not only the top-level entry points. Skip the large generated
+    # native reference dumps; they are searched with rg, not cross-linked.
+    generated_natives = {
+        ROOT / "references" / "natives" / "fivem-gta5-natives.md",
+        ROOT / "references" / "natives" / "redm-rdr3-natives.md",
+    }
+    cross_link_files = [ROOT / "SKILL.md", ROOT / "README.md", ROOT / "AGENTS.md"]
+    cross_link_files += sorted((ROOT / "skills").rglob("*.md"))
+    cross_link_files += sorted((ROOT / "memory").rglob("*.md"))
+    cross_link_files += [
+        path for path in (ROOT / "references").rglob("*.md") if path not in generated_natives
+    ]
+    for markdown_path in cross_link_files:
+        check_backticked_paths(markdown_path, failures)
 
     if failures:
         print("b3sty-skill validation failed:")

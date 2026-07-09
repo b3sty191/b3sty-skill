@@ -28,6 +28,8 @@
 - Do not include or require split config modules unless the current runtime/script needs them.
 - Use addon globs such as `addons/**/*client*.lua` and `addons/**/*server*.lua` when the resource is intentionally extensible.
 - Keep config files included in `files` when clients need to access them.
+- For in-game browser UI, declare `ui_page` and list every browser asset in `files`; full bridge mechanics (focus, callbacks, message contracts) are in `skills/common/nui.md`.
+- Resource load order and `ensure`/`start` semantics are in `skills/common/runtime.md` -> Resource Lifecycle and `skills/common/multi-resource.md` -> Dependencies And Load Order.
 
 ## Server Logic
 

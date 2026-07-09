@@ -1,6 +1,6 @@
 ---
 name: b3sty-skill
-description: b3sty rules for implementing, reviewing, debugging, refactoring, or optimizing RedM/FiveM Lua resources. Use for FXServer manifests, client/server Lua, natives/entities, native invocation from docs (hashes, InvokeNative, marshalling, RDR3 structs), events/callbacks/exports/NUI, server validation, throttles/cooldowns, state bags, config splitting, ox_lib, SQL/OxMySQL persistence, multi-resource integration, performance, cleanup, and learned memory updates.
+description: b3sty rules for implementing, reviewing, debugging, refactoring, or optimizing RedM/FiveM Lua resources. Use for FXServer manifests, client/server Lua, natives/entities, native invocation from docs (hashes, InvokeNative, marshalling, RDR3 structs), events/callbacks/exports/NUI, NUI/browser-UI bridge (SendNUIMessage, RegisterNUICallback, SetNuiFocus), OneSync/entity networking (net IDs, ownership, routing buckets, broadcasts), built-in client events (weaponDamageEvent, explosionEvent), anti-cheat/event-security hardening (give-item/give-money dupe prevention, RegisterNetEvent trust boundary, ACE permissions, SQL injection, secrets/convars, identifier trust), server validation, throttles/cooldowns, state bags, CFX runtime gotchas (threads, source, exports, identifiers, convars, game builds), config splitting, ox_lib, SQL/OxMySQL persistence, multi-resource integration, performance, cleanup, and learned memory updates.
 ---
 
 # b3sty Skill
@@ -21,6 +21,10 @@ Use this skill when working on b3sty RedM/FiveM resources or related Lua code. T
 
 - Start with `skills/common/fxserver.md` when the manifest, load order, dependency list, UI files, or resource layout changes.
 - Start with `skills/common/security-performance.md` for any server event, callback, command, export, NUI callback, state sync, database mutation, reward, item, money, permission, cooldown, or hot loop.
+- Add `skills/common/security-performance.md` -> Event Trust Boundary, Give-Value Event Hardening, ACE Permissions, Built-in Client Events, Config/Convars/Secrets, and Identifier Trust for shop/inventory/give-item/economy event hardening, anti-cheat, admin/ACE gating, secrets, SQL injection, and the give-value checklist.
+- Add `skills/common/networking.md` when the feature creates networked entities, relies on entity ownership, uses routing buckets/instances, broadcasts to clients, reacts to player scope, or handles built-in client events (`weaponDamageEvent`, `startProjectileEvent`, `ptFxEvent`, and the rest).
+- Add `skills/common/nui.md` when the resource has an in-game browser UI (HTML/CSS/JS, React/Svelte/Vue), `SendNUIMessage`, `RegisterNUICallback`, `SetNuiFocus`, or a `ui_page` in the manifest.
+- Add `skills/common/runtime.md` for threads/waits, the `source` variable, exports and stale references, identifiers, convars, resource lifecycle, yield hazards, or game-build gating.
 - Add `skills/common/database.md` when SQL, OxMySQL/mysql-async, schema, transactions, migrations, dirty saves, or persisted state is involved.
 - Add `skills/common/native-rules.md` and the matching game rules when code calls natives, handles entities, weapons, ammo, vehicles, horses, peds, blips, props, or routing buckets.
 - Add `skills/common/native-usage.md` when translating a native reference entry into a Lua call, invoking by hash with `Citizen.InvokeNative`, handling out-pointer params, packing RDR3 struct arguments, or gating natives by game build.
@@ -57,6 +61,8 @@ Apply these on every b3sty Lua task unless the task says otherwise.
 - Every custom event uses `resource_name:server:action` or `resource_name:client:action`.
 - The server is the source of truth for money, items, jobs, permissions, ownership, rewards, cooldowns, and saved state.
 - Treat public server events, callbacks, commands, and exports as untrusted input; validate payloads and permissions server-side.
+- Capture `local source = source` at the top of every server handler before any yield; re-validate it after. Full mechanics in `skills/common/runtime.md`.
+- Built-in client events (`weaponDamageEvent`, `startProjectileEvent`, `ptFxEvent`, and the rest) are client-callable; validate them like any `:server:` event. Full list in `skills/common/networking.md`.
 
 ### CfxLua
 
@@ -76,11 +82,24 @@ Apply these on every b3sty Lua task unless the task says otherwise.
 - Small/shared config in `config.lua`; large datasets split into `configs/*.lua`, each returning a table.
 - Require a split config only in the script that uses it; no eager aggregators.
 
+### NUI
+
+- NUI is client-local UX, never authority. Treat `RegisterNUICallback` payloads as untrusted and forward valuable actions through validated `:server:` events.
+- Clear NUI focus (`SetNuiFocus(false, false)`) on UI close, player drop, and resource stop; call each callback's `cb` exactly once.
+- Full bridge mechanics (manifest, `SendNUIMessage`, fetch helper, focus, contracts): `skills/common/nui.md`.
+
+### Networking
+
+- Validate client-provided entity handles and net IDs (existence, type, model, owner, routing bucket, distance) before trusting them.
+- Avoid `TriggerClientEvent(name, -1)` broadcasts; scope to one player or a small recipient set, and prefer state bags for replicated visible state.
+- Full OneSync mechanics (ownership, routing buckets, scope, built-in client events): `skills/common/networking.md`.
+
 ### Performance & Cleanup
 
 - Render cosmetic/attached/preview props locally from server-owned state; use networked props only for shared gameplay entities.
 - Cache hot lookups in locals; build reverse indexes (`Items["INDEX"][name]`) for repeated searches.
 - No `Wait(0)` unless frame-level work is required; stage waits by distance/activeness.
+- Avoid load-time caching of export results that can go stale when the provider resource restarts. Full mechanics in `skills/common/runtime.md`.
 - Clean up entities, blips, zones, timers, callbacks, throttles, and caches on player drop / resource stop. Guard entity cleanup with `DoesEntityExist`.
 
 ## Reference Files
@@ -94,6 +113,9 @@ Open lazily by task - do not preload all of them.
 - `skills/common/native-rules.md` - when calling natives, handling entities/ammo, or debugging native behavior.
 - `skills/common/native-usage.md` - when turning a native reference entry into a Lua call: name conversion, `Citizen.InvokeNative`, result/pointer marshalling, RDR3 struct natives, build gates, confidence policy.
 - `skills/common/resource-structure.md` - shared client/server/config/event/state structure.
+- `skills/common/networking.md` - OneSync, net IDs vs handles, entity ownership, routing buckets, scoped vs broadcast messages, player scope, entity lifecycle events, and built-in client events (`weaponDamageEvent` and friends).
+- `skills/common/nui.md` - in-game browser UI (NUI): Lua<->browser bridge, `SendNUIMessage`, `RegisterNUICallback`, focus, JSON contracts, validation, frontend hygiene, performance, and security.
+- `skills/common/runtime.md` - threads/waits, the `source` variable, exports and stale references, identifiers, convars, resource lifecycle, yield hazards, and game builds.
 - `skills/common/security-performance.md` - when writing `:server:` events, callbacks, sync, DB writes, or hot loops.
 - `skills/common/database.md` - when writing SQL, OxMySQL/mysql-async persistence, migrations, transactions, or saved state.
 - `skills/common/debugging.md` - when diagnosing resource failures, traces, client/server/NUI issues, DB issues, load order, or performance bugs.
