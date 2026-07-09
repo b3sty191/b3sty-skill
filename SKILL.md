@@ -1,6 +1,6 @@
 ---
 name: b3sty-skill
-description: b3sty rules for implementing, reviewing, debugging, refactoring, or optimizing RedM/FiveM Lua resources. Use for FXServer manifests, client/server Lua, natives/entities, native invocation from docs (hashes, InvokeNative, marshalling, RDR3 structs), events/callbacks/exports/NUI, NUI/browser-UI bridge (SendNUIMessage, RegisterNUICallback, SetNuiFocus), OneSync/entity networking (net IDs, ownership, routing buckets, broadcasts), built-in client events (weaponDamageEvent, explosionEvent), anti-cheat/event-security hardening (give-item/give-money dupe prevention, RegisterNetEvent trust boundary, ACE permissions, SQL injection, secrets/convars, identifier trust), server validation, throttles/cooldowns, state bags, CFX runtime gotchas (threads, source, exports, identifiers, convars, game builds), config splitting, ox_lib, SQL/OxMySQL persistence, multi-resource integration, performance, cleanup, and learned memory updates.
+description: b3sty rules for implementing, reviewing, debugging, refactoring, or optimizing RedM/FiveM Lua resources. Use for FXServer manifests, client/server Lua, natives/entities, native invocation from docs (hashes, InvokeNative, marshalling, RDR3 structs), events/callbacks/exports/NUI, NUI/browser-UI bridge (SendNUIMessage, RegisterNUICallback, SetNuiFocus), NUI XSS/player-string rendering, OneSync/entity networking (net IDs, ownership, routing buckets, broadcasts), built-in client events (weaponDamageEvent, explosionEvent), anti-cheat/event-security hardening (give-item/give-money dupe prevention, RegisterNetEvent trust boundary, ACE permissions, SQL injection, secrets/convars, identifier trust, payload size/depth bounds, economy audit trails), SetHttpHandler endpoint hardening, server convar hardening (sv_pureLevel, sv_scriptHookAllowed, sv_requestParanoia, rcon, endpoint privacy) and third-party resource vetting, server validation, throttles/cooldowns, state bags, CFX runtime gotchas (threads, source, exports, identifiers, convars, game builds), config splitting, ox_lib, SQL/OxMySQL persistence, multi-resource integration, performance, cleanup, and learned memory updates.
 ---
 
 # b3sty Skill
@@ -21,7 +21,7 @@ Use this skill when working on b3sty RedM/FiveM resources or related Lua code. T
 
 - Start with `skills/common/fxserver.md` when the manifest, load order, dependency list, UI files, or resource layout changes.
 - Start with `skills/common/security-performance.md` for any server event, callback, command, export, NUI callback, state sync, database mutation, reward, item, money, permission, cooldown, or hot loop.
-- Add `skills/common/security-performance.md` -> Event Trust Boundary, Give-Value Event Hardening, ACE Permissions, Built-in Client Events, Config/Convars/Secrets, and Identifier Trust for shop/inventory/give-item/economy event hardening, anti-cheat, admin/ACE gating, secrets, SQL injection, and the give-value checklist.
+- Add `skills/common/security-performance.md` -> Event Trust Boundary, Give-Value Event Hardening, ACE Permissions, Built-in Client Events, Config/Convars/Secrets, Identifier Trust, and Server Hardening And Operations for shop/inventory/give-item/economy event hardening, anti-cheat, admin/ACE gating, secrets, SQL injection, the give-value checklist, SetHttpHandler endpoints, hardening convars, and third-party resource vetting.
 - Add `skills/common/networking.md` when the feature creates networked entities, relies on entity ownership, uses routing buckets/instances, broadcasts to clients, reacts to player scope, or handles built-in client events (`weaponDamageEvent`, `startProjectileEvent`, `ptFxEvent`, and the rest).
 - Add `skills/common/nui.md` when the resource has an in-game browser UI (HTML/CSS/JS, React/Svelte/Vue), `SendNUIMessage`, `RegisterNUICallback`, `SetNuiFocus`, or a `ui_page` in the manifest.
 - Add `skills/common/runtime.md` for threads/waits, the `source` variable, exports and stale references, identifiers, convars, resource lifecycle, yield hazards, or game-build gating.
@@ -85,6 +85,7 @@ Apply these on every b3sty Lua task unless the task says otherwise.
 ### NUI
 
 - NUI is client-local UX, never authority. Treat `RegisterNUICallback` payloads as untrusted and forward valuable actions through validated `:server:` events.
+- Render any string another player can influence (names, chat, labels) as text - never through `innerHTML`/`{@html}`/`v-html`. XSS in CEF can drive every NUI callback as the victim.
 - Clear NUI focus (`SetNuiFocus(false, false)`) on UI close, player drop, and resource stop; call each callback's `cb` exactly once.
 - Full bridge mechanics (manifest, `SendNUIMessage`, fetch helper, focus, contracts): `skills/common/nui.md`.
 

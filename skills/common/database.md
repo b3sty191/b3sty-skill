@@ -9,6 +9,7 @@ Use this file when a RedM/FiveM resource reads or writes SQL, owns persisted pla
 - Do not add a database dependency to a resource that can stay config-only or framework-state-only.
 - Keep query code close to the feature unless the same query is reused enough to justify a small helper.
 - Validate public event, callback, command, export, and NUI input before it reaches SQL.
+- Run the game database as a dedicated user with grants limited to the game schema (no `SUPER`/`FILE`/`GRANT`, never root), reachable only from the server host or a private network. See `skills/common/security-performance.md` -> Server Hardening And Operations.
 - Use `skills/common/security-performance.md` with this file for event validation, throttles, replay protection, and dirty saves.
 
 ## Manifest And Startup

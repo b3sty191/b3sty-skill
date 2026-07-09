@@ -137,6 +137,11 @@ end)
 ## Security
 
 - NUI is client-local and client-editable. It is display and UX, not authority.
+- **XSS**: any string another player can influence (player names, chat, notes, item labels, shop names) is an XSS payload candidate crossing from an attacker to a victim's screen. Render it as text - framework text interpolation (React/Svelte/Vue `{value}`) escapes safely; `innerHTML`, `insertAdjacentHTML`, `document.write`, `{@html}`, and `v-html` are the sinks that execute it. Never feed player-controlled data to a raw-HTML sink; if rich text is unavoidable, sanitize with a vetted library and a strict allowlist.
+- XSS inside CEF is not "just UI": injected script can call every `RegisterNUICallback` and trigger anything the UI can - as the victim player. Treat a rendering sink as full compromise of that player's client-side surface.
+- Validate the scheme of any dynamic `href`/`src` (`https:`/`nui:` only); a `javascript:` URL executes on click. Build `nui://` asset paths from a restricted character set so a crafted name cannot traverse (`../`) out of the intended folder.
+- Bound the length of player-controlled strings before rendering so one giant value cannot freeze or break the HUD.
+- Ship all JS/CSS in the local bundle; never load remote scripts at runtime - a compromised CDN becomes code inside every player's NUI. Remote image URLs from data are a tracking/bandwidth vector: allowlist hosts or proxy them, with an `onerror` fallback.
 - Never round-trip authority through NUI. The UI must not decide money, items, permissions, or access; it only requests them. A `cb({ ok = true })` is a display signal, not a grant.
 - Never grant money/items/permissions directly from a NUI response. Grants happen server-side.
 - Never send webhook URLs, API tokens, server secrets, admin flags, hidden reward logic, or full economy data to the UI.
@@ -169,3 +174,5 @@ end)
 - Are all UI files listed in `files`, and is `ui_page` correct?
 - Are messages sent on change, not every frame?
 - Is anything secret or authoritative leaking into the UI payload?
+- Does any player-controlled string reach a raw-HTML sink (`innerHTML`, `{@html}`, `v-html`) or a dynamic `href`/`src` without scheme validation?
+- Is every script/style shipped locally in the bundle, with no runtime remote loads?

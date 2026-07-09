@@ -27,6 +27,7 @@ Use these rules for RedM/FiveM resources where player input, server state, entit
 - Identifier Trust
 - Abuse Handling
 - Logging And Secrets
+- Server Hardening And Operations
 - Performance Rules
 - Cleanup
 - Anti-Overengineering
@@ -85,6 +86,10 @@ end)
 - Reject `NaN`, negative values, empty strings, invalid keys, unknown items, unknown jobs, unknown weapons, and unknown config names.
 - Check requested item/action names against server-side config or indexes.
 - Never trust client-provided price, reward amount, inventory count, permission group, job, target ownership, or cooldown state.
+- Bound every client string (`#s <= N` length cap) before comparing, storing, logging, or writing it to the database.
+- A hostile client can send huge or deeply nested tables (msgpack allows it). Cap key count and nesting depth before iterating, `json.encode`-ing, forwarding, or storing a payload table; reject oversized payloads, do not truncate them silently.
+- Wrap `json.decode` of client-supplied strings in `pcall` and treat a decode failure as hostile input.
+- Reject unexpected types instead of coercing them: a table where a string was expected ends the handler, it does not get `tostring`-ed into something usable.
 
 ## Network Exposure
 
@@ -94,6 +99,7 @@ end)
 - Do not create generic public dispatchers that call arbitrary actions, functions, exports, or config keys from a client-provided string.
 - Avoid `TriggerClientEvent(name, -1)` broadcasts for targeted or frequent data. Send to a single player or a server-computed recipient set, and prefer state bags for replicated visible state. Full OneSync mechanics in `skills/common/networking.md`.
 - If a handler is intended only for another server resource, document that contract and still validate the payload at the boundary.
+- `SetHttpHandler` endpoints are public internet-reachable input, not resource-internal plumbing; harden them like net events (see Server Hardening And Operations below).
 
 ## Commands, Exports, And Public Interfaces
 
@@ -508,6 +514,8 @@ end)
 - Track repeated invalid calls per player/action when abuse response matters.
 - Use counters, backoff, temporary ignore windows, or staff-visible alerts before escalating to kicks or bans.
 - Do not let rejection logging become a spam path; rate-limit or batch abuse logs.
+- Keep an append-only audit trail for value mutations: event name, actor `source` + identifier, target, item, amount, and balance after. Dupe response is a reconstruction problem - without a trail you cannot tell who to roll back or by how much.
+- Add server-side sanity envelopes for the economy: alert when a player's money/item delta per time window exceeds a plausible ceiling. Envelopes catch the exploit you did not predict; alerts come before punishment.
 
 ## Logging And Secrets
 
@@ -517,6 +525,38 @@ end)
 - Queue and batch logs instead of sending a request per event.
 - Cap queue size and drop or compact safely when the queue is too large.
 - Store real tokens and webhook keys in server-only `set` convars (not `setr`/`sets`), never in client/shared files. See Config, Convars, And Secrets above.
+
+## Server Hardening And Operations
+
+Resource-level validation cannot compensate for a soft server platform. These are `server.cfg`/operator-level controls; they complement, never replace, the per-event rules above. ([Server Commands](https://docs.fivem.net/docs/server-manual/server-commands/))
+
+### Convar checklist
+
+- `sv_scriptHookAllowed 0` - keep ScriptHook-style client plugins blocked (default off; never enable on a public server).
+- `sv_pureLevel 1` (or `2`) - reject clients running modified game files; `2` is strictest. Test against your player base before enforcing.
+- `sv_requestParanoia 1..3` - stricter handling of malicious client network requests; raise gradually and watch for false kicks.
+- `sv_endpointPrivacy true` - hide player IPs from other clients (blocks player deanonymization/DDoS targeting).
+- Leave `rcon_password` unset (rcon disabled) unless genuinely needed; if used, a long unique password never reused anywhere.
+- `set onesync on` - required for the server-side entity gates used above (`entityCreating`, ownership, routing buckets).
+- Verify the convars covered elsewhere in this file are actually set: `setr sv_stateBagStrictMode true` (Sync Safety), `sv_filterRequestControl` (Entity And Net ID Validation / `skills/common/networking.md`), `sv_enableNetworkedPhoneExplosions`/`sv_enableNetworkedSounds`/`sv_enableNetworkedScriptEntityStates` (Built-in Client Events), `sv_authMinTrust`/`sv_authMaxVariance` (Identifier Trust).
+
+### Operator access
+
+- Run a recent FXServer artifact; old artifacts carry known, already-patched security issues.
+- Do not expose the txAdmin port (default `40120`) to the whole internet; firewall it to admin IPs, use a strong unique password, and keep txAdmin updated.
+- Keep `server.cfg` out of public git - it holds the license key, DB string, and admin identifiers. Commit a placeholder `server.cfg.example`, and `exec` a `.gitignore`d `secrets.cfg` for real values. A committed secret is compromised the moment it is pushed: rotate it first, then purge history.
+
+### HTTP handlers
+
+- `SetHttpHandler` exposes an HTTP endpoint on the server's public port (`http://host:30120/<resource>/...`) - unauthenticated and internet-reachable by default. Treat it exactly like a public net event: allowlist method + path, bound the body size before parsing, require a server-held token for anything privileged, rate-limit per caller, and respond 404 to everything else.
+- Do not leak stack traces, file paths, or config values in HTTP error responses.
+- Prefer not exposing HTTP at all when events/exports can carry the traffic.
+
+### Database and supply chain
+
+- Run the game database as a dedicated MySQL user with grants limited to the game schema (no `SUPER`/`FILE`/`GRANT`, never root), reachable only from the server host or a private network.
+- Treat third-party resources as untrusted code you are about to run with full server trust. Red flags: obfuscated/encrypted Lua, `PerformHttpRequest` to unknown domains, remote loaders (`load(...)`/`assert(load(...))` on fetched strings), `os.execute`/`io.popen` on the server, giant base64 blobs. "Leaked"/cracked scripts are a known backdoor vector - do not run them.
+- Prefer resources whose source you can read; a resource that must hide its code is itself a risk signal on a server you own.
 
 ## Performance Rules
 
@@ -580,6 +620,10 @@ end)
 - Are built-in client events (`weaponDamageEvent`, `explosionEvent`, and friends) intercepted/validated, and are the networked-event convars set where abuse matters?
 - Is any broadcast `TriggerClientEvent(name, -1)` justified, or should it be scoped/targeted?
 - Is every SQL query parameterized (`?`/`@name`)? Any client value concatenated into SQL or an identifier?
+- Are client strings and tables bounded (length, key count, depth) before they are decoded, iterated, stored, or logged?
+- Does any `SetHttpHandler` endpoint exist, and does it authenticate, bound, and rate-limit like a public event?
+- Do valuable mutations write an audit trail that could reconstruct a dupe after the fact?
+- Are the platform hardening convars set (`sv_scriptHookAllowed 0`, `sv_pureLevel`, `sv_requestParanoia`, `sv_endpointPrivacy`, rcon off), and are third-party resources vetted before install?
 - Are secrets in server-only `set` convars (never `setr`/`sets`/shared/client)?
 - Does identity come from `GetPlayerIdentifiers(source)` on the server, and are bans/whitelist checked in `playerConnecting` deferrals?
 - Are prices, rewards, drop rates, and permission gates kept out of shared/client config or revalidated server-side?
