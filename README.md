@@ -72,6 +72,7 @@ If this repository is private, the installer needs existing GitHub credentials o
 - `memory/common/` - learned facts shared by RedM and FiveM.
 - `memory/fivem/` - FiveM-only learned facts.
 - `memory/redm/` - RedM-only learned facts.
+- `commands/` - Claude Code slash commands that drive a task using the rules (`/b3sty-review`, `/b3sty-new-resource`).
 - `references/natives/` - large generated native reference files.
 
 ## Common Skills
@@ -87,8 +88,16 @@ If this repository is private, the installer needs existing GitHub credentials o
 - `skills/common/security-performance.md` - client-hostile/server-authoritative security: event trust boundary, give-value (give-item/give-money) hardening, ACE permissions, built-in client event exploits, SQL injection, secrets/convars, identifier trust, throttles, persistence, cleanup, and the security review checklist.
 - `skills/common/database.md` - SQL, OxMySQL/mysql-async, migrations, transactions, and persistence rules.
 - `skills/common/debugging.md` - reproducible debugging flow for resource, native, NUI, DB, and performance failures.
+- `skills/common/frameworks.md` - ESX, QBCore, Qbox, VORP, and RSG integration: player lookup, money/items/jobs, lifecycle events, and the bridge pattern.
 - `skills/common/ox-lib.md` - ox_lib usage rules when the project already depends on ox_lib or explicitly accepts it.
 - `skills/common/multi-resource.md` - exports, dependencies, state bags, convars, shared scripts, and cross-resource contracts.
+
+## Commands
+
+- `commands/b3sty-review.md` - `/b3sty-review`: review a resource against the rules and report verified findings by severity.
+- `commands/b3sty-new-resource.md` - `/b3sty-new-resource`: scaffold a new resource (manifest, controllers, validated events, cleanup, optional bridge/NUI/DB).
+
+The Claude Code plugin installs these with the main skill. With a git-clone install, copy `commands/*.md` into `~/.claude/commands/` (or `.claude/commands/` for one project) to use them.
 
 ## Game-Specific Skills
 

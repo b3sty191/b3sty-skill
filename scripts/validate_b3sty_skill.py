@@ -28,6 +28,9 @@ REQUIRED_PATHS = [
     "skills/common/debugging.md",
     "skills/common/ox-lib.md",
     "skills/common/multi-resource.md",
+    "skills/common/frameworks.md",
+    "commands/b3sty-review.md",
+    "commands/b3sty-new-resource.md",
     "skills/fivem/rules.md",
     "skills/redm/rules.md",
     "memory/common/README.md",
@@ -80,6 +83,18 @@ def check_skill_frontmatter(skill_text: str, failures: list[str]) -> None:
         )
     if "RedM" not in frontmatter or "FiveM" not in frontmatter:
         fail("SKILL.md description should mention RedM and FiveM", failures)
+
+
+def check_commands(failures: list[str]) -> None:
+    # Commands, not nested SKILL.md files: a skill folder may hold only one SKILL.md.
+    nested = [p for p in ROOT.rglob("SKILL.md") if p != ROOT / "SKILL.md" and ".git" not in p.parts]
+    for path in nested:
+        fail(f"Nested SKILL.md breaks skill upload: {path.relative_to(ROOT).as_posix()}", failures)
+    for command_path in sorted((ROOT / "commands").glob("*.md")):
+        relative = command_path.relative_to(ROOT).as_posix()
+        match = re.match(r"^---\n(?P<body>.*?)\n---\n", read_text(command_path), re.DOTALL)
+        if not match or not re.search(r"^description:\s*\S", match.group("body"), re.MULTILINE):
+            fail(f"{relative} needs frontmatter with a description", failures)
 
 
 def check_backticked_paths(markdown_path: Path, failures: list[str]) -> None:
@@ -189,6 +204,7 @@ def main() -> int:
     check_marketplace_json(failures)
     check_memory_readmes(failures)
     check_reference_toc(failures)
+    check_commands(failures)
 
     # Validate cross-links (backticked skill/memory/references paths) everywhere
     # rules live, not only the top-level entry points. Skip the large generated
@@ -200,6 +216,7 @@ def main() -> int:
     cross_link_files = [ROOT / "SKILL.md", ROOT / "README.md", ROOT / "AGENTS.md"]
     cross_link_files += sorted((ROOT / "skills").rglob("*.md"))
     cross_link_files += sorted((ROOT / "memory").rglob("*.md"))
+    cross_link_files += sorted((ROOT / "commands").glob("*.md"))
     cross_link_files += [
         path for path in (ROOT / "references").rglob("*.md") if path not in generated_natives
     ]

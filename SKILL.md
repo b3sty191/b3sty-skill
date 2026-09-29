@@ -1,6 +1,6 @@
 ---
 name: b3sty-skill
-description: b3sty rules for implementing, reviewing, debugging, refactoring, or optimizing RedM/FiveM Lua resources. Use for FXServer manifests, client/server Lua, natives/entities, native invocation (hashes, InvokeNative, marshalling, RDR3 structs), events/callbacks/exports, NUI bridge (SendNUIMessage, RegisterNUICallback, SetNuiFocus) and NUI XSS, OneSync networking (net IDs, ownership, routing buckets, broadcasts), built-in client events (weaponDamageEvent, explosionEvent), anti-cheat/event-security hardening (give-item/money dupes, ACE permissions, SQL injection, secrets/convars, identifier trust, payload bounds, audit trails), SetHttpHandler endpoints, server.cfg hardening and third-party resource vetting, throttles/cooldowns, state bags, CFX runtime gotchas (threads, source, exports, identifiers, game builds), config splitting, ox_lib, SQL/OxMySQL persistence, multi-resource integration, performance, cleanup, and learned memory updates.
+description: b3sty rules for implementing, reviewing, debugging, refactoring, or optimizing RedM/FiveM Lua resources. Use for FXServer manifests, client/server Lua, natives/entities, native invocation (hashes, InvokeNative, marshalling, RDR3 structs), events/callbacks/exports, NUI bridge (SendNUIMessage, RegisterNUICallback, SetNuiFocus) and NUI XSS, OneSync networking (net IDs, ownership, routing buckets, broadcasts), built-in client events (weaponDamageEvent, explosionEvent), anti-cheat/event-security hardening (give-item/money dupes, ACE permissions, SQL injection, secrets/convars, identifier trust, payload bounds, audit trails), SetHttpHandler endpoints, server.cfg hardening and third-party resource vetting, throttles/cooldowns, state bags, CFX runtime gotchas (threads, source, exports, identifiers, game builds), config splitting, ox_lib, SQL/OxMySQL persistence, ESX/QBCore/Qbox/VORP/RSG framework bridges, multi-resource integration, performance, cleanup, and learned memory updates.
 ---
 
 # b3sty Skill
@@ -30,6 +30,7 @@ Use this skill when working on b3sty RedM/FiveM resources or related Lua code. T
 - Add `skills/common/native-usage.md` when translating a native reference entry into a Lua call, invoking by hash with `Citizen.InvokeNative`, handling out-pointer params, packing RDR3 struct arguments, or gating natives by game build.
 - Search the matching native reference only when verifying a specific native name, hash, namespace, signature, parameter behavior, or game difference.
 - Add `skills/common/debugging.md` and the relevant `memory/` files when the task is diagnosis, reproduction, traces, NUI errors, database failures, native bugs, or performance investigation.
+- Add `skills/common/frameworks.md` when the resource uses ESX, QBCore, Qbox, VORP, or RSG (player lookup, money, items, jobs, lifecycle events, bridge).
 - Add `skills/common/ox-lib.md` only when the resource already uses ox_lib or the user explicitly accepts adding it.
 - Add `skills/common/multi-resource.md` when the feature crosses resources through exports, events, callbacks, dependencies, shared scripts, convars, state bags, or framework integration.
 - Add `skills/fivem/rules.md` or `skills/redm/rules.md` whenever the resource is game-specific or shared behavior might differ.
@@ -120,6 +121,7 @@ Open lazily by task - do not preload all of them.
 - `skills/common/security-performance.md` - when writing `:server:` events, callbacks, sync, DB writes, or hot loops.
 - `skills/common/database.md` - when writing SQL, OxMySQL/mysql-async persistence, migrations, transactions, or saved state.
 - `skills/common/debugging.md` - when diagnosing resource failures, traces, client/server/NUI issues, DB issues, load order, or performance bugs.
+- `skills/common/frameworks.md` - when a resource integrates with ESX, QBCore, Qbox, VORP, or RSG: player lookup, money/item/job calls, lifecycle events, and the bridge pattern.
 - `skills/common/ox-lib.md` - when a resource already uses ox_lib or the task explicitly accepts adding ox_lib.
 - `skills/common/multi-resource.md` - when resources communicate through exports, events, callbacks, dependencies, state bags, or shared libraries.
 
@@ -135,6 +137,13 @@ These are large generated lookup files. Open only the matching file when verifyi
 - `references/natives/fivem-gta5-natives.md` - GTA V / FiveM native reference.
 - `references/natives/redm-rdr3-natives.md` - RDR3 / RedM native reference.
 - `references/server.cfg.example` - copyable server hardening baseline (open when setting up or reviewing `server.cfg`).
+
+## Commands
+
+Slash commands installed with the Claude Code plugin:
+
+- `commands/b3sty-review.md` - `/b3sty-review`: review a resource and report verified findings by severity.
+- `commands/b3sty-new-resource.md` - `/b3sty-new-resource`: scaffold a new resource that follows these rules.
 
 ## Memory
 
