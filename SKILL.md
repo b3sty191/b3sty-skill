@@ -66,21 +66,21 @@ Apply these on every b3sty Lua task unless the task says otherwise.
 
 ### CfxLua
 
-- In RedM/FiveM code, supported compound operators (`+=`, `-=`, `*=`, `/=`, `<<=`, `>>=`, `&=`, `|=`, `^=`) are fine when clearer. Do **not** use `++`/`--`.
+- In RedM/FiveM code, supported compound operators (`+=`, `-=`, `*=`, `/=`, `<<=`, `>>=`, `&=`, `|=`, `^=`) are fine when clearer. `^=` is bitwise XOR (`x = x ~ y`), not power. Do **not** use `++`/`--`.
 - These operators are CfxLua-only - never use them in standard Lua or standalone Lua tooling.
 
 ### Natives
 
 - Docs name `GET_ENTITY_HEALTH` -> Lua global `GetEntityHealth`; leading-underscore names drop the underscore; hash-only natives use `Citizen.InvokeNative(hash, ...)` with a `--[[NAME]]` comment.
-- `Citizen.InvokeNative` BOOL results are `1`/`0`, and `0` is truthy in Lua - compare `== 1`, never use the raw result in an `if`.
-- Float params in hash calls must be float-subtype numbers - write `1.0`, coerce computed values with `+ 0.0`.
+- BOOL results from named natives and bare `Citizen.InvokeNative` are `1`/`false`, never `true` - test with `if`/`not`, never `== true`. Append `Citizen.ResultAsInteger()` to int-returning hash calls so a real `0` is not `false`; under it a BOOL is `1`/`0` and `0` is truthy, so compare `~= 0`.
+- Float params must be float-subtype numbers in named and hash calls alike (`SetEntityHeading(ped, 90)` is broken) - write `1.0`, coerce computed values with `+ 0.0`.
 - Prefer hash constants via backtick literals or `joaat`; compare hashes to hashes, never to hex strings.
 - Full mechanics (out params, marshalling, RDR3 structs, builds, confidence): `skills/common/native-usage.md`.
 
 ### Config
 
 - Small/shared config in `config.lua`; large datasets split into `configs/*.lua`, each returning a table.
-- Require a split config only in the script that uses it; no eager aggregators.
+- Load a split config only in the script that uses it; no eager aggregators. Stock CfxLua `require` cannot load resource files - use ox_lib's `require` when the resource already loads ox_lib, otherwise the cached loader in `skills/common/style.md` -> Lua Style (client reads need `files`).
 
 ### NUI
 

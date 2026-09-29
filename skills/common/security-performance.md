@@ -45,9 +45,9 @@ Use these rules for RedM/FiveM resources where player input, server state, entit
 - `RegisterNetEvent` marks an event as network-callable. Any client can trigger it with `TriggerServerEvent(name, ...)` and arbitrary arguments, whether or not your UI is the intended caller. Treat every registered net event as a public, attacker-callable endpoint. ([RegisterNetEvent](https://docs.fivem.net/docs/scripting-reference/runtimes/lua/functions/RegisterNetEvent/), [Secure your events](https://docs.fivem.net/docs/developers/server-security/))
 - `RegisterServerEvent` is the deprecated form and does the same thing; use `RegisterNetEvent` in new code. ([cfx-server-data PR #204](https://github.com/citizenfx/cfx-server-data/pull/204))
 - `AddEventHandler` is same-context only (client-to-client or server-to-server) and is not network-reachable from the opposing side. Use it for internal logic that must not be callable by clients. ([Secure your events](https://docs.fivem.net/docs/developers/server-security/))
-- `RegisterNetEvent` does not block same-context execution. Server-originated net events arrive with `source == 65535`; reject that source in handlers that must only run when a real client triggered them. ([Secure your events](https://docs.fivem.net/docs/developers/server-security/))
+- `RegisterNetEvent` does not block same-context execution. On the server, a same-context `TriggerEvent` reaches a `RegisterNetEvent` handler with `source == ""` (empty string) ([scheduler.lua](https://github.com/citizenfx/fivem/blob/master/data/shared/citizen/scripting/lua/scheduler.lua)). Client-triggered events always carry a numeric `source`. Guard with `if type(source) ~= "number" or source <= 0 then return end` in handlers that must only run when a real client triggered them. (`65535` is the `source` that *client-side* handlers see for events sent by the server; use `if source ~= 65535 then return end` there to accept only server-sent events.) ([Secure your events](https://docs.fivem.net/docs/developers/server-security/))
 - Always read identity from the implicit `source` (capture `local source = source` before any yield). Never trust a player ID, target, or identifier field from the payload. See `skills/common/runtime.md` -> The `source` Variable and Identifier Trust below.
-- Validate `source` (`source > 0` and a real player), then `type(...)` and bounds for every field, before doing work.
+- Validate `source` (a number, `> 0`, and a real player), then `type(...)` and bounds for every field, before doing work.
 
 ### Naive vs hardened handler
 
@@ -55,7 +55,7 @@ Vulnerable - the client controls the recipient, the item, and the amount:
 
 ```lua
 -- BAD: client controls who gets what, and how much
-RegisterNetEvent("shop:buy", function(item, price)
+RegisterNetEvent("shop:server:buy", function(item, price)
     local src = source
     local player = Framework.GetPlayer(src)
     player.addMoney(-price)       -- client-chosen "price" can be negative
@@ -64,7 +64,7 @@ end)
 ```
 
 - The vulnerable version is a direct dupe: a client passes a negative `price` (money goes up) or an item it should never receive.
-- The hardened shape: identity from `source` only, item/price resolved from a server-side catalog, quantity clamped to a positive bounded integer, affordability read from server-held balance at transaction time, and the debit+grant made atomic. The full, race-safe version - the canonical pattern from CFX's own [Secure your events](https://docs.fivem.net/docs/developers/server-security/) guide - is in Give-Value Event Hardening below; use that as the template instead of re-deriving it per resource.
+- The hardened shape: identity from `source` only, item/price resolved from a server-side catalog, quantity clamped to a positive bounded integer, affordability read from server-held balance at transaction time, and the debit+grant made atomic. The full, race-safe version is in Give-Value Event Hardening below (it builds on the server-authority principles in CFX's [Secure your events](https://docs.fivem.net/docs/developers/server-security/) guide); use that as the template instead of re-deriving it per resource.
 
 
 
@@ -82,7 +82,7 @@ end)
 - Every custom `:server:` event must validate its payload before doing work.
 - Validate `source` when the event depends on a real player.
 - Validate `type(...)` for every field used by the event.
-- Normalize numbers with `tonumber`, `math.floor`, and explicit min/max bounds.
+- Normalize numbers with `tonumber` and explicit min/max bounds; reject non-integer quantities (`x % 1 ~= 0`) instead of flooring them.
 - Reject `NaN`, negative values, empty strings, invalid keys, unknown items, unknown jobs, unknown weapons, and unknown config names.
 - Check requested item/action names against server-side config or indexes.
 - Never trust client-provided price, reward amount, inventory count, permission group, job, target ownership, or cooldown state.
@@ -134,8 +134,15 @@ RegisterCommand("giveitem", function(source, args)
     local entry = Controller.Catalog[itemName]
     if not entry then return end
 
-    Framework.GetPlayer(target):addItem(itemName, amount)
-    print(("admin %s gave %sx %s to %s"):format(source, amount, itemName, target))
+    local targetPlayer = Framework.GetPlayer(target)
+    if not targetPlayer then return end                   -- connected, but character not loaded yet
+
+    targetPlayer.addItem(itemName, amount)
+    -- audit trail: server IDs are reused, so log identifiers alongside them
+    print(("admin %s (%s) gave %sx %s to %s (%s)"):format(
+        source, GetPlayerIdentifierByType(source, "license") or "?",
+        amount, itemName,
+        target, GetPlayerIdentifierByType(target, "license") or "?"))
 end, false)
 ```
 
@@ -170,7 +177,7 @@ end
 
 RegisterNetEvent("resource_name:server:action", function(payload)
     local source = source
-    if not source or source <= 0 then return end
+    if type(source) ~= "number" or source <= 0 then return end   -- "" = server-side TriggerEvent
     if type(payload) ~= "table" then return end
 
     if Controller:IsActionThrottled(source, "action", 500) then return end
@@ -181,7 +188,7 @@ RegisterNetEvent("resource_name:server:action", function(payload)
     if type(itemName) ~= "string" or itemName == "" then return end
     if not amount or amount ~= amount then return end
 
-    amount = math.floor(amount)
+    if amount % 1 ~= 0 then return end
     if amount <= 0 or amount > 100 then return end
 
     local itemIndex = Controller.ItemIndex[itemName]
@@ -202,29 +209,29 @@ end)
 
 ## Give-Value Event Hardening
 
-This is the highest-frequency exploit class in CFX servers: shop buys, payouts, crafting, quest rewards, drops, trades, admin grants. A client event may **request** an action; it must never specify the amount, the item, the price, or the recipient of anything of value. The server decides all of those from server-held state. (Canonical pattern: [Secure your events](https://docs.fivem.net/docs/developers/server-security/).)
+This is the highest-frequency exploit class in CFX servers: shop buys, payouts, crafting, quest rewards, drops, trades, admin grants. A client event may **request** an action; it must never specify the amount, the item, the price, or the recipient of anything of value. The server decides all of those from server-held state. (Principles: [Secure your events](https://docs.fivem.net/docs/developers/server-security/).)
 
 ### Vulnerable
 
 ```lua
 -- BAD: client controls both the item and the price; recipient defaults to source but is never re-checked
-RegisterNetEvent("shop:buy", function(item, price)
+RegisterNetEvent("shop:server:buy", function(item, price)
     local player = Framework.GetPlayer(source)
     player.removeMoney(price)     -- client-chosen price can be NEGATIVE -> money goes UP
     player.addItem(item)          -- client-chosen item, no catalog/ownership check, fixed count of 1
 end)
 ```
 
-A mod menu fires `TriggerServerEvent("shop:buy", "weapon_rpg", -1000000)` and gains money plus the item. Negative price or quantity is a classic dupe.
+A mod menu fires `TriggerServerEvent("shop:server:buy", "weapon_rpg", -1000000)` and gains money plus the item. Negative price or quantity is a classic dupe.
 
 ### Hardened, in order
 
-1. **Identity = `source`, never the payload.** Reject `source <= 0`, `source == 65535` (server-originated), and any payload field that claims to be the recipient. A normal player must not grant items to an arbitrary ID; only an ACE-gated admin grant may target another player (see ACE Permissions And Admin Authority).
+1. **Identity = `source`, never the payload.** Reject a non-numeric/empty `source` (server-originated) or `source <= 0`, and any payload field that claims to be the recipient. A normal player must not grant items to an arbitrary ID; only an ACE-gated admin grant may target another player (see ACE Permissions And Admin Authority).
 2. **Server-authoritative catalog.** Items, prices, weights, stack limits, and craft recipes live in server config/DB. The client sends at most an item key/id; the server maps it to real data and rejects unknown keys. Never accept `price` from the client.
 3. **Validate every field before touching value.** Type, range, and existence checks on the item key and quantity first. Reject missing/extra fields as hostile.
-4. **Quantity is a positive, bounded integer.** Reject `nil`, `NaN`, `0`, negatives, floats, and values above a sane max (`amount = math.floor(tonumber(x)); if not amount or amount ~= amount or amount <= 0 or amount > MAX then return end`). A negative amount in a transfer/remove path is a dupe.
+4. **Quantity is a positive, bounded integer.** Reject `nil`, `NaN`, `0`, negatives, floats, and values above a sane max (`local amount = tonumber(x); if not amount or amount ~= amount or amount % 1 ~= 0 or amount <= 0 or amount > MAX then return end`). A negative amount in a transfer/remove path is a dupe.
 5. **Affordability from fresh server state.** Re-read balance/inventory at the moment of the transaction, not a value cached from an earlier request. Reject if `balance < price * amount`.
-6. **Debit + grant atomically.** The check-then-mutate must not be interruptible by the same player spamming the event. Use a per-source in-flight lock, or one atomic DB transaction; do not `Wait()` between the check and the mutation with shared state exposed.
+6. **Debit + grant atomically.** The check-then-mutate must not be interruptible by the same player spamming the event. Use a per-source in-flight lock that is always released (even on error), or a conditional DB debit whose affected row count gates the grant inside one transaction (variant (b) below); do not `Wait()` between the check and the mutation with shared state exposed. Keep one source of truth for money/inventory: the framework's RAM cache or the database, never both.
 7. **Rate-limit + idempotency.** Throttle per source. For one-shot grants (quest reward, daily claim), record server-side that it was claimed and reject repeats; never rely on the client not re-firing.
 8. **Admin grants are ACE-gated and logged.** No client-side "admin" flag, no spoofable identifier (see ACE Permissions And Admin Authority).
 
@@ -246,9 +253,42 @@ function Controller:IsThrottled(source, key, limit)
     return false
 end
 
-RegisterNetEvent("shop:buy", function(payload)
+-- (5)+(6) the locked section. Pick ONE source of truth for money/inventory, never both.
+
+-- (a) Framework/RAM-authoritative (the usual ESX/QBCore/VORP case): mutate through the
+-- framework API and let the framework persist. No SQL and no yield between check and mutation.
+function Controller:Purchase(player, entry, itemName, amount)
+    local cost = entry.price * amount
+    if player.getMoney() < cost then return end                -- (5) current server-held balance
+    if not player.canCarryItem(itemName, amount) then return end  -- reject before debiting
+    player.removeMoney(cost)
+    player.addItem(itemName, amount)
+end
+
+-- (b) DB-authoritative: only when no framework RAM copy of money/inventory is saved back over
+-- these columns (a drop-time or autosave write of stale RAM would undo the committed debit).
+function Controller:PurchaseSql(player, entry, itemName, amount)
+    local cost = entry.price * amount
+
+    -- (5)+(6) one transaction: the conditional debit IS the affordability check; returning false
+    -- (0 rows = cannot afford) or any SQL error rolls back both statements (oxmysql startTransaction, experimental)
+    local committed = MySQL.startTransaction(function(query)
+        local res = query("UPDATE characters SET money = money - ? WHERE owner = ? AND money >= ?",
+            { cost, player.identifier, cost })
+        if not res or res.affectedRows ~= 1 then return false end
+        query("INSERT INTO inventory (owner, item, count) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE count = count + ?",
+            { player.identifier, itemName, amount, amount })
+    end)
+    if not committed then return end
+
+    -- the transaction yielded, so the player may have dropped. If the framework keeps a read-only
+    -- copy, refresh it by identifier (not `source`); never write back a RAM snapshot taken before the yield.
+    Framework.RefreshPlayer(player.identifier)                 -- placeholder: re-read money/inventory from DB
+end
+
+RegisterNetEvent("shop:server:buy", function(payload)
     local source = source
-    if not source or source <= 0 or source == 65535 then return end
+    if type(source) ~= "number" or source <= 0 then return end   -- "" = server-side TriggerEvent
     if type(payload) ~= "table" then return end
     if Controller:IsThrottled(source, "buy", 250) then return end
 
@@ -256,8 +296,8 @@ RegisterNetEvent("shop:buy", function(payload)
     local itemName = payload["Item"]
     local amount = tonumber(payload["Amount"])
     if type(itemName) ~= "string" or itemName == "" then return end
-    if not amount or amount ~= amount then return end          -- NaN
-    amount = math.floor(amount)
+    if not amount or amount ~= amount then return end          -- non-numeric / NaN
+    if amount % 1 ~= 0 then return end                          -- reject non-integers
     if amount <= 0 or amount > MAX_PER_PURCHASE then return end  -- (4) positive bounded int
 
     -- (2) server catalog; reject unknown / unpurchasable
@@ -267,38 +307,16 @@ RegisterNetEvent("shop:buy", function(payload)
     local player = Framework.GetPlayer(source)                 -- (1) identity = source
     if not player then return end
 
-    -- (6) atomic: hold an in-flight lock so a flood cannot interleave check/mutate
+    -- (6) in-flight lock so a flood cannot interleave check/mutate. pcall guarantees the
+    -- release: one error (nil price, framework throw, rejected .await) would otherwise lock
+    -- this player out of buying until reconnect.
     if Controller.InFlight[source] then return end
     Controller.InFlight[source] = true
-
-    -- (5) affordability against the current server-held balance
-    local cost = entry.price * amount
-    if player.getMoney() < cost then
-        Controller.InFlight[source] = nil
-        return
-    end
-
-    -- DB-backed economy: one atomic transaction commits debit + grant, or neither
-    local ok = MySQL.transaction.await({
-        { query = "UPDATE characters SET money = money - ? WHERE owner = ? AND money >= ?",
-          values = { cost, player.identifier, cost } },
-        { query = "INSERT INTO inventory (owner, item, count) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE count = count + ?",
-          values = { player.identifier, itemName, amount, amount } },
-    })                                                          -- returns false if either fails (oxmysql transaction)
-    if not ok then
-        Controller.InFlight[source] = nil
-        return                                                  -- keep state consistent, do not grant in RAM
-    end
-
-    -- the await yielded: the player may have dropped, and server IDs are recycled,
-    -- so `source` can already belong to a different player. Re-resolve and compare
-    -- identity before touching RAM; the DB commit above is correct either way.
-    local current = Framework.GetPlayer(source)
-    if current and current.identifier == player.identifier then
-        current.setMoney(current.getMoney() - cost)
-        current.addItem(itemName, amount)
-    end
+    local okRun, err = pcall(Controller.Purchase, Controller, player, entry, itemName, amount)  -- or Controller.PurchaseSql
     Controller.InFlight[source] = nil
+    if not okRun then
+        print(("shop:server:buy failed for %s: %s"):format(source, err))
+    end
 end)
 
 AddEventHandler("playerDropped", function()
@@ -310,19 +328,20 @@ AddEventHandler("playerDropped", function()
 end)
 ```
 
-- `MySQL.transaction.await` runs the queries in one transaction and commits only if all succeed; a `false` return means rolled back - treat it as a rejected mutation ([oxmysql transaction](https://overextended.dev/docs/oxmysql/Functions/transaction)). `?` placeholders are mandatory; see Database And Persistence and `skills/common/database.md`.
-- Every `.await` is a yield. After it resumes, re-validate the player before applying RAM state: FXServer recycles server IDs, so a `source` captured before the yield can point at a *different* player after a drop + reconnect. Compare a pre-yield identifier against the current one, never just the source number. See `skills/common/runtime.md` -> The `source` Variable.
-- The `UPDATE ... AND money >= ?` conditional acts as a server-side lock: if two buy requests race, only the one that still satisfies the balance commits.
+- An oxmysql `MySQL.transaction` rolls back only on an SQL error ([oxmysql transaction](https://overextended.dev/docs/oxmysql/Functions/transaction)): a conditional `UPDATE ... AND money >= ?` that matches 0 rows still commits the rest and returns `true`. Gate the grant on the debit affecting exactly 1 row inside the same transaction, as variant (b) above does (see `skills/common/database.md` -> Query Safety). `?` placeholders are mandatory; see Database And Persistence.
+- Do not debit in SQL and again in a RAM-cached framework: a drop-time or autosave write of stale RAM will overwrite the committed debit (and a framework that saves inventory from RAM can overwrite or double-apply the SQL grant). Use variant (a) whenever the framework caches money/inventory in RAM; see `memory/common/cfx-patterns.md` -> Player Persistence Pattern.
+- Every `.await` is a yield. After it resumes, the player may have dropped, so re-validate before touching anything keyed by `source` (`DoesPlayerExist(source)` or the framework's `GetPlayer(source)`). Server IDs are reused only after the 16-bit ID counter wraps, so a stale ID mapping to a *different* player within one yield is practically impossible; the real reuse risk is a per-`source` table not cleared on `playerDropped` on a long-running server. For valuable mutations, key post-yield work by the pre-yield identifier (compare it against the current one), never just the source number. See `skills/common/runtime.md` -> The `source` Variable.
+- The locked section runs inside `pcall` so the in-flight lock is always released; `pcall` is yield-safe in CFX Lua 5.4, so `.await` inside it works.
 
 ### Give-value event checklist
 
 Apply to every handler that grants, removes, transfers, prices, or pays anything of value:
 
-1. Identity = `source` only; reject `0`/`65535` and any payload recipient.
+1. Identity = `source` only; reject a non-numeric/empty `source` (server-originated) or `source <= 0`, and any payload recipient.
 2. Item/price/limits = server catalog, never the payload.
 3. Quantity = positive bounded integer; reject 0/negative/float/NaN.
 4. Afford check against a freshly read server-held balance.
-5. Debit + grant atomic; per-source in-flight lock or single transaction.
+5. Debit + grant atomic; per-source in-flight lock that is always released, or a conditional debit checked for exactly 1 affected row in the same transaction as the grant; one source of truth (framework RAM or DB, never both).
 6. Rate-limited; one-shot grants tracked server-side (idempotent).
 7. Admin grants ACE-gated (`IsPlayerAceAllowed`) and logged.
 
@@ -394,11 +413,12 @@ Related: Atomic State Changes And Replay Protection below, ACE Permissions And A
 
 The game/OneSync routes client->server events that attackers use as free exploit surfaces. Treat every one as attacker-callable with attacker-chosen fields. ([server-events](https://docs.fivem.net/docs/scripting-reference/events/server-events/), [Secure your events](https://docs.fivem.net/docs/developers/server-security/))
 
-- Documented core events: `weaponDamageEvent(sender, data)`, `startProjectileEvent(sender, data)`, `ptFxEvent(sender, data)`, `removeAllWeaponsEvent(sender, data)` (full fields in the [server-events reference](https://docs.fivem.net/docs/scripting-reference/events/server-events/)). `data.weaponType` on `weaponDamageEvent` has carried incorrect hashes (citizenfx/fivem#3827) - validate against server-side weapon/entity state, not the field alone.
+- Documented core events: `weaponDamageEvent(sender, data)`, `startProjectileEvent(sender, data)`, `ptFxEvent(sender, data)`, `removeAllWeaponsEvent(sender, data)` (full fields in the [server-events reference](https://docs.fivem.net/docs/scripting-reference/events/server-events/)). `data.weaponType` on `weaponDamageEvent` is an unsigned 32-bit hash, while `GetHashKey`/backticks return signed values (citizenfx/fivem#3827: 2982836145 vs -1312131151 for `weapon_rpg`). Normalize before comparing: `local h = data.weaponType; if h > 0x7FFFFFFF then h = h - 0x100000000 end`. It is still client-reported, so check it against server-side weapon/entity state.
 - `explosionEvent` is interceptable server-side with OneSync: register `AddEventHandler('explosionEvent', function(sender, ev) ...)` and inspect `ev` (`explosionType`, `posX/Y/Z`, `damageScale`, `ownerNetId`, ...). `CancelEvent()` here stops the server from routing the explosion to other clients - the documented mitigation. ([cookbook](https://docs.fivem.net/docs/cookbook/2019/08/19/onesync-intercepting-game-events-such-as-explosions/))
 - `CancelEvent()` does not stop other handlers for the same event, and for some game events (e.g. `weaponDamageEvent`, see citizenfx/fivem#2395) cancellation does not reliably sync to clients. Do not rely on cancel as your only control for damage that may already have applied; validate the outcome server-side.
 - `sender` is the reporting player. Never let `sender`-controlled fields (weapon hash, damage amount, target entity, owner net ID) grant money, items, kills, or eligibility.
-- Prefer the built-in server controls over hand-rolled filters for networked-event abuse: `sv_filterRequestControl` (blocks `REQUEST_CONTROL_EVENT` routing - the main entity-control/explosion-by-proxy vector), `sv_enableNetworkedPhoneExplosions` (off by default), `sv_enableNetworkedSounds`, `sv_enableNetworkedScriptEntityStates`, and `block_net_game_event "EVENT_NAME"` for a specific net game event. ([Server Commands](https://docs.fivem.net/docs/server-manual/server-commands/))
+- `sender` arrives as a string (server net ID); call `tonumber(sender)` before comparing it or using it as a table key. This applies to `weaponDamageEvent`, `startProjectileEvent`, `ptFxEvent`, `removeAllWeaponsEvent` and `explosionEvent`.
+- Prefer the built-in server controls over hand-rolled filters for networked-event abuse: `sv_filterRequestControl` (FiveM only; blocks `REQUEST_CONTROL_EVENT` routing - the main entity-control/explosion-by-proxy vector), `sv_enableNetworkedPhoneExplosions` (off by default), `sv_enableNetworkedSounds`, `sv_enableNetworkedScriptEntityStates`, and `block_net_game_event "EVENT_NAME"` for a specific net game event. ([Server Commands](https://docs.fivem.net/docs/server-manual/server-commands/))
 - Bound and rate-limit per `sender` (particles, projectiles, explosions). Reject, cancel, or log; do not auto-punish a player on a single unverified event.
 
 ```lua
@@ -406,15 +426,16 @@ The game/OneSync routes client->server events that attackers use as free exploit
 local lastExplosion = {}
 
 AddEventHandler("explosionEvent", function(sender, ev)
-    if not sender or sender <= 0 then return end
+    local src = tonumber(sender)                          -- sender is a string; key by number so playerDropped can clean up
+    if not src or src <= 0 then return end
     local now = GetGameTimer()
-    if now - (lastExplosion[sender] or 0) < 250 then     -- flood: stop relaying
+    if now - (lastExplosion[src] or 0) < 250 then        -- flood: stop relaying
         CancelEvent()
         return
     end
-    lastExplosion[sender] = now
+    lastExplosion[src] = now
 
-    if ev.damageScale > 1.0 then                          -- server rule, not the client's claim
+    if (tonumber(ev.damageScale) or 0) > 1.0 then         -- server rule, not the client's claim
         CancelEvent()
     end
 end)
@@ -481,7 +502,7 @@ end)
 ```
 
 - The same rule applies to dynamic table/column/identifier names: bind values with `?`/`@name`, and for any dynamic identifier choose from a server-side allowlist - never splice client input into the SQL text.
-- For multi-step valuable writes, wrap the parameterized statements in one `MySQL.transaction.await({ ... })` so they commit together or not at all ([oxmysql transaction](https://overextended.dev/docs/oxmysql/Functions/transaction)). Full SQL rules and the API shape are in `skills/common/database.md`.
+- For multi-step valuable writes, wrap the parameterized statements in one `MySQL.transaction.await({ ... })` so they commit together or not at all ([oxmysql transaction](https://overextended.dev/docs/oxmysql/Functions/transaction)). A transaction only rolls back on an SQL error: a conditional `UPDATE` that matches 0 rows does not abort it, so check the debit's affected row count before granting (see Give-Value Event Hardening). Full SQL rules and the API shape are in `skills/common/database.md`.
 
 ## Config, Convars, And Secrets
 
@@ -501,7 +522,8 @@ end)
 
 - Player identity is only reliable server-side, from `GetPlayerIdentifiers(source)` ([GetPlayerIdentifiers](https://docs.fivem.net/docs/scripting-reference/runtimes/lua/functions/GetPlayerIdentifiers/)) or `GetPlayerIdentifierByType`. A client-reported identifier is attacker input, not identity.
 - Identifier types returned: `steam` (hex), `discord` (int), `xbl` (int), `live` (Microsoft PUID), `license`/`license2` (ROS hash - `license2` can equal `license` for Steam users), `fivem` (Cfx user id), `ip` (IPv4 string).
-- Do not trust a single identifier type in isolation. Ban/whitelist on the strongest available identifier(s) (commonly `license`), and treat `ip` as the weakest (shared NAT, rotates). Tune trust with `sv_authMinTrust` (1-5, how spoof-resistant) and `sv_authMaxVariance` (1-5, how stable per provider) ([Server Commands](https://docs.fivem.net/docs/server-manual/server-commands/)).
+- Do not trust a single identifier type in isolation. Ban/whitelist on the strongest available identifiers (prefer `license2` when present, else `license`; for bans, store every returned identifier plus `GetPlayerToken` hardware tokens rather than a single type), and treat `ip` as the weakest (shared NAT, rotates). Keep an existing DB key scheme stable when migrating to `license2`.
+- Of the connect-time trust convars ([Server Commands](https://docs.fivem.net/docs/server-manual/server-commands/)), only `sv_authMaxVariance` (1-5, default 5) has an effect: FXServer compares it against the lowest variance among a player's identifiers (`license`/`steam` = 1, `ip` = 5), so any value below 5 rejects players with no `license`/`steam` identifier. `sv_authMinTrust` is effectively a no-op, because the always-present `ip:` identifier reports trust 5. See `skills/common/runtime.md` -> Players And Identifiers.
 - Run ban/whitelist lookups during `playerConnecting` using the `deferrals` API (defer, do async checks, call `done()` exactly once), not after the player is in-game.
 - The recipient/target of a value is always `source` resolved to its identifiers server-side; never a payload field (see Event Trust Boundary and Give-Value Event Hardening).
 
@@ -534,11 +556,11 @@ Resource-level validation cannot compensate for a soft server platform. These ar
 
 - `sv_scriptHookAllowed 0` - keep ScriptHook-style client plugins blocked (default off; never enable on a public server).
 - `sv_pureLevel 1` (or `2`) - reject clients running modified game files; `2` is strictest. Test against your player base before enforcing.
-- `sv_requestParanoia 1..3` - stricter handling of malicious client network requests; raise gradually and watch for false kicks.
-- `sv_endpointPrivacy true` - hide player IPs from other clients (blocks player deanonymization/DDoS targeting).
+- `sv_requestParanoia 0..3` - counters proxy-based HTTP floods against the server's HTTP endpoints (1 blocks IPs that send a `Via` header; 2 also blocks browser-style requests with `Upgrade-Insecure-Requests`, and info/dynamic/players.json then answer "Nope."; 3 also closes the socket). Default 0. Start at 1 and check that server-list and monitoring tools still work before raising it.
+- `sv_endpointPrivacy` - removed on current artifacts: FXServer ignores it (and warns if it is set) because player endpoint addresses are no longer exposed on any HTTP endpoint. On old artifacts it only hid player IPs in the public HTTP reports (`players.json`), not from other clients; the real fix there is updating the artifact (see Operator access).
 - Leave `rcon_password` unset (rcon disabled) unless genuinely needed; if used, a long unique password never reused anywhere.
 - `set onesync on` - required for the server-side entity gates used above (`entityCreating`, ownership, routing buckets).
-- Verify the convars covered elsewhere in this file are actually set: `setr sv_stateBagStrictMode true` (Sync Safety), `sv_filterRequestControl` (Entity And Net ID Validation / `skills/common/networking.md`), `sv_enableNetworkedPhoneExplosions`/`sv_enableNetworkedSounds`/`sv_enableNetworkedScriptEntityStates` (Built-in Client Events), `sv_authMinTrust`/`sv_authMaxVariance` (Identifier Trust).
+- Verify the convars covered elsewhere in this file are actually set: `setr sv_stateBagStrictMode true` (Sync Safety), `sv_filterRequestControl` (Built-in Client Events / `skills/common/networking.md` -> Entity Ownership), `sv_enableNetworkedPhoneExplosions`/`sv_enableNetworkedSounds`/`sv_enableNetworkedScriptEntityStates` (Built-in Client Events), `sv_authMaxVariance` (Identifier Trust; `sv_authMinTrust` is effectively a no-op).
 
 ### Operator access
 
@@ -606,7 +628,7 @@ Resource-level validation cannot compensate for a soft server platform. These ar
 - What can a malicious client fake in this feature?
 - Which server-side checks reject fake values?
 - Is this network event actually meant to be public, or should it be a local function (`AddEventHandler`)?
-- Does the handler reject `source == 65535` / `source <= 0` when only a real client may trigger it?
+- Does the handler reject a non-numeric/empty `source` (server-originated) or `source <= 0` when only a real client may trigger it?
 - Does the recipient of any value come from `source`, never from a payload field?
 - Do commands, exports, callbacks, and NUI callbacks validate the same things as server events?
 - Is every value resolved from server-held state (catalog, balance, permissions), not the payload?
@@ -623,7 +645,7 @@ Resource-level validation cannot compensate for a soft server platform. These ar
 - Are client strings and tables bounded (length, key count, depth) before they are decoded, iterated, stored, or logged?
 - Does any `SetHttpHandler` endpoint exist, and does it authenticate, bound, and rate-limit like a public event?
 - Do valuable mutations write an audit trail that could reconstruct a dupe after the fact?
-- Are the platform hardening convars set (`sv_scriptHookAllowed 0`, `sv_pureLevel`, `sv_requestParanoia`, `sv_endpointPrivacy`, rcon off), and are third-party resources vetted before install?
+- Are the platform hardening convars set (`sv_scriptHookAllowed 0`, `sv_pureLevel`, `sv_requestParanoia`, rcon off), is the FXServer artifact recent, and are third-party resources vetted before install?
 - Are secrets in server-only `set` convars (never `setr`/`sets`/shared/client)?
 - Does identity come from `GetPlayerIdentifiers(source)` on the server, and are bans/whitelist checked in `playerConnecting` deferrals?
 - Are prices, rewards, drop rates, and permission gates kept out of shared/client config or revalidated server-side?

@@ -44,7 +44,7 @@ Use this file for rules that apply to both RedM and FiveM. Use `skills/fivem/rul
 ## Entities And Objects
 
 - Check entity handles before using them.
-- Load models before creating objects, for example with `lib.RequestModel`.
+- Load models before creating objects: call `RequestModel(model)` and wait with a timeout until `HasModelLoaded(model)` is true, or use `lib.requestModel(model)` when the resource already depends on ox_lib (see `skills/common/ox-lib.md`). Call `SetModelAsNoLongerNeeded(model)` after spawning.
 - Delete old entities before replacing them when needed.
 - Clean up entities on resource stop, player drop, or when synced state disables them.
 - Reattach loops are acceptable when objects may detach or disappear, but keep the wait time appropriate.

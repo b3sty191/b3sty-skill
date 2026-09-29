@@ -78,7 +78,7 @@ Use this file when diagnosing RedM/FiveM resource failures, crashes, bad state, 
 
 - Confirm `ui_page` and every HTML/CSS/JS/font/image file are listed in `fxmanifest.lua`.
 - Confirm Lua sends the message shape the browser expects.
-- Confirm browser callbacks call the Lua callback exactly once.
+- Confirm every Lua `RegisterNUICallback` handler calls its `cb` exactly once on every path, including early-return validation failures. A missing `cb` makes the browser `fetch` time out and reject with an error (see `skills/common/nui.md` -> Browser To Lua).
 - Clear NUI focus on close, player drop, and resource stop.
 - Treat NUI callback payloads as untrusted input even though they originate from the resource UI.
 - Use browser devtools for JS errors instead of guessing from Lua logs.

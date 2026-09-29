@@ -31,4 +31,4 @@ The rest of the repo:
 
 ## Agent Configs
 
-- `agents/openai.yaml` - OpenAI Codex agent configuration; points Codex to `SKILL.md` and `AGENTS.md`.
+- `agents/openai.yaml` - OpenAI Codex skill UI metadata (display name, short description, default prompt); Codex loads the skill itself from `SKILL.md`.

@@ -121,7 +121,7 @@ The native files are generated lookup references and are intentionally kept outs
 
 - **Claude Code** - uses `SKILL.md` directly as the skill manifest (frontmatter `name` + `description`); no separate config file.
 - `.claude-plugin/marketplace.json` - Claude Code plugin marketplace manifest for `/plugin` install.
-- `agents/openai.yaml` - OpenAI Codex agent configuration; points Codex to `SKILL.md` and `AGENTS.md`.
+- `agents/openai.yaml` - OpenAI Codex skill UI metadata (display name, short description, default prompt); Codex loads the skill itself from `SKILL.md`.
 - `skills.sh.json` - skills.sh grouping/visibility.
 
 ## Maintenance

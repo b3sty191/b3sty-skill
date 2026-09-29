@@ -52,7 +52,20 @@
       },
   }
   ```
-- Use `require(...)` for config/data modules when the runtime supports it.
+- Plain CfxLua `require` cannot load resource files; it only returns already-loaded or built-in modules. With ox_lib loaded (`'@ox_lib/init.lua'` in the manifest), `require('configs.items')` works through ox_lib's `lib.require`. Without ox_lib, load split configs through a small cached loader. Either way, a config read on the client must be listed in `files`.
+  ```lua
+  local loaded = {}
+
+  local function loadConfig(name)
+      if loaded[name] then return loaded[name] end
+      local res = GetCurrentResourceName()
+      local path = ('configs/%s.lua'):format(name)
+      local src = LoadResourceFile(res, path)
+      assert(src, ('missing %s'):format(path))
+      loaded[name] = assert(load(src, ('@@%s/%s'):format(res, path)))()
+      return loaded[name]
+  end
+  ```
 - Prefer bracket key declarations like `["Name"] = value` for config/data tables.
 - Bracket keys are especially preferred when the data is meant to be edited by humans or may contain spaces.
 - Runtime access may use bracket or dot style based on the existing code and hot-path readability.
@@ -74,7 +87,7 @@
   - `>>=`
   - `&=`
   - `|=`
-  - `^=`
+  - `^=` - bitwise XOR (`x = x ~ y`), NOT exponentiation. Binary `^` is power in Lua, so write `x = x ^ y` for powers; `^=` needs integer-representable operands.
 - Do not use `++` or `--`; CfxLua does not implement increment/decrement operators.
 - Do not assume these operators work in standard Lua, standalone Lua tools, or non-Cfx runtimes.
 - Prefer compound assignment for simple updates such as counters, bit flags, and accumulated values:
@@ -91,8 +104,8 @@
 - When config/data grows large or has separate concerns, split it into `configs/*.lua` as the standard pattern.
 - Each split config file should return a table with `return { ... }`.
 - Do not turn `config.lua` into an eager aggregator that requires every split config file.
-- Require split config files directly in the script that actually uses them.
-- Store required config modules in local variables near the top of the script.
+- Load split config files directly in the script that actually uses them: `require` only when ox_lib is loaded, otherwise the `loadConfig` loader (see Lua Style above).
+- Store loaded config modules in local variables near the top of the script.
 - Split large position lists, object lists, category lists, shop locations, zone data, and similar datasets into separate config files.
 - Do not over-split small configs; keep simple values in one readable file.
 

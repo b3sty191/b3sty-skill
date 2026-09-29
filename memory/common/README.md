@@ -2,7 +2,7 @@
 
 Store learned facts that apply to both RedM and FiveM here.
 
-Use `memory/fivem/` or `memory/redm/` for game-specific facts. Add the date and game build to every real entry.
+Use `memory/fivem/` or `memory/redm/` for game-specific facts. Add the date and game build to every real entry; build-independent entries (pure Lua, resource structure) may use `Game build: n/a`.
 
 ## Files
 
