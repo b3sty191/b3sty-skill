@@ -70,8 +70,14 @@ def check_skill_frontmatter(skill_text: str, failures: list[str]) -> None:
     frontmatter = match.group("body")
     if "name: b3sty-skill" not in frontmatter:
         fail("SKILL.md frontmatter must include name: b3sty-skill", failures)
-    if "description:" not in frontmatter:
+    description = re.search(r"^description:\s*(.*)$", frontmatter, re.MULTILINE)
+    if not description:
         fail("SKILL.md frontmatter must include description", failures)
+    elif len(description.group(1).strip()) > 1024:
+        fail(
+            f"SKILL.md description is {len(description.group(1).strip())} characters; maximum is 1024",
+            failures,
+        )
     if "RedM" not in frontmatter or "FiveM" not in frontmatter:
         fail("SKILL.md description should mention RedM and FiveM", failures)
 

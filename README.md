@@ -100,28 +100,9 @@ If this repository is private, the installer needs existing GitHub credentials o
 - `references/natives/fivem-gta5-natives.md` - GTA V / FiveM native reference. Formerly `NATIVES_GTA5.md`.
 - `references/natives/redm-rdr3-natives.md` - RDR3 / RedM native reference. Formerly `REDM_NATIVES.md`.
 - `references/natives/SOURCES.md` - source attribution and publication notes for generated native references.
+- `references/server.cfg.example` - copyable `server.cfg` hardening baseline.
 
-These files are generated lookup references and are intentionally kept outside `skills/` and `memory/`.
-
-## Agent Configs
-
-- **Claude Code** - uses `SKILL.md` directly as the skill manifest (frontmatter `name` + `description`); no separate config file.
-- `.claude-plugin/marketplace.json` - Claude Code plugin marketplace manifest for `/plugin` install.
-- `agents/openai.yaml` - OpenAI Codex agent configuration; points Codex to `SKILL.md` and `AGENTS.md`.
-- `skills.sh.json` - skills.sh grouping/visibility.
-
-## Maintenance
-
-Run the package checks before publishing changes:
-
-```powershell
-python scripts/validate_b3sty_skill.py
-python C:\Users\b3sty191\.codex\skills\.system\skill-creator\scripts\quick_validate.py .
-```
-
-## License
-
-Original b3sty skill rules, memory notes, and packaging metadata are MIT licensed. Generated native references keep their upstream terms; see `NOTICE.md` and `references/natives/SOURCES.md`.
+The native files are generated lookup references and are intentionally kept outside `skills/` and `memory/`.
 
 ## Memory
 
@@ -135,3 +116,25 @@ Original b3sty skill rules, memory notes, and packaging metadata are MIT license
 - `memory/redm/native-bugs.md` - RedM-only native issues and workarounds.
 
 `skills/` holds stable rules; `memory/` holds learned facts with date and game build; `references/` holds large generated source material. See `SKILL.md` for which file to open for each task.
+
+## Agent Configs
+
+- **Claude Code** - uses `SKILL.md` directly as the skill manifest (frontmatter `name` + `description`); no separate config file.
+- `.claude-plugin/marketplace.json` - Claude Code plugin marketplace manifest for `/plugin` install.
+- `agents/openai.yaml` - OpenAI Codex agent configuration; points Codex to `SKILL.md` and `AGENTS.md`.
+- `skills.sh.json` - skills.sh grouping/visibility.
+
+## Maintenance
+
+Run the package checks before publishing changes:
+
+```bash
+python scripts/validate_b3sty_skill.py
+python <skill-creator>/scripts/quick_validate.py .
+```
+
+`<skill-creator>` is your local skill-creator install (for Codex on Windows: `%USERPROFILE%\.codex\skills\.system\skill-creator`).
+
+## License
+
+Original b3sty skill rules, memory notes, and packaging metadata are MIT licensed. Generated native references keep their upstream terms; see `NOTICE.md` and `references/natives/SOURCES.md`.
