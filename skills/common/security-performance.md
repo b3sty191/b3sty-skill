@@ -606,7 +606,11 @@ Resource-level validation cannot compensate for a soft server platform. These ar
 - If code repeatedly uses `for` loops to find one entry by name, ID, category, hash, or source, build an index once and read it directly.
 - Prefer direct indexed lookup like `Items["INDEX"][itemName]` over scanning the whole item list in hot paths.
 - Require only config modules used by the current script; do not eager-load large config files into scripts that do not need them.
-- Keep hot-loop payloads and state-bag data small.
+- Keep hot-loop payloads and state-bag data small; network cost, latent events, and rate limits are in `skills/common/network-performance.md`.
+- `GetGamePool('CVehicle')` (and `CPed`, `CObject`, `CPickup`) walks the whole pool; never call it every frame. Scan on a slow timer, or track only entities you created or that entered a zone.
+- Do not allocate in per-frame loops: no new tables, closures, string concatenation, or `json.encode` per iteration. Reuse a table or build it only when something changed.
+- Resolve hashes once: backtick literals or `joaat` at load time, not `GetHashKey` inside a loop.
+- Long server loops (all players, big tables) yield with `Wait(0)` every N iterations so one resource cannot stall the server tick.
 - Clear RAM caches when they are tied to player/resource lifetime so memory does not grow forever.
 
 ## Cleanup

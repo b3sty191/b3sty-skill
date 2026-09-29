@@ -31,6 +31,8 @@ REQUIRED_PATHS = [
     "skills/common/frameworks.md",
     "commands/b3sty-review.md",
     "commands/b3sty-new-resource.md",
+    "commands/b3sty-perf.md",
+    "skills/common/network-performance.md",
     "skills/fivem/rules.md",
     "skills/redm/rules.md",
     "memory/common/README.md",

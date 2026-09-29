@@ -72,7 +72,7 @@ If this repository is private, the installer needs existing GitHub credentials o
 - `memory/common/` - learned facts shared by RedM and FiveM.
 - `memory/fivem/` - FiveM-only learned facts.
 - `memory/redm/` - RedM-only learned facts.
-- `commands/` - Claude Code slash commands that drive a task using the rules (`/b3sty-review`, `/b3sty-new-resource`).
+- `commands/` - Claude Code slash commands that drive a task using the rules (`/b3sty-review`, `/b3sty-new-resource`, `/b3sty-perf`).
 - `references/natives/` - large generated native reference files.
 
 ## Common Skills
@@ -86,6 +86,7 @@ If this repository is private, the installer needs existing GitHub credentials o
 - `skills/common/nui.md` - in-game browser UI (NUI): Lua<->browser bridge, focus, JSON contracts, validation, frontend hygiene, performance, and security.
 - `skills/common/runtime.md` - threads/waits, the `source` variable, exports and stale references, identifiers, convars, resource lifecycle, yield hazards, and game builds.
 - `skills/common/security-performance.md` - client-hostile/server-authoritative security: event trust boundary, give-value (give-item/give-money) hardening, ACE permissions, built-in client event exploits, SQL injection, secrets/convars, identifier trust, throttles, persistence, cleanup, and the security review checklist.
+- `skills/common/network-performance.md` - net event cost, FXServer rate limits and overflow kicks, latent events, payload shape, snapshot-then-deltas caching, and state bag cost.
 - `skills/common/database.md` - SQL, OxMySQL/mysql-async, migrations, transactions, and persistence rules.
 - `skills/common/debugging.md` - reproducible debugging flow for resource, native, NUI, DB, and performance failures.
 - `skills/common/frameworks.md` - ESX, QBCore, Qbox, VORP, and RSG integration: player lookup, money/items/jobs, lifecycle events, and the bridge pattern.
@@ -95,6 +96,7 @@ If this repository is private, the installer needs existing GitHub credentials o
 ## Commands
 
 - `commands/b3sty-review.md` - `/b3sty-review`: review a resource against the rules and report verified findings by severity.
+- `commands/b3sty-perf.md` - `/b3sty-perf`: CPU and network performance pass with a measured/estimated report.
 - `commands/b3sty-new-resource.md` - `/b3sty-new-resource`: scaffold a new resource (manifest, controllers, validated events, cleanup, optional bridge/NUI/DB).
 
 The Claude Code plugin installs these with the main skill. With a git-clone install, copy `commands/*.md` into `~/.claude/commands/` (or `.claude/commands/` for one project) to use them.

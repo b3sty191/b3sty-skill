@@ -12,7 +12,7 @@ The rest of the repo:
 - `memory/common/` - learned facts shared by RedM and FiveM.
 - `memory/fivem/` - FiveM-only learned facts.
 - `memory/redm/` - RedM-only learned facts.
-- `commands/` - Claude Code slash commands (`/b3sty-review`, `/b3sty-new-resource`) that drive a task using the rules above.
+- `commands/` - Claude Code slash commands (`/b3sty-review`, `/b3sty-new-resource`, `/b3sty-perf`) that drive a task using the rules above.
 - `references/natives/` - generated native lookup files for FiveM/GTA V and RedM/RDR3.
 
 ## Working Rules
