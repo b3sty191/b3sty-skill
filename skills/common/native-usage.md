@@ -108,7 +108,7 @@ Read as four passes over the doc name, applied identically to every native in bo
 Worked examples:
 
 - `GET_ENTITY_HEALTH` → `GetEntityHealth(entity)`.
-- `ACTIVATE_TIMECYCLE_EDITOR` → `ActivateTimecycleEditor`.
+- `SET_PED_AMMO_BY_TYPE` → `SetPedAmmoByType(ped, ammoType, ammo)`.
 - `_ACTIVATE_COVER_LAYER` → `ActivateCoverLayer(coverLayer)` (the leading `_` collapses the same as any other).
 - Hash-only heading (no friendly name, e.g. `0x1234ABCD...`) → `N_0x1234abcd...` (step 2 turns `0x` into `n_0x` before capitalization; the identifier must start with a letter). This global exists, but calling by explicit hash with a `--[[NAME]]` comment reads better in review.
 

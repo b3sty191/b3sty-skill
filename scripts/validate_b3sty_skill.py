@@ -97,6 +97,36 @@ def check_commands(failures: list[str]) -> None:
             fail(f"{relative} needs frontmatter with a description", failures)
 
 
+# Hex values and CAPS names in the rules that are not natives (constants,
+# placeholders, event/weapon/component names). Everything else must exist in
+# references/natives/ so a typo or invented native cannot slip into a rule.
+NON_NATIVE_HEX = {"0x7fffffff", "0x1234abcd"}
+NON_NATIVE_NAMES = {"REQUEST_CONTROL_EVENT", "NATIVE_NAME", "SAVE_QUERY", "MAX_SAVE_FAILS"}
+NON_NATIVE_PREFIXES = ("WEAPON_", "COMPONENT_")
+
+
+def check_native_refs(paths: list[Path], failures: list[str]) -> None:
+    reference_text = "".join(
+        read_text(ROOT / "references" / "natives" / name)
+        for name in ["fivem-gta5-natives.md", "redm-rdr3-natives.md"]
+    )
+    known_hex = {value.lower() for value in re.findall(r"0x[0-9A-Fa-f]+", reference_text)}
+    known_names = set(re.findall(r"^#+\s+`(_?[A-Z0-9_]+)`", reference_text, re.MULTILINE))
+
+    for path in paths:
+        relative = path.relative_to(ROOT).as_posix()
+        for number, line in enumerate(read_text(path).splitlines(), 1):
+            for value in re.findall(r"\b0x[0-9A-Fa-f]{8}(?:[0-9A-Fa-f]{8})?\b", line):
+                lowered = value.lower()
+                cited = f"docs.fivem.net/natives/?_{lowered}" in line.lower()  # CFX native with its doc link
+                if lowered not in known_hex and lowered not in NON_NATIVE_HEX and not cited:
+                    fail(f"{relative}:{number} hash {value} is not in references/natives/", failures)
+            for name in re.findall(r"`(_?[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+)`", line):
+                if name in known_names or name in NON_NATIVE_NAMES or name.startswith(NON_NATIVE_PREFIXES):
+                    continue
+                fail(f"{relative}:{number} native {name} is not in references/natives/", failures)
+
+
 def check_backticked_paths(markdown_path: Path, failures: list[str]) -> None:
     text = read_text(markdown_path)
     for value in re.findall(r"`([^`]+)`", text):
@@ -220,6 +250,10 @@ def main() -> int:
     cross_link_files += [
         path for path in (ROOT / "references").rglob("*.md") if path not in generated_natives
     ]
+    rule_files = [ROOT / "SKILL.md"] + sorted((ROOT / "skills").rglob("*.md"))
+    rule_files += sorted((ROOT / "memory").rglob("*.md")) + sorted((ROOT / "commands").glob("*.md"))
+    check_native_refs(rule_files, failures)
+
     for markdown_path in cross_link_files:
         check_backticked_paths(markdown_path, failures)
         check_section_references(markdown_path, failures)
