@@ -12,6 +12,7 @@ The rest of the repo:
 - `memory/common/` - learned facts shared by RedM and FiveM.
 - `memory/fivem/` - FiveM-only learned facts.
 - `memory/redm/` - RedM-only learned facts.
+- `commands/` - Claude Code slash commands (`/b3sty-review`, `/b3sty-new-resource`, `/b3sty-perf`) that drive a task using the rules above.
 - `references/natives/` - generated native lookup files for FiveM/GTA V and RedM/RDR3.
 
 ## Working Rules
@@ -31,4 +32,4 @@ The rest of the repo:
 
 ## Agent Configs
 
-- `agents/openai.yaml` - OpenAI Codex agent configuration; points Codex to `SKILL.md` and `AGENTS.md`.
+- `agents/openai.yaml` - OpenAI Codex skill UI metadata (display name, short description, default prompt); Codex loads the skill itself from `SKILL.md`.

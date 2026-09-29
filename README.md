@@ -72,6 +72,7 @@ If this repository is private, the installer needs existing GitHub credentials o
 - `memory/common/` - learned facts shared by RedM and FiveM.
 - `memory/fivem/` - FiveM-only learned facts.
 - `memory/redm/` - RedM-only learned facts.
+- `commands/` - Claude Code slash commands that drive a task using the rules (`/b3sty-review`, `/b3sty-new-resource`, `/b3sty-perf`).
 - `references/natives/` - large generated native reference files.
 
 ## Common Skills
@@ -85,10 +86,20 @@ If this repository is private, the installer needs existing GitHub credentials o
 - `skills/common/nui.md` - in-game browser UI (NUI): Lua<->browser bridge, focus, JSON contracts, validation, frontend hygiene, performance, and security.
 - `skills/common/runtime.md` - threads/waits, the `source` variable, exports and stale references, identifiers, convars, resource lifecycle, yield hazards, and game builds.
 - `skills/common/security-performance.md` - client-hostile/server-authoritative security: event trust boundary, give-value (give-item/give-money) hardening, ACE permissions, built-in client event exploits, SQL injection, secrets/convars, identifier trust, throttles, persistence, cleanup, and the security review checklist.
+- `skills/common/network-performance.md` - net event cost, FXServer rate limits and overflow kicks, latent events, payload shape, snapshot-then-deltas caching, and state bag cost.
 - `skills/common/database.md` - SQL, OxMySQL/mysql-async, migrations, transactions, and persistence rules.
 - `skills/common/debugging.md` - reproducible debugging flow for resource, native, NUI, DB, and performance failures.
+- `skills/common/frameworks.md` - ESX, QBCore, Qbox, VORP, and RSG integration: player lookup, money/items/jobs, lifecycle events, and the bridge pattern.
 - `skills/common/ox-lib.md` - ox_lib usage rules when the project already depends on ox_lib or explicitly accepts it.
 - `skills/common/multi-resource.md` - exports, dependencies, state bags, convars, shared scripts, and cross-resource contracts.
+
+## Commands
+
+- `commands/b3sty-review.md` - `/b3sty-review`: review a resource against the rules and report verified findings by severity.
+- `commands/b3sty-perf.md` - `/b3sty-perf`: CPU and network performance pass with a measured/estimated report.
+- `commands/b3sty-new-resource.md` - `/b3sty-new-resource`: scaffold a new resource (manifest, controllers, validated events, cleanup, optional bridge/NUI/DB).
+
+The Claude Code plugin installs these with the main skill. With a git-clone install, copy `commands/*.md` into `~/.claude/commands/` (or `.claude/commands/` for one project) to use them.
 
 ## Game-Specific Skills
 
@@ -100,28 +111,9 @@ If this repository is private, the installer needs existing GitHub credentials o
 - `references/natives/fivem-gta5-natives.md` - GTA V / FiveM native reference. Formerly `NATIVES_GTA5.md`.
 - `references/natives/redm-rdr3-natives.md` - RDR3 / RedM native reference. Formerly `REDM_NATIVES.md`.
 - `references/natives/SOURCES.md` - source attribution and publication notes for generated native references.
+- `references/server.cfg.example` - copyable `server.cfg` hardening baseline.
 
-These files are generated lookup references and are intentionally kept outside `skills/` and `memory/`.
-
-## Agent Configs
-
-- **Claude Code** - uses `SKILL.md` directly as the skill manifest (frontmatter `name` + `description`); no separate config file.
-- `.claude-plugin/marketplace.json` - Claude Code plugin marketplace manifest for `/plugin` install.
-- `agents/openai.yaml` - OpenAI Codex agent configuration; points Codex to `SKILL.md` and `AGENTS.md`.
-- `skills.sh.json` - skills.sh grouping/visibility.
-
-## Maintenance
-
-Run the package checks before publishing changes:
-
-```powershell
-python scripts/validate_b3sty_skill.py
-python C:\Users\b3sty191\.codex\skills\.system\skill-creator\scripts\quick_validate.py .
-```
-
-## License
-
-Original b3sty skill rules, memory notes, and packaging metadata are MIT licensed. Generated native references keep their upstream terms; see `NOTICE.md` and `references/natives/SOURCES.md`.
+The native files are generated lookup references and are intentionally kept outside `skills/` and `memory/`.
 
 ## Memory
 
@@ -135,3 +127,25 @@ Original b3sty skill rules, memory notes, and packaging metadata are MIT license
 - `memory/redm/native-bugs.md` - RedM-only native issues and workarounds.
 
 `skills/` holds stable rules; `memory/` holds learned facts with date and game build; `references/` holds large generated source material. See `SKILL.md` for which file to open for each task.
+
+## Agent Configs
+
+- **Claude Code** - uses `SKILL.md` directly as the skill manifest (frontmatter `name` + `description`); no separate config file.
+- `.claude-plugin/marketplace.json` - Claude Code plugin marketplace manifest for `/plugin` install.
+- `agents/openai.yaml` - OpenAI Codex skill UI metadata (display name, short description, default prompt); Codex loads the skill itself from `SKILL.md`.
+- `skills.sh.json` - skills.sh grouping/visibility.
+
+## Maintenance
+
+Run the package checks before publishing changes:
+
+```bash
+python scripts/validate_b3sty_skill.py
+python <skill-creator>/scripts/quick_validate.py .
+```
+
+`<skill-creator>` is your local skill-creator install (for Codex on Windows: `%USERPROFILE%\.codex\skills\.system\skill-creator`).
+
+## License
+
+Original b3sty skill rules, memory notes, and packaging metadata are MIT licensed. Generated native references keep their upstream terms; see `NOTICE.md` and `references/natives/SOURCES.md`.

@@ -23,6 +23,7 @@ Use this file only when a RedM/FiveM resource already depends on ox_lib or the t
       'config.lua',
   }
   ```
+- `'@ox_lib/init.lua'` replaces the global `require` with `lib.require`, which is what lets `require('configs.items')` load resource files. Code that relies on it breaks if ox_lib is removed; see `skills/common/style.md` -> Lua Style for the no-ox_lib loader.
 - Keep ox_lib imports out of standalone Lua tooling and non-Cfx scripts.
 - If using locale files, include them under `files` and initialize locale once.
 - Do not mix ox_lib-required code into files that are meant to run without that dependency.

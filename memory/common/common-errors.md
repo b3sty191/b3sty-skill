@@ -16,6 +16,8 @@ Track common errors and fixes here.
   end
   ```
 - Prevention: use `~= true`, `== false`, or assign the value to a clearly named local before comparing.
+- Date: 2026-07-02
+- Game build: n/a (pure Lua / build-independent)
 
 ## Missing Entity Guards
 
@@ -24,6 +26,8 @@ Track common errors and fixes here.
 - Cause: entities can be deleted by the game, stream out, detach, or be removed by another resource.
 - Fix: check `DoesEntityExist(entity)` before reading, attaching, detaching, or deleting.
 - Prevention: keep cleanup and reattach code defensive.
+- Date: 2026-07-02
+- Game build: n/a (build-independent entity lifetime behavior)
 
 ## Template
 

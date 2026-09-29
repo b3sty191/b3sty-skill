@@ -7,7 +7,7 @@
 - Avoid loading unused files.
 - Use `fx_version 'cerulean'`.
 - Use `lua54 'yes'`.
-- Note: `lua54 'yes'` selects the Lua 5.4 runtime, but FXServer's build also adds CfxLua extensions on top of it - the compound assignment operators and bitwise operators. Those operators are CfxLua-only and must not be used in standard Lua or standalone Lua tooling. See `skills/common/style.md` -> CfxLua Syntax for the full list.
+- Note: `lua54 'yes'` selects Lua 5.4 (bitwise `&`, `|`, `~`, `<<`, `>>` are standard). CfxLua adds compound assignment operators and backtick hashes on top - CfxLua-only, never in standard Lua or standalone tooling; see `skills/common/style.md` -> CfxLua Syntax.
 - Use `games { 'rdr3', 'gta5' }` when the resource supports both RedM and FiveM.
 - For FiveM-only manifests, apply `skills/fivem/rules.md`.
 - For RedM-only manifests, apply `skills/redm/rules.md`.

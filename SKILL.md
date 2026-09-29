@@ -1,6 +1,6 @@
 ---
 name: b3sty-skill
-description: b3sty rules for implementing, reviewing, debugging, refactoring, or optimizing RedM/FiveM Lua resources. Use for FXServer manifests, client/server Lua, natives/entities, native invocation from docs (hashes, InvokeNative, marshalling, RDR3 structs), events/callbacks/exports/NUI, NUI/browser-UI bridge (SendNUIMessage, RegisterNUICallback, SetNuiFocus), NUI XSS/player-string rendering, OneSync/entity networking (net IDs, ownership, routing buckets, broadcasts), built-in client events (weaponDamageEvent, explosionEvent), anti-cheat/event-security hardening (give-item/give-money dupe prevention, RegisterNetEvent trust boundary, ACE permissions, SQL injection, secrets/convars, identifier trust, payload size/depth bounds, economy audit trails), SetHttpHandler endpoint hardening, server convar hardening (sv_pureLevel, sv_scriptHookAllowed, sv_requestParanoia, rcon, endpoint privacy) and third-party resource vetting, server validation, throttles/cooldowns, state bags, CFX runtime gotchas (threads, source, exports, identifiers, convars, game builds), config splitting, ox_lib, SQL/OxMySQL persistence, multi-resource integration, performance, cleanup, and learned memory updates.
+description: b3sty rules for implementing, reviewing, debugging, refactoring, or optimizing RedM/FiveM Lua resources. Use for FXServer manifests, client/server Lua, natives/entities, native invocation (hashes, InvokeNative, marshalling, RDR3 structs), events/callbacks/exports, NUI bridge (SendNUIMessage, RegisterNUICallback, SetNuiFocus) and NUI XSS, OneSync networking (net IDs, ownership, routing buckets, broadcasts), built-in client events (weaponDamageEvent, explosionEvent), anti-cheat/event-security hardening (give-item/money dupes, ACE permissions, SQL injection, secrets/convars, identifier trust, payload bounds, audit trails), SetHttpHandler endpoints, server.cfg hardening and third-party resource vetting, throttles/cooldowns, state bags, CFX runtime gotchas (threads, source, exports, identifiers, game builds), config splitting, ox_lib, SQL/OxMySQL persistence, ESX/QBCore/Qbox/VORP/RSG framework bridges, multi-resource integration, performance, cleanup, and learned memory updates.
 ---
 
 # b3sty Skill
@@ -25,11 +25,13 @@ Use this skill when working on b3sty RedM/FiveM resources or related Lua code. T
 - Add `skills/common/networking.md` when the feature creates networked entities, relies on entity ownership, uses routing buckets/instances, broadcasts to clients, reacts to player scope, or handles built-in client events (`weaponDamageEvent`, `startProjectileEvent`, `ptFxEvent`, and the rest).
 - Add `skills/common/nui.md` when the resource has an in-game browser UI (HTML/CSS/JS, React/Svelte/Vue), `SendNUIMessage`, `RegisterNUICallback`, `SetNuiFocus`, or a `ui_page` in the manifest.
 - Add `skills/common/runtime.md` for threads/waits, the `source` variable, exports and stale references, identifiers, convars, resource lifecycle, yield hazards, or game-build gating.
+- Add `skills/common/network-performance.md` for bandwidth, event spam, `-1` broadcasts, latent events, payload size, repeated full fetches, state bag cost, or network overflow kicks.
 - Add `skills/common/database.md` when SQL, OxMySQL/mysql-async, schema, transactions, migrations, dirty saves, or persisted state is involved.
 - Add `skills/common/native-rules.md` and the matching game rules when code calls natives, handles entities, weapons, ammo, vehicles, horses, peds, blips, props, or routing buckets.
 - Add `skills/common/native-usage.md` when translating a native reference entry into a Lua call, invoking by hash with `Citizen.InvokeNative`, handling out-pointer params, packing RDR3 struct arguments, or gating natives by game build.
 - Search the matching native reference only when verifying a specific native name, hash, namespace, signature, parameter behavior, or game difference.
 - Add `skills/common/debugging.md` and the relevant `memory/` files when the task is diagnosis, reproduction, traces, NUI errors, database failures, native bugs, or performance investigation.
+- Add `skills/common/frameworks.md` when the resource uses ESX, QBCore, Qbox, VORP, or RSG (player lookup, money, items, jobs, lifecycle events, bridge).
 - Add `skills/common/ox-lib.md` only when the resource already uses ox_lib or the user explicitly accepts adding it.
 - Add `skills/common/multi-resource.md` when the feature crosses resources through exports, events, callbacks, dependencies, shared scripts, convars, state bags, or framework integration.
 - Add `skills/fivem/rules.md` or `skills/redm/rules.md` whenever the resource is game-specific or shared behavior might differ.
@@ -66,21 +68,21 @@ Apply these on every b3sty Lua task unless the task says otherwise.
 
 ### CfxLua
 
-- In RedM/FiveM code, supported compound operators (`+=`, `-=`, `*=`, `/=`, `<<=`, `>>=`, `&=`, `|=`, `^=`) are fine when clearer. Do **not** use `++`/`--`.
+- In RedM/FiveM code, supported compound operators (`+=`, `-=`, `*=`, `/=`, `<<=`, `>>=`, `&=`, `|=`, `^=`) are fine when clearer. `^=` is bitwise XOR (`x = x ~ y`), not power. Do **not** use `++`/`--`.
 - These operators are CfxLua-only - never use them in standard Lua or standalone Lua tooling.
 
 ### Natives
 
 - Docs name `GET_ENTITY_HEALTH` -> Lua global `GetEntityHealth`; leading-underscore names drop the underscore; hash-only natives use `Citizen.InvokeNative(hash, ...)` with a `--[[NAME]]` comment.
-- `Citizen.InvokeNative` BOOL results are `1`/`0`, and `0` is truthy in Lua - compare `== 1`, never use the raw result in an `if`.
-- Float params in hash calls must be float-subtype numbers - write `1.0`, coerce computed values with `+ 0.0`.
+- BOOL results from named natives and bare `Citizen.InvokeNative` are `1`/`false`, never `true` - test with `if`/`not`, never `== true`. Append `Citizen.ResultAsInteger()` to int-returning hash calls so a real `0` is not `false`; under it a BOOL is `1`/`0` and `0` is truthy, so compare `~= 0`.
+- Float params must be float-subtype numbers in named and hash calls alike (`SetEntityHeading(ped, 90)` is broken) - write `1.0`, coerce computed values with `+ 0.0`.
 - Prefer hash constants via backtick literals or `joaat`; compare hashes to hashes, never to hex strings.
 - Full mechanics (out params, marshalling, RDR3 structs, builds, confidence): `skills/common/native-usage.md`.
 
 ### Config
 
 - Small/shared config in `config.lua`; large datasets split into `configs/*.lua`, each returning a table.
-- Require a split config only in the script that uses it; no eager aggregators.
+- Load a split config only in the script that uses it; no eager aggregators. Stock CfxLua `require` cannot load resource files - use ox_lib's `require` when the resource already loads ox_lib, otherwise the cached loader in `skills/common/style.md` -> Lua Style (client reads need `files`).
 
 ### NUI
 
@@ -117,9 +119,11 @@ Open lazily by task - do not preload all of them.
 - `skills/common/networking.md` - OneSync, net IDs vs handles, entity ownership, routing buckets, scoped vs broadcast messages, player scope, entity lifecycle events, and built-in client events (`weaponDamageEvent` and friends).
 - `skills/common/nui.md` - in-game browser UI (NUI): Lua<->browser bridge, `SendNUIMessage`, `RegisterNUICallback`, focus, JSON contracts, validation, frontend hygiene, performance, and security.
 - `skills/common/runtime.md` - threads/waits, the `source` variable, exports and stale references, identifiers, convars, resource lifecycle, yield hazards, and game builds.
+- `skills/common/network-performance.md` - net event cost model, FXServer rate limits and overflow kicks, latent events, payload shape, snapshot-then-deltas caching, audience, and state bag cost.
 - `skills/common/security-performance.md` - when writing `:server:` events, callbacks, sync, DB writes, or hot loops.
 - `skills/common/database.md` - when writing SQL, OxMySQL/mysql-async persistence, migrations, transactions, or saved state.
 - `skills/common/debugging.md` - when diagnosing resource failures, traces, client/server/NUI issues, DB issues, load order, or performance bugs.
+- `skills/common/frameworks.md` - when a resource integrates with ESX, QBCore, Qbox, VORP, or RSG: player lookup, money/item/job calls, lifecycle events, and the bridge pattern.
 - `skills/common/ox-lib.md` - when a resource already uses ox_lib or the task explicitly accepts adding ox_lib.
 - `skills/common/multi-resource.md` - when resources communicate through exports, events, callbacks, dependencies, state bags, or shared libraries.
 
@@ -135,6 +139,14 @@ These are large generated lookup files. Open only the matching file when verifyi
 - `references/natives/fivem-gta5-natives.md` - GTA V / FiveM native reference.
 - `references/natives/redm-rdr3-natives.md` - RDR3 / RedM native reference.
 - `references/server.cfg.example` - copyable server hardening baseline (open when setting up or reviewing `server.cfg`).
+
+## Commands
+
+Slash commands installed with the Claude Code plugin:
+
+- `commands/b3sty-review.md` - `/b3sty-review`: review a resource and report verified findings by severity.
+- `commands/b3sty-new-resource.md` - `/b3sty-new-resource`: scaffold a new resource that follows these rules.
+- `commands/b3sty-perf.md` - `/b3sty-perf`: find and fix CPU and network performance problems with a measured/estimated report.
 
 ## Memory
 

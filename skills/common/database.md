@@ -32,7 +32,7 @@ Use this file when a RedM/FiveM resource reads or writes SQL, owns persisted pla
 - Never build SQL by concatenating player input, NUI input, item names, identifiers, job names, or config keys.
 - Validate and normalize values before passing them as query parameters.
 - Keep dynamic table/column names out of public input. If dynamic names are unavoidable, choose from a server-side allowlist.
-- Prefer `?` placeholders for ordinary OxMySQL queries. Named placeholders (`@name`) are supported too (require the resource's `namedPlaceholders` setting). ([oxmysql](https://overextended.dev/docs/oxmysql))
+- Prefer `?` placeholders for ordinary OxMySQL queries. Named placeholders (`@name`/`:name` with a keyed table) still work and are on unless `mysql_connection_string` sets `namedPlaceholders=false`, but oxmysql marks them deprecated; use `?` in new code. ([oxmysql placeholders](https://overextended.dev/docs/oxmysql/placeholders))
 - Backtick fixed table and column names when they may conflict with reserved words.
 - Check affected row counts for updates that are expected to mutate exactly one row.
 
@@ -49,7 +49,17 @@ MySQL.insert.await("INSERT INTO logs (item) VALUES (?)", { item })
 ```
 
 - Bind every value. For a dynamic identifier (table/column name) choose from a server-side allowlist and interpolate only the allowlisted constant - never the raw input.
-- Wrap multi-step valuable writes (debit + grant) in one `MySQL.transaction.await({ ... })` so they commit together or roll back together ([oxmysql transaction](https://overextended.dev/docs/oxmysql/Functions/transaction)). See `skills/common/security-performance.md` -> Database And Persistence and Give-Value Event Hardening for the race-safe pattern.
+- Wrap multi-step valuable writes in one transaction, but know that `MySQL.transaction` rolls back only when a statement throws ([oxmysql transaction](https://overextended.dev/docs/oxmysql/Functions/transaction)). A conditional `UPDATE ... WHERE money >= ?` that matches 0 rows is not an error: the remaining statements still commit and the call returns `true`. When a conditional statement must gate the grant, use one of these:
+  - Run the conditional debit alone with `MySQL.update.await`, grant only if it changed exactly 1 row, and refund with a compensating update if the grant fails (wrap the grant in `pcall`, since `.await` raises on an SQL error).
+  - Use `MySQL.startTransaction`, where returning `false` from the function rolls back. oxmysql marks it experimental:
+    ```lua
+    local committed = MySQL.startTransaction(function(query)
+        local res = query('UPDATE characters SET money = money - ? WHERE owner = ? AND money >= ?', { cost, owner, cost })
+        if not res or res.affectedRows ~= 1 then return false end
+        query('INSERT INTO inventory (owner, item, count) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE count = count + ?', { owner, item, amount, amount })
+    end)
+    ```
+- See `skills/common/security-performance.md` -> Give-Value Event Hardening (`PurchaseSql`) for the full hardened handler around the conditional debit (validation, throttle, in-flight lock).
 
 ## OxMySQL API Shape
 
@@ -63,12 +73,14 @@ MySQL.insert.await("INSERT INTO logs (item) VALUES (?)", { item })
 - Prefer `.await` in coroutine-friendly server code when it keeps the flow clearer.
 - Use callback style when the surrounding project already uses callbacks heavily.
 - Avoid legacy alias names in new code unless maintaining an existing mysql-async compatibility layer.
-- Always handle `nil`, `false`, empty results, and zero affected rows explicitly.
+- Handle `nil`/empty results and zero affected rows explicitly, and know how errors surface:
+  - `MySQL.*.await` (except `MySQL.transaction.await`, which returns `false`) raises a Lua error on SQL failure. Wrap it in `pcall` wherever a lock, in-flight flag, or dirty flag must be restored afterwards.
+  - Callback-style queries never invoke the callback on error unless the manifest declares `mysql_option 'return_callback_errors'`, in which case the callback receives `(nil, err)` (except `MySQL.transaction`, whose callback always runs and receives `false` on an SQL error).
 
 ## Transactions And Atomic Writes
 
 - Use a transaction for multi-query valuable state changes such as transfers, purchases, crafting, inventories, ownership changes, and claim rewards.
-- Treat a transaction result of `false` as a rejected mutation and do not apply in-memory success state.
+- Treat a transaction result of `false` as a rejected mutation and do not apply in-memory success state. A `true` result does not mean every conditional statement matched a row.
 - Prefer one conditional update over check-then-update when one row can enforce the rule.
 - For money and inventory, avoid flows that read a balance, yield, and then write a new balance without locking, a transaction, or a conditional update.
 - Use unique constraints plus `INSERT ... ON DUPLICATE KEY UPDATE` for upsert behavior.
@@ -111,7 +123,7 @@ MySQL.insert.await("INSERT INTO logs (item) VALUES (?)", { item })
 - Log database failures with resource name, query purpose, source/identifier when relevant, and a bounded error message.
 - Do not log full payloads containing secrets, tokens, webhooks, passwords, authorization headers, or large JSON blobs.
 - Use retry windows for transient save failures, but cap retries and keep failure visible.
-- Make failed persistence behavior explicit: retry, mark dirty again, reject the action, or roll back in-memory state.
+- Make failed persistence behavior explicit: retry, mark dirty again, reject the action, or roll back in-memory state. Put that recovery in a path that actually runs on error: a `pcall` around `.await`, or a callback with `mysql_option 'return_callback_errors'` declared (see OxMySQL API Shape above).
 - Do not silently create missing critical rows in response to untrusted client input.
 
 ## Review Questions

@@ -28,6 +28,11 @@ REQUIRED_PATHS = [
     "skills/common/debugging.md",
     "skills/common/ox-lib.md",
     "skills/common/multi-resource.md",
+    "skills/common/frameworks.md",
+    "commands/b3sty-review.md",
+    "commands/b3sty-new-resource.md",
+    "commands/b3sty-perf.md",
+    "skills/common/network-performance.md",
     "skills/fivem/rules.md",
     "skills/redm/rules.md",
     "memory/common/README.md",
@@ -70,10 +75,58 @@ def check_skill_frontmatter(skill_text: str, failures: list[str]) -> None:
     frontmatter = match.group("body")
     if "name: b3sty-skill" not in frontmatter:
         fail("SKILL.md frontmatter must include name: b3sty-skill", failures)
-    if "description:" not in frontmatter:
+    description = re.search(r"^description:\s*(.*)$", frontmatter, re.MULTILINE)
+    if not description:
         fail("SKILL.md frontmatter must include description", failures)
+    elif len(description.group(1).strip()) > 1024:
+        fail(
+            f"SKILL.md description is {len(description.group(1).strip())} characters; maximum is 1024",
+            failures,
+        )
     if "RedM" not in frontmatter or "FiveM" not in frontmatter:
         fail("SKILL.md description should mention RedM and FiveM", failures)
+
+
+def check_commands(failures: list[str]) -> None:
+    # Commands, not nested SKILL.md files: a skill folder may hold only one SKILL.md.
+    nested = [p for p in ROOT.rglob("SKILL.md") if p != ROOT / "SKILL.md" and ".git" not in p.parts]
+    for path in nested:
+        fail(f"Nested SKILL.md breaks skill upload: {path.relative_to(ROOT).as_posix()}", failures)
+    for command_path in sorted((ROOT / "commands").glob("*.md")):
+        relative = command_path.relative_to(ROOT).as_posix()
+        match = re.match(r"^---\n(?P<body>.*?)\n---\n", read_text(command_path), re.DOTALL)
+        if not match or not re.search(r"^description:\s*\S", match.group("body"), re.MULTILINE):
+            fail(f"{relative} needs frontmatter with a description", failures)
+
+
+# Hex values and CAPS names in the rules that are not natives (constants,
+# placeholders, event/weapon/component names). Everything else must exist in
+# references/natives/ so a typo or invented native cannot slip into a rule.
+NON_NATIVE_HEX = {"0x7fffffff", "0x1234abcd"}
+NON_NATIVE_NAMES = {"REQUEST_CONTROL_EVENT", "NATIVE_NAME", "SAVE_QUERY", "MAX_SAVE_FAILS"}
+NON_NATIVE_PREFIXES = ("WEAPON_", "COMPONENT_")
+
+
+def check_native_refs(paths: list[Path], failures: list[str]) -> None:
+    reference_text = "".join(
+        read_text(ROOT / "references" / "natives" / name)
+        for name in ["fivem-gta5-natives.md", "redm-rdr3-natives.md"]
+    )
+    known_hex = {value.lower() for value in re.findall(r"0x[0-9A-Fa-f]+", reference_text)}
+    known_names = set(re.findall(r"^#+\s+`(_?[A-Z0-9_]+)`", reference_text, re.MULTILINE))
+
+    for path in paths:
+        relative = path.relative_to(ROOT).as_posix()
+        for number, line in enumerate(read_text(path).splitlines(), 1):
+            for value in re.findall(r"\b0x[0-9A-Fa-f]{8}(?:[0-9A-Fa-f]{8})?\b", line):
+                lowered = value.lower()
+                cited = f"docs.fivem.net/natives/?_{lowered}" in line.lower()  # CFX native with its doc link
+                if lowered not in known_hex and lowered not in NON_NATIVE_HEX and not cited:
+                    fail(f"{relative}:{number} hash {value} is not in references/natives/", failures)
+            for name in re.findall(r"`(_?[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+)`", line):
+                if name in known_names or name in NON_NATIVE_NAMES or name.startswith(NON_NATIVE_PREFIXES):
+                    continue
+                fail(f"{relative}:{number} native {name} is not in references/natives/", failures)
 
 
 def check_backticked_paths(markdown_path: Path, failures: list[str]) -> None:
@@ -183,6 +236,7 @@ def main() -> int:
     check_marketplace_json(failures)
     check_memory_readmes(failures)
     check_reference_toc(failures)
+    check_commands(failures)
 
     # Validate cross-links (backticked skill/memory/references paths) everywhere
     # rules live, not only the top-level entry points. Skip the large generated
@@ -194,9 +248,14 @@ def main() -> int:
     cross_link_files = [ROOT / "SKILL.md", ROOT / "README.md", ROOT / "AGENTS.md"]
     cross_link_files += sorted((ROOT / "skills").rglob("*.md"))
     cross_link_files += sorted((ROOT / "memory").rglob("*.md"))
+    cross_link_files += sorted((ROOT / "commands").glob("*.md"))
     cross_link_files += [
         path for path in (ROOT / "references").rglob("*.md") if path not in generated_natives
     ]
+    rule_files = [ROOT / "SKILL.md"] + sorted((ROOT / "skills").rglob("*.md"))
+    rule_files += sorted((ROOT / "memory").rglob("*.md")) + sorted((ROOT / "commands").glob("*.md"))
+    check_native_refs(rule_files, failures)
+
     for markdown_path in cross_link_files:
         check_backticked_paths(markdown_path, failures)
         check_section_references(markdown_path, failures)
