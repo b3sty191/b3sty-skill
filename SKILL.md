@@ -139,12 +139,13 @@ These are large generated lookup files. Open only the matching file when verifyi
 - `references/natives/fivem-gta5-natives.md` - GTA V / FiveM native reference.
 - `references/natives/redm-rdr3-natives.md` - RDR3 / RedM native reference.
 - `references/server.cfg.example` - copyable server hardening baseline (open when setting up or reviewing `server.cfg`).
+- `references/audit-findings-schema.md` - verdict and severity contract for a `/b3sty-review` full audit; open when writing or validating `findings.json`.
 
 ## Commands
 
 Slash commands installed with the Claude Code plugin:
 
-- `commands/b3sty-review.md` - `/b3sty-review`: review a resource and report verified findings by severity.
+- `commands/b3sty-review.md` - `/b3sty-review`: coverage-led, adversarially verified audit with confirmed/needs_validation/rejected verdicts (`scripts/b3sty_audit_ledger.py` seeds the entry-point ledger; `scripts/validate_audit_findings.py` checks the findings).
 - `commands/b3sty-new-resource.md` - `/b3sty-new-resource`: scaffold a new resource that follows these rules.
 - `commands/b3sty-perf.md` - `/b3sty-perf`: find and fix CPU and network performance problems with a measured/estimated report.
 

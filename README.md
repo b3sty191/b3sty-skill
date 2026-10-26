@@ -95,7 +95,7 @@ If this repository is private, the installer needs existing GitHub credentials o
 
 ## Commands
 
-- `commands/b3sty-review.md` - `/b3sty-review`: review a resource against the rules and report verified findings by severity.
+- `commands/b3sty-review.md` - `/b3sty-review`: coverage-led, adversarially verified security audit; `confirmed`/`needs_validation`/`rejected` verdicts with FiveM severity anchors (`scripts/b3sty_audit_ledger.py` + `scripts/validate_audit_findings.py`).
 - `commands/b3sty-perf.md` - `/b3sty-perf`: CPU and network performance pass with a measured/estimated report.
 - `commands/b3sty-new-resource.md` - `/b3sty-new-resource`: scaffold a new resource (manifest, controllers, validated events, cleanup, optional bridge/NUI/DB).
 
@@ -112,6 +112,7 @@ The Claude Code plugin installs these with the main skill. With a git-clone inst
 - `references/natives/redm-rdr3-natives.md` - RDR3 / RedM native reference. Formerly `REDM_NATIVES.md`.
 - `references/natives/SOURCES.md` - source attribution and publication notes for generated native references.
 - `references/server.cfg.example` - copyable `server.cfg` hardening baseline.
+- `references/audit-findings-schema.md` - findings verdict/severity contract for a `/b3sty-review` full audit.
 
 The native files are generated lookup references and are intentionally kept outside `skills/` and `memory/`.
 
@@ -142,6 +143,9 @@ Run the package checks before publishing changes:
 ```bash
 python scripts/validate_b3sty_skill.py
 python <skill-creator>/scripts/quick_validate.py .
+python scripts/check_lua_examples.py
+python scripts/b3sty_audit_ledger.py --selftest
+python scripts/validate_audit_findings.py --selftest
 ```
 
 `<skill-creator>` is your local skill-creator install (for Codex on Windows: `%USERPROFILE%\.codex\skills\.system\skill-creator`).
