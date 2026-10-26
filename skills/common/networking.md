@@ -20,7 +20,7 @@ This file covers the multiplayer/OneSync layer. Native marshalling is in `skills
 
 ## Sides And Authority
 
-- The server is authoritative for world decisions: who owns an entity, which routing bucket a player is in, whether an entity may exist, and which clients receive a broadcast.
+- The server is authoritative for world decisions: which routing bucket a player is in, whether an entity may exist, which clients receive a broadcast, and ownership-relevant outcomes (who may use, claim, or delete an entity). Under OneSync, clients own and simulate networked entities and FXServer migrates that ownership; server scripts can read the owner (`NetworkGetEntityOwner`) but not assign it. See Entity Ownership.
 - `IsDuplicityVersion()` returns `true` on the server. Use it in shared scripts to branch by side.
 - Server-side game natives are a limited OneSync subset (entity getters/setters, player state). Most game natives are client-only; see `skills/common/native-usage.md` -> Client, Server, And Shared Context.
 - Known server-side native quirks live in `memory/`: RedM `GetEntityHealth` returning `0`, `GetVehiclePedIsIn` returning the last vehicle, `GetEntityModel` returning `0` during `entityCreating`. Check `memory/common/native-bugs.md` and `memory/redm/native-bugs.md` before building server logic on a native read.
@@ -39,12 +39,12 @@ This file covers the multiplayer/OneSync layer. Native marshalling is in `skills
 
 ## Entity Ownership
 
-- OneSync gives each networked entity an owning client. `NetworkGetEntityOwner(entity)` returns that owner's player source on the server. ([NetworkGetEntityOwner](https://docs.fivem.net/natives/?_0x526FEE31))
+- OneSync gives each networked entity an owning client when one is in scope. `NetworkGetEntityOwner(entity)` returns the owning player's server ID on the server, or `-1` when no client owns the entity (server-owned/orphaned). Handle `-1` before treating the result as a player. ([NetworkGetEntityOwner](https://docs.fivem.net/natives/?_0x526FEE31))
 - Ownership migrates: when the owner leaves scope or the game rebalances, ownership can move to another client. Do not assume the creator stays the owner.
 - Code that writes to a networked entity should usually run on, or be requested by, its owner. The server can also set state directly via its OneSync native subset.
 - The server decides ownership-relevant outcomes (deletion, locking, damage eligibility), not the client that happens to own the entity at that instant.
 - For valuable actions tied to an entity, validate ownership/eligibility server-side against a registry, not against a client claim.
-- **Ownership migration is an attack surface.** A client requesting control of an entity it does not own (`REQUEST_CONTROL_EVENT`, used to delete/clone/hijack vehicles and objects, or fire explosions by proxy) is the classic entity exploit. Mitigate at the server level with `sv_filterRequestControl` (modes 0-4; mode `4` does not route `REQUEST_CONTROL_EVENT` at all) and re-validate ownership against a server registry before honoring a client request. ([Server Commands](https://docs.fivem.net/docs/server-manual/server-commands/))
+- **Ownership migration is an attack surface.** A client requesting control of an entity it does not own (`REQUEST_CONTROL_EVENT`, used to delete/clone/hijack vehicles and objects, or fire explosions by proxy) is the classic entity exploit. Mitigate on FiveM with `sv_filterRequestControl`: `0` off (default), `1` blocks requests for player-controlled entities (currently occupied vehicles) older than `sv_filterRequestControlSettleTimer` (default `30000` ms), `2` blocks all player-controlled entities, `-1` acts like `2` and warns in console, `3` also blocks settled non-player entities, `4` does not route `REQUEST_CONTROL_EVENT` at all. Any non-zero mode also blocks cross-bucket control requests and senders in strict entity lockdown. Entities flagged server-side with `SetEntityIgnoreRequestControlFilter(entity, true)` bypass every mode and the strict-lockdown check (the cross-bucket check still applies). RedM servers accept the convar, but the filter is compiled only for the GTA V server state and has no effect there, so re-validate ownership against a server registry before honoring a client request on both games. ([Server Commands](https://docs.fivem.net/docs/server-manual/server-commands/))
 - Treat client "spawn" or "give me this loot/pickup/vehicle" requests like any give-value request: the server decides what spawns, who owns it, and who may claim it. See `skills/common/security-performance.md` -> Give-Value Event Hardening and Entity And Net ID Validation.
 
 ## Routing Buckets
@@ -57,7 +57,8 @@ This file covers the multiplayer/OneSync layer. Native marshalling is in `skills
   ```
 - Read with `GetPlayerRoutingBucket(player)` and `GetEntityRoutingBucket(entity)`. Default bucket is `0`.
 - Players keep their bucket across reconnects only if the server re-applies it; store intended bucket in server/persistence state and reapply on join.
-- Spawn instance content server-side and place it in the matching bucket so it is scoped correctly. Entities spawned client-side do not automatically follow a player's bucket.
+- Spawn instance content server-side and place it in the matching bucket so it is scoped correctly.
+- An entity gets its creating client's routing bucket when it is created, but it does not follow later `SetPlayerRoutingBucket` moves (only the player's own ped moves). Move owned vehicles/props explicitly with `SetEntityRoutingBucket`. Always set the bucket right after server-side creation (once `DoesEntityExist` is true), because RPC creation may run on a nearby client in a different bucket.
 - Validate that an entity a client references is in the same bucket as that player before acting on it; cross-bucket references are a common exploit/teleport vector.
 - Clear/reset bucket assignments on instance end, player drop, and resource stop so players are not left in an empty private world.
 
@@ -72,7 +73,7 @@ This file covers the multiplayer/OneSync layer. Native marshalling is in `skills
 ## Player Scope
 
 - OneSync streams entities to clients based on scope. A client only receives data for entities in its scope.
-- `playerEnteredScope` and `playerLeftScope` fire with `{ for = playerId, player = playerId }`: another player entered/left the listener's scope. Use them for proximity setup/teardown, not for authority.
+- `playerEnteredScope` / `playerLeftScope` receive `data` with string fields: `data["for"]` (the player whose scope changed) and `data.player` (the player who entered/left). `for` is a Lua keyword, so use bracket access, and convert with `tonumber(...)` before comparing with server IDs. These events cost more as player count grows (the docs discourage them). Prefer state bags for scoped replication, and never use them for authority.
 - Scope events are informational; re-validate any position, distance, or "is near" claim server-side before valuable outcomes.
 
 ## Entity Lifecycle Events
@@ -87,26 +88,28 @@ This file covers the multiplayer/OneSync layer. Native marshalling is in `skills
 
 These are triggered by the game/client toward the server. They are part of FiveM/OneSync (documented at [server-events](https://docs.fivem.net/docs/scripting-reference/events/server-events/)) and are client-callable, so treat every one as untrusted input. The full hardened treatment (validation, rate-limit, cancel nuance, logging) is in `skills/common/security-performance.md` -> Built-in Client Events.
 
-- `weaponDamageEvent(sender, data)` — client-reported weapon damage. `data.weaponType`, `data.weaponDamage`, `data.hitGlobalId(s)`, `data.willKill`, `data.silenced`, etc. `data.weaponType` has been reported to carry incorrect hashes (citizenfx/fivem#3827); validate against server-side weapon/entity state, not the field alone.
+- `weaponDamageEvent(sender, data)` — client-reported weapon damage. `data.weaponType`, `data.weaponDamage`, `data.hitGlobalId(s)`, `data.willKill`, `data.silenced`, etc. `data.weaponType` is an unsigned 32-bit hash, while `GetHashKey`/backticks return signed values (citizenfx/fivem#3827: `2982836145` vs `-1312131151` for `weapon_rpg`), so normalize before comparing: `local h = data.weaponType; if h > 0x7FFFFFFF then h = h - 0x100000000 end`. It is still client-reported; validate against server-side weapon/entity state, not the field alone.
 - `startProjectileEvent(sender, data)` — projectile/thrown creation. Validate `weaponHash`, `projectileHash`, owner, and origin before trusting it.
-- `ptFxEvent(sender, data)` — particle effect playback. Cheap to abuse; rate-limit and bound if it can be used to grief or reveal state.
-- `removeAllWeaponsEvent(sender, data)` — `data.pedId`; confirm the sender owns/controls that ped before honoring it.
+- `ptFxEvent(sender, data)` (FiveM only) — particle effect playback. Cheap to abuse; rate-limit and bound if it can be used to grief or reveal state.
+- `removeAllWeaponsEvent(sender, data)` (FiveM only): `data.pedId` is the network ID of a ped owned by *another* player; the event fires because the sender does not own it. Resolve it with `NetworkGetEntityFromNetworkId(data.pedId)`, and call `CancelEvent()` unless a server-authorized flow (for example an ACE-gated police/admin action) expects this sender to disarm that ped. If nothing legitimate uses it, block it with `block_net_game_event "REMOVE_ALL_WEAPONS_EVENT"`.
 - `explosionEvent(sender, ev)` — interceptable server-side with OneSync: `AddEventHandler('explosionEvent', function(sender, ev) ...)`; `ev` has `explosionType`, `posX/Y/Z`, `damageScale`, `ownerNetId`. `CancelEvent()` here stops the server from routing the explosion to other clients ([cookbook](https://docs.fivem.net/docs/cookbook/2019/08/19/onesync-intercepting-game-events-such-as-explosions/)). Note `CancelEvent()` does not stop other handlers and is not reliable for already-applied damage.
+- RedM raises `weaponDamageEvent`, `explosionEvent`, `startProjectileEvent`, `respawnPlayerPedEvent`, `lightningEvent`, `clearPedTasksEvent` (`data.pedId`, `data.immediately`), `endLootEvent` (`data.targetId`), and the carriable events (`pickupCarriableEvent`, `placeCarriableOntoParentEvent`, `sendCarriableUpdateCarryStateEvent`, `carriableVehicleStowStartEvent`, `carriableVehicleStowCompleteEvent`). Loot and carriable events are the RedM dupe surface; validate them against server registry state.
 
-Networked-event abuse is best mitigated with the server convars: `sv_filterRequestControl` (`REQUEST_CONTROL_EVENT`), `sv_enableNetworkedPhoneExplosions` (off by default), `sv_enableNetworkedSounds`, `sv_enableNetworkedScriptEntityStates`, and `block_net_game_event "EVENT_NAME"` ([Server Commands](https://docs.fivem.net/docs/server-manual/server-commands/)).
+Networked-event abuse is best mitigated with the server convars: `sv_filterRequestControl` (FiveM only; `REQUEST_CONTROL_EVENT`), `sv_enableNetworkedPhoneExplosions` (off by default), `sv_enableNetworkedSounds`, `sv_enableNetworkedScriptEntityStates`, and `block_net_game_event "EVENT_NAME"` ([Server Commands](https://docs.fivem.net/docs/server-manual/server-commands/)).
 
 For all built-in events:
 
 - Read `sender` as the reporting player; never let `sender`-controlled fields grant authority.
+- `sender` arrives as a string (the player's server ID); convert with `tonumber(sender)` before numeric comparisons or using it as a table key.
 - Validate, bound, and rate-limit. Reject, cancel, or log; do not auto-punish on a single unverified event.
 - Log security-relevant ones with bounded fields and rate-limit the logging.
 
 ## Creating Networked Entities
 
 - Decide networked vs local at creation. Networked = shared gameplay state (pickups, loot, storage, placed world objects, blockers, owned persistent objects). Local = cosmetic/preview/attached/render-only. See `skills/common/resource-structure.md` -> Local Vs Networked Props.
-- Create shared gameplay entities server-side (`CreateObject(...)`, etc.) so ownership and routing bucket are server-controlled. Keep a server registry of created entities.
-- For client-created networked entities, the creating client becomes the initial owner; re-claim ownership server-side if the server must control it.
-- Preload the model before creation and release it after with `SetModelAsNoLongerNeeded`; see `skills/common/native-rules.md` -> Performance.
+- Spawn shared gameplay entities from the server (`CreateObject`/`CreateVehicle`/`CreatePed` RPC natives, or `CreateVehicleServerSetter` on FiveM only) so the server decides what spawns and keeps the handle in a registry. This does not make ownership server-controlled: RPC creation is executed by the nearest client, which becomes the initial owner, and ownership migrates with scope. Once `DoesEntityExist(entity)` is true, set the routing bucket explicitly with `SetEntityRoutingBucket(entity, bucket)`.
+- For client-created networked entities, the creating client is the initial owner (`NetworkGetFirstEntityOwner`). No server native can take or assign ownership. If the server must control the entity, reject it in `entityCreating` and spawn a server-side replacement, or gate every outcome through the server registry.
+- For client-side creation, preload the model (`RequestModel` + `HasModelLoaded`) and release it with `SetModelAsNoLongerNeeded`. Server-side creation takes the model hash directly and needs no model loading. See `skills/common/native-rules.md` -> Performance.
 - Keep cleanup for every networked entity: delete on state end, player drop, and resource stop; guard deletes with `DoesEntityExist`.
 
 ## Debugging
@@ -119,7 +122,7 @@ For all built-in events:
 
 ## Review Questions
 
-- Is the server deciding ownership, buckets, broadcasts, and creation, or is a client claim being trusted?
+- Is the server deciding buckets, broadcasts, creation, and ownership-relevant outcomes (use, claim, delete), or is a client claim (including whoever currently owns the entity) being trusted?
 - Are client-provided handles and net IDs validated (type, existence, model, owner, bucket, distance) before use?
 - Are players and their entities moved into the same routing bucket, and reset on instance end?
 - Is any `TriggerClientEvent(name, -1)` broadcast justified, or should it be scoped/targeted?

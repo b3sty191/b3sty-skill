@@ -14,3 +14,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: python scripts/validate_b3sty_skill.py
+      - run: sudo apt-get install -y lua5.4
+      - run: python scripts/check_lua_examples.py
+      - run: python scripts/b3sty_audit_ledger.py --selftest
+      - run: python scripts/validate_audit_findings.py --selftest

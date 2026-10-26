@@ -54,7 +54,7 @@ NUI is client-local only. It never carries authority. Treat the Lua<->browser br
 - The browser listens with `window.addEventListener("message", e => ...)`.
 - Use one stable top-level key that names the message (`action`, `type`, or `event`), not an arbitrary payload the UI must pattern-match blindly.
 - Do not send updated full data every frame. Send one open/update message and let the UI render its own state between updates.
-- Functions, metatables, userdata (vectors, handles), and cyclic tables do not survive JSON. Send plain data: numbers, strings, booleans, arrays, plain tables.
+- Functions, userdata, CfxLua vector values (`vector3` etc.), and cyclic tables do not survive JSON. Convert vectors to explicit `{ x = v.x, y = v.y, z = v.z }` tables. Do not send entity handles: they are client-local integers that mean nothing in the browser, so send display data or a server-issued ID instead. Send plain data: numbers, strings, booleans, arrays, plain tables.
 
 ## Browser To Lua
 
@@ -75,15 +75,15 @@ NUI is client-local only. It never carries authority. Treat the Lua<->browser br
       cb({ ok = true })
   end)
   ```
-- The `cb` argument sends the response that resolves the browser `fetch`. Call `cb` exactly once per request. Forgetting it leaves the browser promise pending; calling it twice is undefined.
+- The `cb` argument sends the response that resolves the browser `fetch`. Call `cb` exactly once per request. Forgetting it makes the request time out and the browser `fetch` reject with an error (wrap `fetch` in try/catch in the bridge helper); calling it twice is undefined.
 - Always pass an explicit response object (for example `cb({ ok = true })`) even when there is no useful return value, so the browser promise resolves cleanly.
 
 ## Focus And Input
 
-- `SetNuiFocus(hasFocus, hasInput)` controls cursor/game-input:
-  - `hasFocus = true` shows the cursor and lets it interact with the UI.
-  - `hasInput = true` lets mouse movement still reach the game while the UI is open. Most menus want `SetNuiFocus(true, false)`.
-- `SetNuiFocusKeepInput(true)` keeps keyboard input flowing to the game while NUI has focus (for HUDs or chat-style overlays). Re-enable game input with `SetNuiFocusKeepInput(false)` on close.
+- `SetNuiFocus(hasFocus, hasCursor)`: `hasFocus = true` gives the NUI page input focus; `hasCursor = true` shows the mouse cursor over the UI.
+  - Clickable menus use `SetNuiFocus(true, true)`. `SetNuiFocus(true, false)` gives keyboard focus with no cursor (for example a text prompt).
+  - To let the game keep receiving input while NUI is focused, use `SetNuiFocusKeepInput(true)` (see below).
+- `SetNuiFocusKeepInput(true)` lets game controls (keyboard and mouse) keep reaching the game while NUI has focus (HUDs, chat-style overlays); disable any controls you do not want with `DisableControlAction` each frame. On close, call `SetNuiFocusKeepInput(false)` to restore the default (focused NUI captures input) so the next focused UI does not leak input to the game. `SetNuiFocus(false, false)` is what returns input to the game.
 - Treat focus as a toggle: set focus on open, clear it on close. Never call `SetNuiFocus(true, true)` every frame.
 - A stuck cursor after the UI closes is almost always a missing `SetNuiFocus(false, false)` on the close path.
 
@@ -95,7 +95,7 @@ NUI is client-local only. It never carries authority. Treat the Lua<->browser br
 
 ## Validation
 
-- Treat every `RegisterNUICallback` payload as untrusted, same as a `:client:` event: the browser can be devtooled or scripted.
+- Treat every `RegisterNUICallback` payload as untrusted, exactly as hostile as a client-triggered `:server:` event: the browser can be devtooled or scripted.
 - Validate `type(...)` and bounds for fields that drive client behavior or that get forwarded to the server.
 - For actions forwarded to the server, do the authoritative validation server-side and treat the NUI path as a UX hint.
 - Never grant money, items, permissions, or access from a NUI callback alone. Forward a validated `:server:` event and let the server decide.
@@ -114,7 +114,7 @@ RegisterNUICallback("buyItem", function(data, cb)
     if amount <= 0 or amount > 100 then cb({ ok = false }) return end
 
     -- the server re-derives identity, catalog, price, and affordability; cb is NOT the grant
-    TriggerServerEvent("shop:buy", { Item = itemName, Amount = amount })
+    TriggerServerEvent("shop:server:buy", { Item = itemName, Amount = amount })
     cb({ ok = true })
 end)
 ```
@@ -137,7 +137,7 @@ end)
 ## Security
 
 - NUI is client-local and client-editable. It is display and UX, not authority.
-- **XSS**: any string another player can influence (player names, chat, notes, item labels, shop names) is an XSS payload candidate crossing from an attacker to a victim's screen. Render it as text - framework text interpolation (React/Svelte/Vue `{value}`) escapes safely; `innerHTML`, `insertAdjacentHTML`, `document.write`, `{@html}`, and `v-html` are the sinks that execute it. Never feed player-controlled data to a raw-HTML sink; if rich text is unavoidable, sanitize with a vetted library and a strict allowlist.
+- **XSS**: any string another player can influence (player names, chat, notes, item labels, shop names) is an XSS payload candidate crossing from an attacker to a victim's screen. Render it as text - framework text interpolation (React/Svelte `{value}`, Vue `{{ value }}`) escapes safely; `innerHTML`, `insertAdjacentHTML`, `document.write`, `{@html}`, and `v-html` are the sinks that execute it. Never feed player-controlled data to a raw-HTML sink; if rich text is unavoidable, sanitize with a vetted library and a strict allowlist.
 - XSS inside CEF is not "just UI": injected script can call every `RegisterNUICallback` and trigger anything the UI can - as the victim player. Treat a rendering sink as full compromise of that player's client-side surface.
 - Validate the scheme of any dynamic `href`/`src` (`https:`/`nui:` only); a `javascript:` URL executes on click. Build `nui://` asset paths from a restricted character set so a crafted name cannot traverse (`../`) out of the intended folder.
 - Bound the length of player-controlled strings before rendering so one giant value cannot freeze or break the HUD.
