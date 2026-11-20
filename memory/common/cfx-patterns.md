@@ -80,18 +80,41 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
   }, true)
 
   -- Client: render from state
-  local Controller = {}
+  local Controller = {
+      ["AttachedProps"] = {},   -- [bagName] = { object, ... }
+  }
 
-  function Controller:RenderAttachState(player, attachState)
+  function Controller:ClearAttachState(bagName)
+      local props = self.AttachedProps[bagName]
+      if not props then return end
+
+      for i = 1, #props do
+          if DoesEntityExist(props[i]) then
+              DeleteEntity(props[i])
+          end
+      end
+
+      self.AttachedProps[bagName] = nil
+  end
+
+  function Controller:RenderAttachState(bagName, player, attachState)
+      self:ClearAttachState(bagName)
       -- CreateObject(model, x, y, z, false, false, false)
       -- AttachEntityToEntity(object, GetPlayerPed(player), boneIndex, ...)
+      -- Track each object in self.AttachedProps[bagName] so cleanup can find it.
   end
 
   AddStateBagChangeHandler("attach", nil, function(bagName, _, attachState)
-      local player = GetPlayerFromStateBagName(bagName)
-      if player == 0 or type(attachState) ~= "table" then return end
+      -- Cleared key: remove props by bag name, even if the player no longer resolves.
+      if type(attachState) ~= "table" then
+          Controller:ClearAttachState(bagName)
+          return
+      end
 
-      Controller:RenderAttachState(player, attachState)
+      local player = GetPlayerFromStateBagName(bagName)
+      if player == 0 then return end
+
+      Controller:RenderAttachState(bagName, player, attachState)
   end)
   ```
 - Notes: local attached props need cleanup on state removal, player stream-out/drop, and resource stop.
@@ -136,6 +159,7 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
   local locationsConfig = require("configs.locations")
   local itemsConfig = require("configs.items")
   ```
+- Notes: plain CfxLua `require` cannot load resource files (fails with "module 'configs.locations' not found"). This shape needs `@ox_lib/init.lua` in the manifest; without ox_lib use the cached `loadConfig` loader in `skills/common/style.md` -> Lua Style. Client-read configs must be listed in `files` either way.
 - Notes: full rules in `skills/common/style.md` -> Config Splitting and `skills/common/fxserver.md`.
 
 ## Player Persistence Pattern
@@ -146,15 +170,20 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
 - Concrete shape:
   ```lua
   -- RAM cache + dirty tracking + spread autosave + force-save on exit.
-  -- Async so it never blocks the main thread; never lose more than the autosave interval on crash.
+  -- Non-blocking (`.await` only suspends the calling thread); never lose more than the autosave interval on crash.
+  local SAVE_QUERY = "UPDATE players SET data = ? WHERE identifier = ?"
+  local MAX_SAVE_FAILS = 5
+
   local Controller = {
       ["PlayerData"] = {},
       ["PlayerDirty"] = {},
       ["PlayerSaving"] = {},
+      ["PlayerSaveFails"] = {},
   }
 
-  function Controller:SavePlayer(source)
-      if self.PlayerSaving[source] then return end
+  -- Call from a thread: it awaits the write. `force` skips the in-flight guard (final save on leave).
+  function Controller:SavePlayer(source, force)
+      if self.PlayerSaving[source] and not force then return end
 
       local data = self.PlayerData[source]
       if not data then return end
@@ -162,26 +191,44 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
       self.PlayerSaving[source] = true
       self.PlayerDirty[source] = nil
 
-      MySQL.update("UPDATE players SET data = ? WHERE identifier = ?", {
+      -- pcall + .await: with default oxmysql settings a callback-style query that errors
+      -- never runs its callback, so the failure path below would be unreachable.
+      local ok, affectedRows = pcall(MySQL.update.await, SAVE_QUERY, {
           json.encode(data), data.identifier,
-      }, function(affectedRows)
-          self.PlayerSaving[source] = nil
+      })
+      self.PlayerSaving[source] = nil
 
-          if not affectedRows and self.PlayerData[source] then
-              self.PlayerDirty[source] = true   -- failed save stays dirty for the next pass
-          end
-      end)
+      if ok and affectedRows and affectedRows > 0 then
+          self.PlayerSaveFails[source] = nil
+          return
+      end
+
+      -- Query error, or 0 rows (no row for this identifier; `0` is truthy in Lua, so check it explicitly).
+      print(("[%s] player save failed for %s: %s"):format(
+          GetCurrentResourceName(), tostring(data.identifier),
+          ok and "0 rows updated" or tostring(affectedRows):match("([^\n]*)$"):sub(1, 120)
+      ))
+
+      if not self.PlayerData[source] then return end   -- player already cleared
+
+      local fails = (self.PlayerSaveFails[source] or 0) + 1
+      self.PlayerSaveFails[source] = fails
+
+      if fails < MAX_SAVE_FAILS then
+          self.PlayerDirty[source] = true   -- capped retry on the next autosave pass
+      end
   end
 
   function Controller:ClearPlayer(source)
       self.PlayerData[source] = nil
       self.PlayerDirty[source] = nil
       self.PlayerSaving[source] = nil
+      self.PlayerSaveFails[source] = nil
   end
 
-  -- Spread autosave: snapshot the dirty set, then save with a small yield between
-  -- players so one pass never stalls the main thread and the backlog cannot grow
-  -- unbounded. Never mutate/iterate PlayerDirty across a yield without a snapshot.
+  -- Spread autosave: snapshot the dirty set, then save one player at a time with a small
+  -- yield between players so one pass never stalls the main thread and the backlog cannot
+  -- grow unbounded. Never mutate/iterate PlayerDirty across a yield without a snapshot.
   CreateThread(function()
       while true do
           Wait(60 * 1000)
@@ -198,29 +245,41 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
       end
   end)
 
-  -- Force-save on leave (primary save point).
+  -- Final save on leave (primary save point). Always issued: wait (bounded) for an
+  -- in-flight autosave so its older snapshot cannot commit last, then force-save and clear.
   AddEventHandler("playerDropped", function()
       local source = source
+      if not Controller.PlayerData[source] then return end
 
-      if source then
-          Controller:SavePlayer(source)
+      CreateThread(function()
+          local waited = 0
+          while Controller.PlayerSaving[source] and waited < 10000 do
+              Wait(100)
+              waited = waited + 100
+          end
+
+          Controller:SavePlayer(source, true)
           Controller:ClearPlayer(source)
-      end
+      end)
   end)
 
   -- Force-save all dirty players when this resource stops (covers restart/stop).
-  -- Await here: fire-and-forget saves can be killed mid-flight on shutdown.
+  -- Never yield here: the resource is torn down at the first yield, so an awaited loop
+  -- writes at most one player. Dispatch one non-awaited batch; oxmysql finishes it.
   AddEventHandler("onResourceStop", function(resourceName)
       if resourceName ~= GetCurrentResourceName() then return end
 
+      local batch = {}
       for source in pairs(Controller.PlayerDirty) do
           local data = Controller.PlayerData[source]
 
           if data then
-              MySQL.update.await("UPDATE players SET data = ? WHERE identifier = ?", {
-                  json.encode(data), data.identifier,
-              })
+              batch[#batch + 1] = { json.encode(data), data.identifier }
           end
+      end
+
+      if #batch > 0 then
+          MySQL.prepare(SAVE_QUERY, batch)
       end
   end)
 
@@ -228,9 +287,10 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
   --   Controller.PlayerDirty[source] = true
   ```
 - Notes: interval is a trade-off - shorter = less data loss but more DB load; 60-120s is a sane default.
-- Notes: `Controller:SavePlayer` is kept as a method because it is used in three places (real duplication); dirty marking is inlined because it is one line.
-- Notes: async queries are mandatory on gameplay paths - sync DB calls block the single FXServer Lua thread. The one exception is `onResourceStop`, where `.await` is required so the writes finish before the runtime tears the resource down.
-- Notes: a failed save must re-mark the player dirty (see the callback above) so data is retried instead of silently lost; on `playerDropped` the final save is best-effort because the RAM cache is cleared right after.
+- Notes: `Controller:SavePlayer` is kept as a method because the autosave loop and `playerDropped` share its write, failure, and retry logic (real duplication); `onResourceStop` cannot yield, so it batches its own non-awaited write with the shared `SAVE_QUERY`. Dirty marking is inlined because it is one line.
+- Notes: never await in `onResourceStop` (the handler is abandoned at its first yield); dispatch one non-awaited batch there, and for full shutdowns also save from txAdmin's `txAdmin:events:serverShuttingDown` (awaits are fine within its `delay`). Yield rules: `skills/common/runtime.md` -> Yield Hazards.
+- Notes: failed or 0-row saves are logged and retried up to `MAX_SAVE_FAILS` (the next gameplay change marks the player dirty again); error-surfacing rules are in `skills/common/database.md` -> OxMySQL API Shape. Use `INSERT ... ON DUPLICATE KEY UPDATE` if this resource owns row creation.
+- Notes: on `playerDropped` the final save is always issued, ordered after any in-flight autosave (bounded 10s wait), and the RAM cache is cleared only after it returns. A final save that still fails is logged and that data is lost. If a quick reconnect must never load stale data, have the loader wait while a final save for that identifier is still pending.
 - Notes: uses the oxmysql API (`MySQL.update` / `MySQL.update.await`), not the legacy `MySQL.async.*` aliases - see `skills/common/database.md` -> OxMySQL API Shape.
 
 ## Template

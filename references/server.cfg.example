@@ -1,31 +1,44 @@
 # b3sty server.cfg hardening baseline.
-# Merge into your server.cfg and adjust per server; the rules behind every line
-# are in skills/common/security-performance.md -> Server Hardening And Operations.
+# Merge into your server.cfg and adjust per server - most rules behind these lines are in
+# skills/common/security-performance.md -> Server Hardening And Operations and
+# skills/common/networking.md -> Entity Ownership.
+# Never put a semicolon in comments - FXServer splits commands on semicolons (outside
+# double quotes) before it strips comments, so the rest of the line runs as a command.
+# Put 'exec secrets.cfg' (and all set/setr convars) near the top of server.cfg,
+# before any ensure/start line - resources read convars when they start.
 # Convar reference: https://docs.fivem.net/docs/server-manual/server-commands/
+
+## Secrets - real values live only in secrets.cfg (gitignored), never here.
+# secrets.cfg holds: sv_licenseKey, set mysql_connection_string, set steam_webApiKey, webhook URLs (set, never setr/sets)
+exec secrets.cfg
 
 ## Core
 set onesync on                              # required for entityCreating gates, ownership, routing buckets
-# sv_enforceGameBuild 3407                  # pick your build (RedM: 1491); startup-only
+# sv_enforceGameBuild 3407                  # pick your build (RedM: 1491), startup-only
 
 ## Anti-cheat / client integrity
 sv_scriptHookAllowed 0                      # keep ScriptHook-style client plugins blocked
-sv_pureLevel 1                              # reject modified client files; 2 = strictest (FiveM; verify RedM support before relying on it)
-sv_requestParanoia 1                        # stricter client request handling; raise gradually, watch for false kicks
-sv_filterRequestControl 4                   # do not route REQUEST_CONTROL_EVENT (entity hijack/explosion-by-proxy vector)
+sv_pureLevel 1                              # reject modified client files - 2 = strictest (FiveM - verify RedM support before relying on it)
+sv_filterRequestControl 4                   # FiveM only (no effect on RedM) - blocks ALL client control requests - audit first:
+#   NetworkRequestControlOfEntity on another client's entity never succeeds (tow/impound/lockpick/delete loops hang) -
+#   opt entities out server-side with SetEntityIgnoreRequestControlFilter(entity, true), or use
+#   2 (player-controlled entities, currently occupied vehicles) / 3 (+ settled non-player entities) as softer modes
 sv_enableNetworkedPhoneExplosions false
 sv_enableNetworkedSounds false
 sv_enableNetworkedScriptEntityStates false
 setr sv_stateBagStrictMode true             # audit resources first: client replicated state bag writes stop working
 
 ## Identity / connection
-sv_authMinTrust 5                           # 1-5, spoof resistance required from identity providers
+sv_authMinTrust 5                           # effectively a no-op on current artifacts: the ip: identifier always reports trust 5 -
+#   sv_authMaxVariance 1 below is what actually requires a stable (license/steam) identifier
 sv_authMaxVariance 1                        # 1-5, identifier stability required
-sv_endpointPrivacy true                     # hide player IPs from other clients
+# sv_endpointPrivacy - removed on current artifacts (players.json no longer exposes endpoints) - only old artifacts
+#   need it, where it hid IPs in public HTTP reports, not from other clients
 
 ## Exposure
-# sv_master1 ""                             # uncomment to delist a private server
-# rcon stays disabled by leaving rcon_password unset; if you must use it, long unique password
-
-## Secrets - real values live only in secrets.cfg (gitignored), never here.
-# secrets.cfg holds: sv_licenseKey, set mysql_connection_string, set steam_webApiKey, webhook URLs (set, never setr/sets)
-exec secrets.cfg
+sv_requestParanoia 1                        # HTTP flood defense on info/dynamic/players.json: block IPs whose requests carry a Via (proxy) header,
+#   2 also blocks browser requests to those endpoints, 3 also closes the socket
+# sv_master1 ""                             # marks the server private (browser Connect button disabled), but it is still listed - this does NOT delist.
+#   Enforce real access with an allowlist in playerConnecting deferrals (optionally 'sets sv_appearAllowlisted true'),
+#   sv_lan true is LAN/dev only
+# rcon stays disabled by leaving rcon_password unset - if you must use it, long unique password

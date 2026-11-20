@@ -42,9 +42,9 @@ Use this file for RedM-only resources or when a shared resource needs RDR3-speci
 
 ## Ammo
 
-- Ammo by type is an RDR3 concept; FiveM/GTA V uses different ammo natives, so do not share this code without a RedM guard.
+- GTA V also has `SetPedAmmoByType`/`GetPedAmmoByType` (same hashes in both games: set `0x5FD1E1F011E76D7E`, get `0x39D22031557946C1`), but the stale reserve-ammo bug and the `RemoveAllPedAmmo` reapply workaround below are RedM-specific. Keep that wrapper behind a RedM guard and use the plain native in FiveM.
 - Do not rely on direct RedM ammo set/remove natives alone when setting or reducing reserve ammo by type.
-- Use a wrapper that clears ammo with `RemoveAllPedAmmo(ped)`, reads the current ammo map from the resource's local player state/helper, reapplies that map, then applies the requested ammo type and amount.
+- Use a wrapper that first records the requested ammo type and amount in the resource-owned ammo map (local player state/helper), then clears ammo with `RemoveAllPedAmmo(ped)` and reapplies the full map, so a later call for another type cannot restore a stale value.
 - Keep the public helper signature clean, such as `SetAmmoByType(ammoType, amount)`.
 - This avoids RedM ammo state bugs where reserve ammo may not decrease correctly or may restore after using direct ammo natives.
 - See `memory/redm/native-bugs.md` for the full entry and a reference wrapper.

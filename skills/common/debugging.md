@@ -78,7 +78,7 @@ Use this file when diagnosing RedM/FiveM resource failures, crashes, bad state, 
 
 - Confirm `ui_page` and every HTML/CSS/JS/font/image file are listed in `fxmanifest.lua`.
 - Confirm Lua sends the message shape the browser expects.
-- Confirm browser callbacks call the Lua callback exactly once.
+- Confirm every Lua `RegisterNUICallback` handler calls its `cb` exactly once on every path, including early-return validation failures. A missing `cb` makes the browser `fetch` time out and reject with an error (see `skills/common/nui.md` -> Browser To Lua).
 - Clear NUI focus on close, player drop, and resource stop.
 - Treat NUI callback payloads as untrusted input even though they originate from the resource UI.
 - Use browser devtools for JS errors instead of guessing from Lua logs.
@@ -86,10 +86,13 @@ Use this file when diagnosing RedM/FiveM resource failures, crashes, bad state, 
 ## Performance Debugging
 
 - Find the hot path before optimizing - measure, do not guess:
-  - `resmon 1` in the client F8 console shows per-resource frame time (ms) and memory; a resource idling above ~0.10ms or spiking on interaction is the place to look. Recent server artifacts support `resmon` in the server console too.
+  - `resmon 1` in the client F8 console shows per-resource frame time (ms) and memory; a resource idling above ~0.10ms or spiking on interaction is the place to look (a community rule of thumb, not an engine limit - compare against the same server's baseline, idle and during the action). Server-side `resmon` exists only in the Windows FXServer GUI; on Linux use the server profiler.
   - `profiler record 500` then `profiler view` (client F8 or server console) captures a tick-level trace of every resource; `profiler saveJSON <file>` exports it for `chrome://tracing` / Perfetto when the in-game view is not enough.
+  - `netEventLog 1` (client F8) lists recent net events with direction (`C->S` / `S->C`), name, and payload bytes; state bags are not listed. `netgraph` shows live packets/bytes, `net_statsFile <file>` logs net stats, and `cl_drawPerf 1` overlays FPS/ping/loss.
+  - Client `resmon`, `netEventLog`, and `profiler` are developer commands: on the production channel they print "Access denied" until the game is launched with `+set moo 31337`. `cl_drawPerf` works without it.
+  - Match the tool to the hitch. "server thread hitch warning" means the 50 ms server tick ran late - slow scripts, synchronous loops, heavy handlers; profile the server. A network thread hitch is the network/send loop falling behind - check event and state bag volume with `netEventLog`, and host load; raising an unrelated `Wait` fixes neither.
   - txAdmin's performance chart shows server tick-time trends over hours - use it to catch slow leaks and load-correlated stalls that a live snapshot misses.
-- Measure once before changing anything and once after; an optimization that does not move the number gets reverted.
+- Measure once before changing anything and once after, one class of change at a time; an optimization that does not move the number gets reverted. Label every figure as measured or estimated - an estimate must never read like a profiler number.
 - Look for `Wait(0)` loops, repeated natives, table scans, repeated config requires, N+1 SQL, and spammy NUI messages.
 - Increase waits based on distance/active state before adding complex caches.
 - Cache only values that are expensive or hot enough to justify ownership and cleanup.
