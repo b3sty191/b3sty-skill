@@ -17,13 +17,17 @@ Generated native references are kept here for lookup. They should be searched wi
       -o references/natives/fivem-gta5-natives.md
   ```
   The script rebuilds the single-file reference from the upstream per-native
-  markdown in the exact format this file uses; `--selftest` runs its fixtures.
-  Because upstream ships no confirmed redistribution terms (above), decide the
-  publication question before committing a regenerated file to a public package
-  — per the Publication Policy below, keep only the script + these instructions
-  when terms cannot be confirmed. As of 2026-11-20 the script reproduces 6437
-  natives, matching the committed file except for one upstream rename
-  (`_REMOVE_CURRENT_RISE` → `REMOVE_EXTRA_CALMING_QUAD`, now an alias upstream).
+  markdown; `--selftest` runs its parser/emit fixtures. The committed
+  `fivem-gta5-natives.md` is this script's output as of 2026-11-20 (6437
+  natives, 44 namespaces), so a re-run against a fresh clone produces a clean,
+  minimal diff limited to genuine upstream churn. The script resolves the real
+  return type and parameter types through CFX `cs_type(...)` marshalling hints
+  (e.g. `cs_type(int) BOOL FOO()` returns `BOOL`), takes the name from an empty
+  `##` heading's signature, and drops empty sections.
+  Because upstream ships no confirmed redistribution terms (above), the
+  Publication Policy below governs whether the regenerated file stays in a
+  public package; the committed file predates this script and is kept current
+  with it.
 
 ## `redm-rdr3-natives.md`
 

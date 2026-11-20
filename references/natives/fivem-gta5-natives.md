@@ -51,8 +51,6 @@ Single-file build of `https://github.com/citizenfx/natives` (branch `main`, GTA 
 - [WEAPON](#weapon) (122)
 - [ZONE](#zone) (9)
 
----
-
 <a id="app"></a>
 ## APP
 
@@ -90,7 +88,7 @@ void APP_CLOSE_BLOCK();
 
 ### `APP_DATA_VALID`
 
-`0x846AA8E7D55EE5B6` · `0x72BDE002` · returns `void`
+`0x846AA8E7D55EE5B6` · `0x72BDE002` · returns `BOOL`
 
 ```c
 cs_type(int) BOOL APP_DATA_VALID();
@@ -138,7 +136,7 @@ float APP_GET_FLOAT(char* property);
 
 ### `APP_GET_INT`
 
-`0xD3A58A12C77D9D4B` · `0x2942AAD2` · returns `void`
+`0xD3A58A12C77D9D4B` · `0x2942AAD2` · returns `int`
 
 ```c
 cs_type(void) int APP_GET_INT(cs_type(ScrHandle) char* property);
@@ -146,7 +144,7 @@ cs_type(void) int APP_GET_INT(cs_type(ScrHandle) char* property);
 
 **Parameters:**
 
-- `void) int APP_GET_INT(cs_type(ScrHandle) char* property`
+- `char* property`
 
 ---
 
@@ -386,7 +384,7 @@ void ADD_PED_TO_CONVERSATION(int speakerConversationIndex, Ped ped, char* voiceN
 
 ### `AUDIO_IS_SCRIPTED_MUSIC_PLAYING`
 
-`0x845FFC3A4FEEFA3E` · `0x86E995D1` · returns `void`
+`0x845FFC3A4FEEFA3E` · `0x86E995D1` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL AUDIO_IS_SCRIPTED_MUSIC_PLAYING();
@@ -504,7 +502,7 @@ All music event names found in the b617d scripts: pastebin.com/GnYt0R3P
 
 - `char* eventName` — the name of the event to cancel
 
-**Returns:**
+**Return value:**
 
 True of the event was cancelled, false otherwise.
 
@@ -522,7 +520,7 @@ BOOL CAN_VEHICLE_RECEIVE_CB_RADIO(Vehicle vehicle);
 
 - `Vehicle vehicle`
 
-**Returns:**
+**Return value:**
 
 Returns true if the vehicle can currently receive CB radio (ie. it has a capable radio and is in range of a transmitter)
 
@@ -552,7 +550,7 @@ Default behaviour is that any state change only gets applied once the player lea
 
 **Parameters:**
 
-- `cs_type(AnyPtr) char* zoneListName` — The zone name to clear
+- `char* zoneListName` — The zone name to clear
 - `BOOL forceUpdate` — Whether ot not to force a zone to become disabled even if its currently active
 
 ---
@@ -667,7 +665,7 @@ The final argument can be set to true to allow searching in backup PVGs
 - `char* speechName`
 - `BOOL allowBackupPVGs`
 
-**Returns:**
+**Return value:**
 
 True of the PedVoiceGroup exists, false otherwise.
 
@@ -683,7 +681,7 @@ BOOL DOES_PLAYER_VEH_HAVE_RADIO();
 
 Checks if the vehicle the local player is currently in has a radio.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the player's current vehicle has a radio. Returns `false` if it does not, or if the player is not in any vehicle.
 
@@ -764,7 +762,7 @@ int FIND_RADIO_STATION_INDEX(int stationNameHash);
 
 - `int stationNameHash` — the station name hash to search for
 
-**Returns:**
+**Return value:**
 
 The station index for the specified hash, or 254 if the radio station did not exist.
 
@@ -846,7 +844,7 @@ void FREEZE_RADIO_STATION(char* radioStation);
 
 ### `GET_AMBIENT_VOICE_NAME_HASH`
 
-`0x5E203DA2BA15D436` · returns `void`
+`0x5E203DA2BA15D436` · returns `Hash`
 
 ```c
 cs_type(Any) Hash GET_AMBIENT_VOICE_NAME_HASH(Ped ped);
@@ -854,9 +852,9 @@ cs_type(Any) Hash GET_AMBIENT_VOICE_NAME_HASH(Ped ped);
 
 **Parameters:**
 
-- `Any) Hash GET_AMBIENT_VOICE_NAME_HASH(Ped ped`
+- `Ped ped`
 
-**Returns:**
+**Return value:**
 
 The hash of the voice name in use by the ped.
 
@@ -894,7 +892,7 @@ Hash GET_CURRENT_TRACK_SOUND_NAME(char* radioStationName);
 
 - `char* radioStationName`
 
-**Returns:**
+**Return value:**
 
 The current sound name as a hash for the currently playing track on the given station.
 
@@ -908,7 +906,7 @@ The current sound name as a hash for the currently playing track on the given st
 BOOL GET_IS_PRELOADED_CONVERSATION_READY();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns true if the preloaded conversation has finished preparing.
 
@@ -922,7 +920,7 @@ Returns true if the preloaded conversation has finished preparing.
 int GET_MUSIC_PLAYTIME();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns the play time in milliseconds of the current score track.
 
@@ -936,7 +934,7 @@ Returns the play time in milliseconds of the current score track.
 int GET_MUSIC_VOL_SLIDER();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns the current volume slider position from 0 to 10
 
@@ -954,7 +952,7 @@ int GET_NETWORK_ID_FROM_SOUND_ID(int soundId);
 
 - `int soundId`
 
-**Returns:**
+**Return value:**
 
 Returns the network id for the specific sound
 
@@ -971,10 +969,10 @@ BOOL GET_NEXT_AUDIBLE_BEAT(float* timeInSeconds, cs_type(AnyPtr) float* bpm, int
 **Parameters:**
 
 - `float* timeInSeconds` — time in seconds until the start of the next beat
-- `cs_type(AnyPtr) float* bpm` — current tempo in beats per minute,
+- `float* bpm` — current tempo in beats per minute,
 - `int* beatNum` — integer beat within the bar
 
-**Returns:**
+**Return value:**
 
 Returns information on beat information for any audible music.
 
@@ -988,7 +986,7 @@ Returns information on beat information for any audible music.
 int GET_NUM_UNLOCKED_RADIO_STATIONS();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns the number of radio stations currently unlocked in the game. This can change as a result of DLC and/or script calls.
 
@@ -1002,7 +1000,7 @@ Returns the number of radio stations currently unlocked in the game. This can ch
 int GET_PLAYER_RADIO_STATION_GENRE();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns the genre of the players current radio station
 
@@ -1016,7 +1014,7 @@ Returns the genre of the players current radio station
 int GET_PLAYER_RADIO_STATION_INDEX();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns the index of the current players radio station, or 255 if the radio is off
 
@@ -1030,7 +1028,7 @@ Returns the index of the current players radio station, or 255 if the radio is o
 char* GET_PLAYER_RADIO_STATION_NAME();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns the name of the players radio station. This serves as the text label.
 
@@ -1048,7 +1046,7 @@ char* GET_RADIO_STATION_NAME(int stationIndex);
 
 - `int stationIndex`
 
-**Returns:**
+**Return value:**
 
 Returns the name of the radio station with the specified index. This serves as the text label.
 
@@ -1072,7 +1070,7 @@ If the sound's not finished playing, it'll be stopped first (fading out or whate
 
 SoundId's are not automatically cleaned up, you must use [RELEASE_SOUND_ID](#_0x353FC880830B88FA) after you've finished using them to allow the engine to recycle the sound id.
 
-**Returns:**
+**Return value:**
 
 Returns a sound id which can be used to control the sound after its has started playing.
 
@@ -1092,7 +1090,7 @@ Counterpart: [`GET_NETWORK_ID_FROM_SOUND_ID`](#_0x2DE3F0A134FFBC0D).
 
 - `int netId` — Network ID of sound.
 
-**Returns:**
+**Return value:**
 
 Integer representing a sound id, -1 on failure.
 
@@ -1106,7 +1104,7 @@ Integer representing a sound id, -1 on failure.
 int GET_STREAM_PLAY_TIME();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns the currently playing stream's play time
 
@@ -1122,9 +1120,9 @@ int GET_VARIATION_CHOSEN_FOR_SCRIPTED_LINE(cs_type(AnyPtr) char* textLabel);
 
 **Parameters:**
 
-- `cs_type(AnyPtr) char* textLabel` — all the text labels for filenames in `AmericanDialogueFiles.txt` appear to end with the letter 'A', it is the script's responsibility to add this 'A' before calling `GET_VARIATION_CHOSEN_FOR_SCRIPTED_LINE`.
+- `char* textLabel` — all the text labels for filenames in `AmericanDialogueFiles.txt` appear to end with the letter 'A', it is the script's responsibility to add this 'A' before calling `GET_VARIATION_CHOSEN_FOR_SCRIPTED_LINE`.
 
-**Returns:**
+**Return value:**
 
 Returns the variation chosen for a given script speech line, or `0` if it hasn't been chosen yet.
 
@@ -1144,7 +1142,7 @@ Hash GET_VEHICLE_DEFAULT_HORN(Vehicle vehicle);
 
 - `Vehicle vehicle`
 
-**Returns:**
+**Return value:**
 
 Returns the horn sound hash
 
@@ -1162,7 +1160,7 @@ Hash GET_VEHICLE_DEFAULT_HORN_IGNORE_MODS(Vehicle vehicle);
 
 - `Vehicle vehicle`
 
-**Returns:**
+**Return value:**
 
 Returns the horn sound hash ignoring any horn mods applied to the car
 
@@ -1184,7 +1182,7 @@ NativeDB Introduced: v1365
 
 - `Vehicle vehicle`
 
-**Returns:**
+**Return value:**
 
 The current horn sound index being used by the given vehicle
 
@@ -1198,7 +1196,7 @@ The current horn sound index being used by the given vehicle
 BOOL HAS_LOADED_MP_DATA_SET();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns true if the audio for the Multiplayer data set has loaded
 
@@ -1212,7 +1210,7 @@ Returns true if the audio for the Multiplayer data set has loaded
 BOOL HAS_LOADED_SP_DATA_SET();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns true if the audio for the Single Player data set has loaded
 
@@ -1230,7 +1228,7 @@ BOOL HAS_SOUND_FINISHED(int soundId);
 
 - `int soundId`
 
-**Returns:**
+**Return value:**
 
 Returns true if the sound has finished playing, false otherwise.
 
@@ -1238,7 +1236,7 @@ Returns true if the sound has finished playing, false otherwise.
 
 ### `HINT_AMBIENT_AUDIO_BANK`
 
-`0x8F8C0E370AE62F5C` · `0xF1850DDC` · returns `void`
+`0x8F8C0E370AE62F5C` · `0xF1850DDC` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL HINT_AMBIENT_AUDIO_BANK(cs_type(Any) char* bankName, cs_type(Any) BOOL bOverNetwork);
@@ -1248,14 +1246,14 @@ This native is marked as a deprecated native internally, use [HINT_SCRIPT_AUDIO_
 
 **Parameters:**
 
-- `Any) BOOL HINT_AMBIENT_AUDIO_BANK(cs_type(Any) char* bankName`
-- `cs_type(Any) BOOL bOverNetwork`
+- `char* bankName`
+- `BOOL bOverNetwork`
 
 ---
 
 ### `HINT_MISSION_AUDIO_BANK`
 
-`0x40763EA7B9B783E7` · returns `void`
+`0x40763EA7B9B783E7` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL HINT_MISSION_AUDIO_BANK(char* bankName, cs_type(int) BOOL bOverNetwork, int playerBits);
@@ -1265,15 +1263,15 @@ This is marked as a deprecated function internally, please use [HINT_SCRIPT_AUDI
 
 **Parameters:**
 
-- `Any) BOOL HINT_MISSION_AUDIO_BANK(char* bankName`
-- `cs_type(int) BOOL bOverNetwork`
+- `char* bankName`
+- `BOOL bOverNetwork`
 - `int playerBits`
 
 ---
 
 ### `HINT_SCRIPT_AUDIO_BANK`
 
-`0xFB380A29641EC31A` · `0x41FA0E51` · returns `void`
+`0xFB380A29641EC31A` · `0x41FA0E51` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL HINT_SCRIPT_AUDIO_BANK(cs_type(Any) char* bankName, cs_type(int) BOOL bOverNetwork);
@@ -1283,12 +1281,12 @@ Hints that this bank would be good to load if there are free slots.
 Does not guarentee loading of the bank, [REQUEST_SCRIPT_AUDIO_BANK](#_0xFE02FFBED8CA9D99) MUST be used as normal before triggering sounds"
 
 This native has a new argument on newer game builds:
-* **playerBits**: likely used to specifiy players to sync to as a bit mask (1 << (0-128))
+- `playerBits` — likely used to specifiy players to sync to as a bit mask (1 << (0-128))
 
 **Parameters:**
 
-- `Any) BOOL HINT_SCRIPT_AUDIO_BANK(cs_type(Any) char* bankName`
-- `cs_type(int) BOOL bOverNetwork`
+- `char* bankName`
+- `BOOL bOverNetwork`
 
 ---
 
@@ -1317,7 +1315,7 @@ void INIT_SYNCH_SCENE_AUDIO_WITH_POSITION(cs_type(AnyPtr) char* audioName, float
 
 **Parameters:**
 
-- `cs_type(AnyPtr) char* audioName`
+- `char* audioName`
 - `float x`
 - `float y`
 - `float z`
@@ -1337,8 +1335,8 @@ Handles conversation interrupts, using the code-side system for improved timing 
 **Parameters:**
 
 - `Ped interrupterPed` — the ped speaking
-- `cs_type(AnyPtr) char* context` — the line to use
-- `cs_type(AnyPtr) char* voiceName` — the voicename for the audio asset
+- `char* context` — the line to use
+- `char* voiceName` — the voicename for the audio asset
 
 ---
 
@@ -1372,11 +1370,9 @@ BOOL IS_ALARM_PLAYING(char* alarmName);
 
 - `char* alarmName`
 
-**Returns:**
+**Return value:**
 
 Returns true if an alarm is currently playing with the specified name
-
-**Examples:**
 
 ```lua
 local bAlarmPlaying = IsAlarmPlaying("PORT_OF_LS_HEIST_FORT_ZANCUDO_ALARMS")
@@ -1396,7 +1392,7 @@ BOOL IS_AMBIENT_SPEECH_DISABLED(Ped ped);
 
 - `Ped ped`
 
-**Returns:**
+**Return value:**
 
 Returns true if ambient speech for the ped has been disabled
 
@@ -1414,7 +1410,7 @@ BOOL IS_AMBIENT_SPEECH_PLAYING(Ped ped);
 
 - `Ped ped`
 
-**Returns:**
+**Return value:**
 
 Returns true if the ped is currently playing ambient speech
 
@@ -1432,7 +1428,7 @@ BOOL IS_AMBIENT_ZONE_ENABLED(char* ambientZone);
 
 - `char* ambientZone`
 
-**Returns:**
+**Return value:**
 
 Returns true if the given ambient zone is allowed to be active
 
@@ -1450,7 +1446,7 @@ BOOL IS_ANIMAL_VOCALIZATION_PLAYING(Ped pedHandle);
 
 - `Ped pedHandle`
 
-**Returns:**
+**Return value:**
 
 Returns true of the ped is currently playing animal sounds
 
@@ -1458,7 +1454,7 @@ Returns true of the ped is currently playing animal sounds
 
 ### `IS_ANY_POSITIONAL_SPEECH_PLAYING`
 
-`0x30CA2EF91D15ADF8` · returns `void`
+`0x30CA2EF91D15ADF8` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL IS_ANY_POSITIONAL_SPEECH_PLAYING();
@@ -1470,7 +1466,7 @@ Determines if any ped-independent, positionally-based scripted speech is current
 NativeDB Introduced: v2189
 ```
 
-**Returns:**
+**Return value:**
 
 Returns `true` if any ped-independent positional scripted speech (i.e. triggered using [PLAY_AMBIENT_SPEECH_FROM_POSITION_NATIVE](#_0xED640017ED337E45)) is currently playing, `false` otherwise.
 
@@ -1488,7 +1484,7 @@ BOOL IS_ANY_SPEECH_PLAYING(Ped ped);
 
 - `Ped ped`
 
-**Returns:**
+**Return value:**
 
 Returns true if the specified ped is playing any speech
 
@@ -1506,7 +1502,7 @@ BOOL IS_AUDIO_SCENE_ACTIVE(char* scene);
 
 - `char* scene` — the name of the scene
 
-**Returns:**
+**Return value:**
 
 Returns true if the script is already running the named scene, false otherwise
 
@@ -1538,7 +1534,7 @@ BOOL IS_HORN_ACTIVE(Vehicle vehicle);
 
 - `Vehicle vehicle`
 
-**Returns:**
+**Return value:**
 
 Returns true if the vehicle is currently playing a horn sound
 
@@ -1552,7 +1548,7 @@ Returns true if the vehicle is currently playing a horn sound
 BOOL IS_MISSION_COMPLETE_PLAYING();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns true if the mission complete audio is playing
 
@@ -1566,7 +1562,7 @@ Returns true if the mission complete audio is playing
 BOOL IS_MISSION_COMPLETE_READY_FOR_UI();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns true if the script should draw the mission complete UI to be in sync with audio.
 
@@ -1574,7 +1570,7 @@ Returns true if the script should draw the mission complete UI to be in sync wit
 
 ### `IS_MISSION_NEWS_STORY_UNLOCKED`
 
-`0x66E49BF55B4B1874` · `0x27305D37` · returns `void`
+`0x66E49BF55B4B1874` · `0x27305D37` · returns `BOOL`
 
 ```c
 cs_type(int) BOOL IS_MISSION_NEWS_STORY_UNLOCKED(int newsStory);
@@ -1582,9 +1578,9 @@ cs_type(int) BOOL IS_MISSION_NEWS_STORY_UNLOCKED(int newsStory);
 
 **Parameters:**
 
-- `int) BOOL IS_MISSION_NEWS_STORY_UNLOCKED(int newsStory`
+- `int newsStory`
 
-**Returns:**
+**Return value:**
 
 Returns true of the specific story is available to be played back
 
@@ -1598,7 +1594,7 @@ Returns true of the specific story is available to be played back
 BOOL IS_MOBILE_INTERFERENCE_ACTIVE();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns true of mobile phone interference is currently happening
 
@@ -1612,7 +1608,7 @@ Returns true of mobile phone interference is currently happening
 BOOL IS_MOBILE_PHONE_CALL_ONGOING();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns true of a mobile phone call is currently happening.
 
@@ -1626,7 +1622,7 @@ Returns true of a mobile phone call is currently happening.
 BOOL IS_MOBILE_PHONE_RADIO_ACTIVE();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns true if the mobile phone radio is active
 
@@ -1640,7 +1636,7 @@ Returns true if the mobile phone radio is active
 BOOL IS_MUSIC_ONESHOT_PLAYING();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns true if a one shot is currently playing or prepared
 
@@ -1658,7 +1654,7 @@ BOOL IS_PED_IN_CURRENT_CONVERSATION(Ped ped);
 
 - `Ped ped`
 
-**Returns:**
+**Return value:**
 
 Returns true if the ped is in the currently playing conversation
 
@@ -1676,7 +1672,7 @@ BOOL IS_PED_RINGTONE_PLAYING(Ped ped);
 
 - `Ped ped`
 
-**Returns:**
+**Return value:**
 
 Returns true if the peds ringtone is currently playing
 
@@ -1700,7 +1696,7 @@ BOOL IS_PLAYER_VEH_RADIO_ENABLE();
 BOOL IS_RADIO_FADED_OUT();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns true if the radio is currently faded out
 
@@ -1714,7 +1710,7 @@ Returns true if the radio is currently faded out
 BOOL IS_RADIO_RETUNING();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns true if the radio is tuning to a station
 
@@ -1732,7 +1728,7 @@ BOOL IS_RADIO_STATION_FAVOURITED(char* radioStation);
 
 - `char* radioStation`
 
-**Returns:**
+**Return value:**
 
 Returns whether a radio station is a favourite.
 
@@ -1746,7 +1742,7 @@ Returns whether a radio station is a favourite.
 BOOL IS_SCRIPTED_CONVERSATION_LOADED();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns true if the first batch of lines for the currently requested conversation have loaded successfully.
 
@@ -1774,7 +1770,7 @@ BOOL IS_SCRIPTED_SPEECH_PLAYING(Ped ped);
 
 - `Ped ped`
 
-**Returns:**
+**Return value:**
 
 Returns true if scripted speech is currently playing from the given ped.
 
@@ -1788,7 +1784,7 @@ Returns true if scripted speech is currently playing from the given ped.
 BOOL IS_STREAM_PLAYING();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns true if the script is currently playing a stream.
 
@@ -1806,7 +1802,7 @@ BOOL IS_VEHICLE_AUDIBLY_DAMAGED(Vehicle vehicle);
 
 - `Vehicle vehicle`
 
-**Returns:**
+**Return value:**
 
 Returns true if the vehicle has any audible damage effects applied to it.
 
@@ -1824,11 +1820,9 @@ BOOL IS_VEHICLE_RADIO_ON(Vehicle vehicle);
 
 - `Vehicle vehicle` — The vehicle to check
 
-**Returns:**
+**Return value:**
 
 Returns true if the given vehicle's radio on
-
-**Examples:**
 
 ```lua
 local radioEnabled = IsVehicleRadioEnabled(GetVehiclePedIsIn(PlayerPedId(), false))
@@ -1947,7 +1941,7 @@ Allows the script to ovverride the current microphone settings
 
 **Parameters:**
 
-- `cs_type(Any) Hash hash`
+- `Hash hash`
 - `BOOL toggle`
 
 ---
@@ -1964,7 +1958,7 @@ Sets the footstep tuning modes
 
 **Parameters:**
 
-- `cs_type(Any) Hash overriddenMaterialHash`
+- `Hash overriddenMaterialHash`
 - `BOOL scriptOverrides` — True to override with the given overridenMaterialHash, false to stop overriding
 
 ---
@@ -2002,7 +1996,7 @@ It needs to also be called with OVERRIDE_UNDERWATER_STREAM("", false) in order t
 
 **Parameters:**
 
-- `cs_type(AnyPtr) char* streamName`
+- `char* streamName`
 - `BOOL override`
 
 ---
@@ -2016,7 +2010,6 @@ void OVERRIDE_VEH_HORN(Vehicle vehicle, BOOL override, int hornHash);
 ```
 
 Overrides the vehicle's horn hash.
-
 
 When changing this hash on a vehicle, [`_GET_VEHICLE_HORN_HASH`](#_0xACB5DCCA1EC76840) will **not** return the 'overwritten' hash. It will still always return the default horn hash (same as [`GET_VEHICLE_DEFAULT_HORN`](#_0x02165D55000219AC)).
 
@@ -2038,8 +2031,6 @@ List of possible hashes (found in decompiled scripts):
 - `Vehicle vehicle` — The vehicle you want to change the horn on.
 - `BOOL override` — Must be set to true. If set to false, the default horn hash will be restored.
 - `int hornHash` — A horn hash.
-
-**Examples:**
 
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -2239,9 +2230,7 @@ enum eAudDamageReason {
 
 - `Ped ped` — The ped entity.
 - `int damageReason` — The damage reason/type, refer to eAudDamageReason
-- `cs_type(int) float rawDamage` — Damage value, defaults to 0.0
-
-**Examples:**
+- `float rawDamage` — Damage value, defaults to 0.0
 
 ```lua
 -- Play ON_FIRE (8) for all nearby peds, don't create an event (last parameter set to false)
@@ -2668,7 +2657,6 @@ void PRELOAD_VEHICLE_AUDIO_BANK(Hash model);
 
 Request that we preload the required audio bank for a given vehicle model.
 
-
 ```
 NativeDB Introduced: v1180
 ```
@@ -2693,7 +2681,7 @@ Prepares any banks required to play the given alarm
 
 - `char* alarmName`
 
-**Returns:**
+**Return value:**
 
 Returns true if the alarm was successfully prepared
 
@@ -2713,7 +2701,7 @@ Prepares the specified music event. Preparing it in advance will preload any req
 
 - `char* eventName`
 
-**Returns:**
+**Return value:**
 
 Returns true if the event is prepared, false otherwise
 
@@ -2721,7 +2709,7 @@ Returns true if the event is prepared, false otherwise
 
 ### `PREPARE_SYNCHRONIZED_AUDIO_EVENT`
 
-`0xC7ABCACA4985A766` · `0xE1D91FD0` · returns `void`
+`0xC7ABCACA4985A766` · `0xE1D91FD0` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL PREPARE_SYNCHRONIZED_AUDIO_EVENT(char* audioEvent, int startOffsetMs);
@@ -2729,7 +2717,7 @@ cs_type(Any) BOOL PREPARE_SYNCHRONIZED_AUDIO_EVENT(char* audioEvent, int startOf
 
 **Parameters:**
 
-- `Any) BOOL PREPARE_SYNCHRONIZED_AUDIO_EVENT(char* audioEvent` — The audio event name.
+- `char* audioEvent` — The audio event name.
 - `int startOffsetMs` — Unused parameter (since v323)
 
 ---
@@ -2745,9 +2733,9 @@ BOOL PREPARE_SYNCHRONIZED_AUDIO_EVENT_FOR_SCENE(int sceneId, cs_type(AnyPtr) cha
 **Parameters:**
 
 - `int sceneId`
-- `cs_type(AnyPtr) char* audioEvent`
+- `char* audioEvent`
 
-**Returns:**
+**Return value:**
 
 Returns true if prepared, false otherwise
 
@@ -2796,7 +2784,7 @@ void REGISTER_SCRIPT_WITH_AUDIO(cs_type(int) BOOL inChargeOfAudio);
 
 **Parameters:**
 
-- `cs_type(int) BOOL inChargeOfAudio`
+- `BOOL inChargeOfAudio`
 
 ---
 
@@ -2935,7 +2923,7 @@ BOOL REQUEST_AMBIENT_AUDIO_BANK(char* bankName, BOOL bOverNetwork);
 This native is marked as deprecated internally, please use [REQUEST_SCRIPT_AUDIO_BANK](#_0x2F844A8B08D76685)
 
 This native has a new argument on newer game builds:
-* **playerBits**:
+- `playerBits`
 
 **Parameters:**
 
@@ -2955,7 +2943,7 @@ BOOL REQUEST_MISSION_AUDIO_BANK(char* bankName, BOOL bOverNetwork);
 This native is marked as deprecated internally, please use [REQUEST_SCRIPT_AUDIO_BANK](#_0x2F844A8B08D76685)
 
 This native has a new argument on newer game builds:
-* **playerBits**:
+- `playerBits`
 
 **Parameters:**
 
@@ -2973,14 +2961,14 @@ BOOL REQUEST_SCRIPT_AUDIO_BANK(char* bankName, BOOL bOverNetwork);
 ```
 
 This native has a new argument on newer game builds:
-* **playerBits**:
+- `playerBits`
 
 **Parameters:**
 
 - `char* bankName`
 - `BOOL bOverNetwork`
 
-**Returns:**
+**Return value:**
 
 Requests and returns true/false if the script audio bank has laoded
 
@@ -3069,7 +3057,7 @@ Overrides wind elevation sounds
 **Parameters:**
 
 - `BOOL override`
-- `cs_type(Any) Hash windElevationHashName`
+- `Hash windElevationHashName`
 
 ---
 
@@ -3119,7 +3107,7 @@ Sets the specified ped to use a specific voice different to the one associated w
 **Parameters:**
 
 - `Ped ped`
-- `cs_type(Any) Hash hash`
+- `Hash hash`
 
 ---
 
@@ -3165,7 +3153,7 @@ void SET_AMBIENT_ZONE_STATE(cs_type(AnyPtr) char* zoneName, BOOL enabled, BOOL f
 
 **Parameters:**
 
-- `cs_type(AnyPtr) char* zoneName`
+- `char* zoneName`
 - `BOOL enabled` — Enables/disables an ambient zone for the duration of this script
 - `BOOL forceUpdate` — Set to true to force a zone to become disabled even if its currently active, default behaviour is to only change state when the player leaves the zone.
 
@@ -3421,7 +3409,6 @@ from dropping when the vehicle is not within the view frustrum.
 There is a hard limit of 5 simulataneous granular cars (including the player) so we are quite limited on the number
 we can play at once, so setting vehicles to max priority will reduce the number of engines availble for regular NPC vehicles
 
-
 ```c
 enum eAudVehiclePriority {
 	AUDIO_VEHICLE_PRIORITY_NORMAL = 0,
@@ -3573,7 +3560,7 @@ Used only a handful of times in scripts.
 
 **Parameters:**
 
-- `cs_type(Any) float signalLevel` — Radio signal level.
+- `float signalLevel` — Radio signal level.
 
 ---
 
@@ -3842,7 +3829,7 @@ void SET_POSITIONED_PLAYER_VEHICLE_RADIO_EMITTER_ENABLED(cs_type(Any) BOOL enabl
 
 **Parameters:**
 
-- `cs_type(Any) BOOL enabled` — enables/disables a positioned emitter for the player vehicle radio
+- `BOOL enabled` — enables/disables a positioned emitter for the player vehicle radio
 
 ---
 
@@ -4001,7 +3988,7 @@ void SET_SCRIPT_UPDATE_DOOR_AUDIO(cs_type(Any) Hash doorHash, BOOL toggle);
 
 **Parameters:**
 
-- `cs_type(Any) Hash doorHash`
+- `Hash doorHash`
 - `BOOL toggle`
 
 ---
@@ -4017,7 +4004,7 @@ void SET_SIREN_WITH_NO_DRIVER(Vehicle vehicle, cs_type(ScrHandlePtr) BOOL toggle
 **Parameters:**
 
 - `Vehicle vehicle`
-- `cs_type(ScrHandlePtr) BOOL toggle`
+- `BOOL toggle`
 
 ---
 
@@ -4511,7 +4498,7 @@ The ped will also be prevented from speaking on remote machines. Use [STOP_PED_S
 **Parameters:**
 
 - `Ped ped`
-- `cs_type(Any) BOOL shouldDisable`
+- `BOOL shouldDisable`
 
 ---
 
@@ -4709,9 +4696,9 @@ Updates a playing sounds absolute position.
 **Parameters:**
 
 - `int soundId`
-- `cs_type(Any) float x`
-- `cs_type(Any) float y`
-- `cs_type(Any) float z`
+- `float x`
+- `float y`
+- `float z`
 
 ---
 
@@ -4725,7 +4712,7 @@ void UPDATE_UNLOCKABLE_DJ_RADIO_TRACKS(BOOL allowTrackReprioritization);
 
 Unlocks any available DJ radio tracks based on the tuneable status
 
-```	
+```
 NativeDB Introduced: v1493	
 ```
 
@@ -4749,7 +4736,7 @@ Allows script to trigger a sweetener footstep sound
 
 - `Ped ped`
 - `BOOL useSweetner`
-- `cs_type(Any) Hash soundSetHash`
+- `Hash soundSetHash`
 
 ---
 
@@ -5400,7 +5387,7 @@ void REGISTER_WORLD_POINT_SCRIPT_BRAIN(cs_type(AnyPtr) char* scriptName, float a
 
 **Parameters:**
 
-- `cs_type(AnyPtr) char* scriptName`
+- `char* scriptName`
 - `float activationRange`
 - `int p2`
 
@@ -5548,8 +5535,6 @@ Takes a camera and uses the information from it as a camera spline node.
 - `int length` — Duration used for transition, has no effect for the first node.
 - `int p3`
 
-**Examples:**
-
 ```cs
 AddCamSplineNodeUsingCamera(cam, CreateCamWithParams("DEFAULT_SCRIPTED_CAMERA", 975.9832f, 191.3923f, 86.82342f, -2.795285f, -0f, 154.0656f, 45f, true, 2), 5000, 3);
 ```
@@ -5654,8 +5639,6 @@ Last param determines if its relative to the Entity
 - `float zOffset` — Z-axis offset
 - `BOOL isRelative` — Whether or not the camera will be relative to the entity
 
-**Examples:**
-
 ```lua
 local entity = PlayerPedId()
 local cam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
@@ -5688,8 +5671,6 @@ This native works with peds only.
 - `float zOffset` — Z-axis offset
 - `BOOL isRelative` — Whether or not the camera will be relative to the bone
 
-**Examples:**
-
 ```lua
 local ped = PlayerPedId()
 local cam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
@@ -5698,6 +5679,7 @@ AttachCamToPedBone(cam,ped,4089, 0.0, 0.0, 0.0, true) -- attach it to a finger o
 
 SetCamActive(cam, true)
 RenderScriptCams(true, false, 0, true, true)
+
 ```
 
 ---
@@ -5713,7 +5695,7 @@ Cam CREATE_CAM(char* camName, BOOL active);
 Creates a camera with the specified cam name, You can use `SET_CAM_` natives to manipulate the camera.  
 Make sure to call [RENDER_SCRIPT_CAMS](#_0x07E5B515DB0636FC) once the camera is created, or this won't have any visible effect.
 
-**Camera names:**
+**Camera names::**
 
 - DEFAULT_SCRIPTED_CAMERA 
 - DEFAULT_ANIMATED_CAMERA
@@ -5729,11 +5711,9 @@ Make sure to call [RENDER_SCRIPT_CAMS](#_0x07E5B515DB0636FC) once the camera is 
 - `char* camName` — A string representing the camera type, the game will convert the string into a joaat hash upon native execution.
 - `BOOL active` — Set to true if you wish to make this new camera the active camera.
 
-**Returns:**
+**Return value:**
 
 A camera handle referencing the camera that was created.
-
-**Examples:**
 
 ```lua
 local cam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
@@ -5771,11 +5751,9 @@ NativeDB Introduced: v323
 - `Hash camHash` — The hash of the camera type, use [GET_HASH_KEY](#_0xD24D37CC275948CC) to get the camera hash from the name.
 - `BOOL active` — Set to true if you wish to make this new camera the active camera.
 
-**Returns:**
+**Return value:**
 
 A camera handle referencing the camera that was created.
-
-**Examples:**
 
 ```lua
 -- creates a camera with the "DEFAULT_SCRIPTED_CAMERA" type
@@ -5832,7 +5810,7 @@ NativeDB Introduced: v323
 - `BOOL active` — Set to true if you wish to make this new camera the active camera.
 - `int rotationOrder` — The order of rotation, see [`GET_ENTITY_ROTATION`](#_0xAFBD61CC738D9EB9).
 
-**Returns:**
+**Return value:**
 
 A camera handle.
 
@@ -5863,11 +5841,9 @@ Take a look at [CREATE_CAM](#_0xC3981DCE61D9E13F) if you would like to see the a
 - `BOOL active` — Set to true if you wish to make this new camera the active camera.
 - `int rotationOrder` — The order of rotation, see [`GET_ENTITY_ROTATION`](#_0xAFBD61CC738D9EB9)
 
-**Returns:**
+**Return value:**
 
 A camera handle.
-
-**Examples:**
 
 ```lua
 local cam = CreateCamWithParams("DEFAULT_SCRIPTED_CAMERA", 561.3, 301.3, 63.0, 0.0, 0.0, 0.0, 90.0)
@@ -6031,7 +6007,7 @@ Looks up a camera handle in the current camera pool and returns `true` if the ha
 
 - `Cam cam` — The camera handle to look for.
 
-**Returns:**
+**Return value:**
 
 A boolean value representing whether the camera exists or not.
 
@@ -6190,11 +6166,9 @@ Gets a camera's rotation by handle (`cam`) lookup, outputs a `Vector3` in degree
 - `Cam cam` — The camera handle.
 - `int rotationOrder` — The order of rotation, see [`GET_ENTITY_ROTATION`](#_0xAFBD61CC738D9EB9)
 
-**Returns:**
+**Return value:**
 
 A `Vector3` representing the camera rotation in degrees.
-
-**Examples:**
 
 ```lua
 -- We need a valid camera handle for this to work.
@@ -6442,7 +6416,7 @@ enum eCamViewMode
 };
 ```
 
-**Returns:**
+**Return value:**
 
 Returns a value from the view mode enumeration
 
@@ -6522,11 +6496,9 @@ float GET_GAMEPLAY_CAM_RELATIVE_HEADING();
 float GET_GAMEPLAY_CAM_RELATIVE_PITCH();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns the relative pitch of the gameplay camera
-
-**Examples:**
 
 ```lua
 local pitch = GetGameplayCamRelativePitch()
@@ -6551,11 +6523,9 @@ It first calls a game function to calculate these values given the rotation orde
 
 - `int rotationOrder` — The order of rotation, see [`GET_ENTITY_ROTATION`](#_0xAFBD61CC738D9EB9)
 
-**Returns:**
+**Return value:**
 
 A `Vector3` representing the gameplay camera rotation in degrees.
-
-**Examples:**
 
 ```lua
 local camRot = GetGameplayCamRot(0) -- vector3(-14.74518, 0.05254443, 95.24616)
@@ -6583,6 +6553,7 @@ void HARD_ATTACH_CAM_TO_ENTITY(Cam cam, Entity entity, float xRot, float yRot, f
 ```
 
 Attaches a camera to an entity, including full matrix transformations for both rotation and position offsets.
+
 ```
 NativeDB Introduced: v2189
 ```
@@ -6599,8 +6570,6 @@ NativeDB Introduced: v2189
 - `float zOffset` — Z-axis offset
 - `BOOL isRelative` — Whether or not the camera position will be relative to the entity rotation
 
-**Examples:**
-
 ```lua
 -- assuming that the obj variable was created earlier in the script
 local cam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
@@ -6610,6 +6579,7 @@ HardAttachCamToEntity(cam, obj, 0.0, 0.0, 90.0, 10.0, 0.0, 0.0, true)
 
 -- renders the camera
 RenderScriptCams(true, false, 0, true, true)
+
 ```
 
 ```js
@@ -6666,8 +6636,6 @@ NativeDB Introduced: v1180
 - `float zOffset` — Z-axis offset.
 - `BOOL isRelative` — Whether or not the camera position will be relative to the bone rotation.
 
-**Examples:**
-
 ```lua
 local ped = PlayerPedId()
 local cam = CreateCam("DEFAULT_SCRIPTED_CAMERA", true)
@@ -6678,6 +6646,7 @@ HardAttachCamToPedBone(cam, ped, BONETAG_L_FINGER01, 90.0, 0.0, 0.0, 0.0, 0.0, 0
 
 -- renders the camera
 RenderScriptCams(true, false, 0, true, true)
+
 ```
 
 ```js
@@ -6728,8 +6697,6 @@ void INVALIDATE_IDLE_CAM();
 
 Resets the idle camera timer. Calling that in a loop once every few seconds is enough to disable the idle cinematic camera.
 
-**Examples:**
-
 ```lua
 Citizen.CreateThread(function()
 	while true do
@@ -6754,13 +6721,13 @@ BOOL IS_AIM_CAM_ACTIVE();
 
 ### `IS_ALLOWED_INDEPENDENT_CAMERA_MODES`
 
-`0xEAF0FA793D05C592` · returns `void`
+`0xEAF0FA793D05C592` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL IS_ALLOWED_INDEPENDENT_CAMERA_MODES();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns if the "Allow Independent Camera Modes" setting in Pause Menu is turned On or Off.
 
@@ -7058,11 +7025,9 @@ Determines if a global camera shake is currently active. You can stop the curren
 NativeDB Introduced: v323
 ```
 
-**Returns:**
+**Return value:**
 
 Returns `true` if a scripted global camera shake is currently in effect, otherwise `false`.
-
-**Examples:**
 
 ```lua
 -- Print whether a global camera shake is currently active
@@ -7210,8 +7175,6 @@ void POINT_CAM_AT_COORD(Cam cam, float x, float y, float z);
 - `float y`
 - `float z`
 
-**Examples:**
-
 ```lua
 local coords = vector3(402.99, -998.02, -99.00)
 local cam = CreateCamWithParams("DEFAULT_SCRIPTED_CAMERA", coords.x, coords.y, coords.z, 0.00, 0.00, 0.00, 50.00, false, 0)
@@ -7240,8 +7203,6 @@ Offset works like [GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS](#_0x1899F328B0E12848)
 - `float offsetY` — Y offset for the camera (forward/backward).
 - `float offsetZ` — Z offset for the camera (up/down).
 - `BOOL p5` — Always seems to be 1 (true).
-
-**Examples:**
 
 ```lua
 local cam = CreateCameraWithParams("DEFAULT_SCRIPTED_CAMERA", GetEntityCoords(PlayerPedId()), 0.0, 0.0, 0.0, 90.0, true, 2)
@@ -7296,8 +7257,6 @@ NativeDB Added Parameter 6: Any p5
 - `int easeTime` — The in milliseconds for the transition to happen.
 - `BOOL easeCoordsAnim` — If false it will only do the smooth transition to the rotation and the coords will be set instantly.
 - `BOOL p4` — Doesn't seem to change anything.
-
-**Examples:**
 
 ```lua
 local casino = vector3(881.31, 74.71, 94.43)
@@ -7493,8 +7452,6 @@ Specifies how much the DoF effect should be applied (Set using [`SET_CAM_NEAR_DO
 - `Cam cam` — The camera handle
 - `float dofStrength` — Depth of Field strength (between 0.0 and 1.0)
 
-**Examples:**
-
 ```lua
 CreateThread(function()
     local camera = CreateCam("DEFAULT_SCRIPTED_FLY_CAMERA", true)
@@ -7673,7 +7630,23 @@ void SET_CAM_PARAMS(Cam cam, float posX, float posY, float posZ, float rotX, flo
 - `int transitionSpeed` — The speed of transition/interpolation to these new values
 - `int p9`
 - `int p10`
-- `int rotationOrder` — The order of rotation, see [`GET_ENTITY_ROTATION`](#_0xAFBD61CC738D9EB9) ### Examples ```lua -- This is recreating the above mentioned heli transition from finale_heist2a.c local cam = CreateCameraWithParams('DEFAULT_SCRIPTED_CAMERA', -1659.574, -707.8544, 29.23778, -7.422939, 0.059666, -117.3886, 43.0557, false, 2) SetCamActive(cam, true) RenderScriptCams(true, false, 3000, true, false, false) SetCamParams(cam, -1660.919, -710.7487, 28.88381, -7.50235, 0.059666, -111.7328, 43.0557, 9100, 0, 0, 2); ``` ```js // This is recreating the above mentioned heli transition from finale_heist2a.c let cam = CreateCameraWithParams('DEFAULT_SCRIPTED_CAMERA', -1659.574, -707.8544, 29.23778, -7.422939, 0.059666, -117.3886, 43.0557, false, 2) SetCamActive(cam, true) RenderScriptCams(true, false, 3000, true, false, false) SetCamParams(cam, -1660.919, -710.7487, 28.88381, -7.50235, 0.059666, -111.7328, 43.0557, 9100, 0, 0, 2); ```
+- `int rotationOrder` — The order of rotation, see [`GET_ENTITY_ROTATION`](#_0xAFBD61CC738D9EB9)
+
+```lua
+-- This is recreating the above mentioned heli transition from finale_heist2a.c
+  local cam = CreateCameraWithParams('DEFAULT_SCRIPTED_CAMERA', -1659.574, -707.8544, 29.23778, -7.422939, 0.059666, -117.3886, 43.0557, false, 2)
+SetCamActive(cam, true)
+RenderScriptCams(true, false, 3000, true, false, false)
+SetCamParams(cam, -1660.919, -710.7487, 28.88381, -7.50235, 0.059666, -111.7328, 43.0557, 9100, 0, 0, 2);
+```
+
+```js
+// This is recreating the above mentioned heli transition from finale_heist2a.c
+let cam = CreateCameraWithParams('DEFAULT_SCRIPTED_CAMERA', -1659.574, -707.8544, 29.23778, -7.422939, 0.059666, -117.3886, 43.0557, false, 2)
+SetCamActive(cam, true)
+RenderScriptCams(true, false, 3000, true, false, false)
+SetCamParams(cam, -1660.919, -710.7487, 28.88381, -7.50235, 0.059666, -111.7328, 43.0557, 9100, 0, 0, 2);
+```
 
 ---
 
@@ -7694,8 +7667,6 @@ Sets the rotation of the camera.
 - `float rotY` — Rotation on Y
 - `float rotZ` — Rotation on Z
 - `int rotationOrder` — The order of rotation, see [`GET_ENTITY_ROTATION`](#_0xAFBD61CC738D9EB9)
-
-**Examples:**
 
 ```lua
 -- We need a valid camera handle for this to work.
@@ -7813,6 +7784,7 @@ void SET_CAM_SPLINE_SMOOTHING_STYLE(Cam cam, int smoothingStyle);
 
 Sets the smoothing style for a DEFAULT_SPLINE_CAMERA
 Ranges from 0 to 3 in rockstar scripts although there are actually 26
+
 ```
 0: No lead-in or lead-out smoothing
 1: Smooth lead-in
@@ -8056,6 +8028,7 @@ Overrides the ped follow camera (not first person camera) with the specified cam
 | FOLLOW_PED_ON_LOUNGER_CAMERA                 |
 
 Other camera hashes (names not found yet)
+
 ```c
 // 0x5DBBFB6E
 // 0xA38DB056
@@ -8068,11 +8041,9 @@ Other camera hashes (names not found yet)
 - `char* camName` — The name of the camera to use this update
 - `int easeTime` — The time in milliseconds to ease in the camera
 
-**Returns:**
+**Return value:**
 
 Return `true` if the camera is set successfully and `false` otherwise.
-
-**Examples:**
 
 ```lua
 CreateThread(function()
@@ -8394,11 +8365,9 @@ Override the camera work of the third-person camera to table game for current fr
 
 - `Hash hash` — Hash for table game
 
-**Returns:**
+**Return value:**
 
 Returns a boolean value indicating if the camera settings were successfully overriden for this current frame.
-
-**Examples:**
 
 ```lua
 CreateThread(function()
@@ -8453,7 +8422,7 @@ cs_type(Any) void SET_WIDESCREEN_BORDERS(BOOL p0, int p1);
 
 **Parameters:**
 
-- `Any) void SET_WIDESCREEN_BORDERS(BOOL p0`
+- `BOOL p0`
 - `int p1`
 
 ---
@@ -8504,6 +8473,7 @@ void SHAKE_GAMEPLAY_CAM(char* shakeName, float intensity);
 Shakes the gameplay cam with the specified shake name and intensity.
 
 List of camera shake names:
+
 ```
 ASSAULT_RIFLE_RECOIL_SHAKE
 BOAT_WATER_ENTRY_SHAKE
@@ -8672,7 +8642,7 @@ void STOP_CINEMATIC_SHOT(cs_type(Any) Hash p0);
 
 **Parameters:**
 
-- `cs_type(Any) Hash p0`
+- `Hash p0`
 
 ---
 
@@ -8805,8 +8775,6 @@ NativeDB Introduced: v323
 **Parameters:**
 
 - `BOOL bStopImmediately` — A boolean indicating whether the camera shake should stop instantly (TRUE) or gradually fade out (FALSE).
-
-**Examples:**
 
 ```lua
 -- Stops the currently active global camera shake with a gradual fade out
@@ -9546,7 +9514,7 @@ Eg. _CLAMP_GAMEPLAY_CAM_PITCH(0.0f, 0.0f) will set the vertical angle directly b
 
 **Parameters:**
 
-- `Any) void _CLAMP_GAMEPLAY_CAM_PITCH(float minimum`
+- `float minimum`
 - `float maximum`
 
 ---
@@ -9568,7 +9536,7 @@ Eg. _CLAMP_GAMEPLAY_CAM_YAW(0.0f, 0.0f) will set the horizontal angle directly b
 
 **Parameters:**
 
-- `Any) void _CLAMP_GAMEPLAY_CAM_YAW(float minimum`
+- `float minimum`
 - `float maximum`
 
 ---
@@ -9624,7 +9592,7 @@ enum eContext {
 }
 ```
 
-**Returns:**
+**Return value:**
 
 The active view mode context.
 
@@ -9721,8 +9689,6 @@ void _INVALIDATE_VEHICLE_IDLE_CAM();
 ```
 
 Resets the vehicle idle camera timer. Calling this in a loop will disable the idle camera.
-
-**Examples:**
 
 ```lua
 Citizen.CreateThread(function()
@@ -10040,7 +10006,7 @@ void _SET_GAMEPLAY_CAM_VEHICLE_CAMERA_NAME(cs_type(Any) Hash vehicleModel);
 
 **Parameters:**
 
-- `cs_type(Any) Hash vehicleModel`
+- `Hash vehicleModel`
 
 ---
 
@@ -10277,7 +10243,7 @@ int GET_MILLISECONDS_PER_GAME_MINUTE();
 Returns how many real ms are equal to one game minute.
 A getter for [`SetMillisecondsPerGameMinute`](#_0x36CA2554).
 
-**Returns:**
+**Return value:**
 
 A number of milliseconds that equals to one game minute.
 
@@ -10408,7 +10374,7 @@ See [`SET_CUTSCENE_PED_COMPONENT_VARIATION_FROM_PED`](#_0x2A56C06EBEF2B0D9) and 
 
 This will be true before the cutscene is considered loaded
 
-**Returns:**
+**Return value:**
 
 Whether you can request assets for cutscene entities, like components.
 
@@ -10468,7 +10434,7 @@ Whether it is safe to start doing scripted actions on the entity, like simulatin
 - `char* cutsceneEntName` — Name of the entity cHandle in the cutscene
 - `Hash modelHash` — Can be 0
 
-**Returns:**
+**Return value:**
 
 Whether or not it is safe to begin interacting with the entity
 
@@ -10521,7 +10487,7 @@ Gets the current time of the cutscene.
 NativeDB Introduced: v3258
 ```
 
-**Returns:**
+**Return value:**
 
 Returns the current play time of the cutscene in milliseconds.
 
@@ -10547,7 +10513,7 @@ int GET_CUTSCENE_TIME();
 
 Gets the elapsed time of the current cutscene in
 
-**Returns:**
+**Return value:**
 
 Elapsed time in milliseconds
 
@@ -10564,7 +10530,7 @@ int GET_CUTSCENE_TOTAL_DURATION();
 Gets the total length of the cutscene irrespective of playback list in milliseconds
 To account for sections, see [`GET_CUTSCENE_END_TIME`](#_0x971D7B15BCDBEF99)
 
-**Returns:**
+**Return value:**
 
 Cutscene total length in milliseconds
 
@@ -10585,7 +10551,7 @@ Returns the handle of a cutscene entity, can be ped
 - `char* cutsceneEntName` — I.E MP_1, MP_4, Michael, Trevor
 - `Hash modelHash` — Not strictly neccasary, can get 0
 
-**Returns:**
+**Return value:**
 
 Returns entity handle
 
@@ -10719,8 +10685,6 @@ This can only be run once [`CAN_REQUEST_ASSETS_FOR_CUTSCENE_ENTITY`](#_0xB56BBBC
 - `int p2`
 - `Hash modelHash` — Not strictly neccasary, often 0 in R* scripts
 - `int p4` — 0 for SP, 64 for MP seemingly
-
-**Examples:**
 
 ```lua
     -- An example that allows for registering non player_zero peds in place, i.e MP peds.
@@ -12082,7 +12046,7 @@ NativeDB Added Parameter 8: Any p7
 **Parameters:**
 
 - `char* data`
-- `cs_type(BOOL) int dataCount`
+- `int dataCount`
 - `char* contentName`
 - `char* description`
 - `char* tagsCsv`
@@ -12149,7 +12113,7 @@ NativeDB Added Parameter 8: Any p7
 
 - `char* contentId`
 - `Any* data`
-- `cs_type(BOOL) int dataCount`
+- `int dataCount`
 - `char* contentName`
 - `char* description`
 - `char* tagsCsv`
@@ -12460,11 +12424,9 @@ BOOL GET_IS_LOADING_SCREEN_ACTIVE();
 
 When loading in, returns true until [`SHUTDOWN_LOADING_SCREEN`](#_0x078EBE9809CCD637) was called. Note that this is referring to the game's loading screen, not the NUI loadingscreen and is therefore not impacted by [loadscreen_manual_shutdown](https://docs.fivem.net/docs/scripting-reference/resource-manifest/#loadscreen_manual_shutdown).
 
-**Returns:**
+**Return value:**
 
 Wether the player is still in the loadingscreen
-
-**Examples:**
 
 ```lua
 -- Close the loading screen if it's still active
@@ -12490,7 +12452,7 @@ Always returns true.
 
 **Parameters:**
 
-- `cs_type(AnyPtr) BOOL* variable`
+- `BOOL* variable`
 - `Any unused`
 
 ---
@@ -12580,7 +12542,7 @@ Most likely ARE_*
 BOOL _0x9489659372A81585();
 ```
 
-**Returns:**
+**Return value:**
 
 Hard-coded to always return 0.
 
@@ -12594,7 +12556,7 @@ Hard-coded to always return 0.
 BOOL _0xA213B11DFF526300();
 ```
 
-**Returns:**
+**Return value:**
 
 Hard-coded to always return 1.
 
@@ -12624,7 +12586,7 @@ NativeDB Introduced: v1734
 BOOL _0xF2E07819EF1A5289();
 ```
 
-**Returns:**
+**Return value:**
 
 Hard-coded to always return 1.
 
@@ -12681,8 +12643,6 @@ enum eApplyForceTypes {
 - `BOOL bPlayAudio` — Specifies whether to play audio events related to the force being applied. The audio will depend on the entity type. Currently vehicles are the only entity types supported, and will play a suspension squeal depending on the magnitude of the force
 - `BOOL bScaleByTimeWarp` — Specifies whether to scale the force by time warp. Default is `true`
 
-**Examples:**
-
 ```lua
 local entity = PlayerPedId()
 local forceType = 2
@@ -12729,7 +12689,7 @@ Apply a force to an entities center of mass.
 - `float x` — The x component of the force to apply
 - `float y` — The y component of the force to apply
 - `float z` — The z component of the force to apply
-- `cs_type(BOOL) int nComponent` — Component of the entity to apply the force too. Only matters for breakable or articulated (ragdoll) physics. 0 means the root or parent component
+- `int nComponent` — Component of the entity to apply the force too. Only matters for breakable or articulated (ragdoll) physics. 0 means the root or parent component
 - `BOOL bLocalForce` — Specifies whether the force vector passed in is in local or world coordinates. `true` means the force will get automatically transformed into world space before being applied
 - `BOOL bScaleByMass` — Specifies whether to scale the force by mass
 - `BOOL bApplyToChildren` — Default `false`. If the force should be applied to any attached children
@@ -12819,7 +12779,7 @@ This native **could affect** the arguments of the `CEventNetworkEntityDamage` ga
 
 **Parameters:**
 
-- `Any) void CLEAR_ENTITY_LAST_DAMAGE_ENTITY(Entity entity` — The entity to clear the last damaging entity from.
+- `Entity entity` — The entity to clear the last damaging entity from.
 
 ---
 
@@ -12929,8 +12889,6 @@ You might want to check if the entity exists before with [DOES_ENTITY_EXIST](#_0
 
 - `Entity* entity` — The entity to delete.
 
-**Examples:**
-
 ```lua
 -- Retrieve the vehicle the player is currently in. 
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -13023,11 +12981,9 @@ Checks whether an entity exists in the game world.
 
 - `Entity entity` — The entity to check if it exists.
 
-**Returns:**
+**Return value:**
 
 Whether the entity exists or not.
-
-**Examples:**
 
 ```lua
 local currentVehicle = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -13160,8 +13116,6 @@ Freezes or unfreezes an entity preventing its coordinates to change by the playe
 
 - `Entity entity` — The entity to freeze/unfreeze.
 - `BOOL toggle` — Freeze or unfreeze entity.
-
-**Examples:**
 
 ```lua
 -- Freeze the local player.
@@ -13415,11 +13369,9 @@ Gets the current coordinates (world position) for a specified entity.
 - `Entity entity` — The entity to get the coordinates from.
 - `BOOL alive` — Unused by the game, potentially used by debug builds of GTA in order to assert whether or not an entity was alive.
 
-**Returns:**
+**Return value:**
 
 The current entity coordinates.
-
-**Examples:**
 
 ```lua
 local playerCoords = GetEntityCoords(PlayerPedId())
@@ -13460,7 +13412,7 @@ Gets the entity's forward vector.
 
 - `Entity entity` — The entity to get the forward vector for.
 
-**Returns:**
+**Return value:**
 
 The forward vector.
 
@@ -13518,11 +13470,9 @@ Returns the heading of the entity in degrees. Also know as the "Yaw" of an entit
 
 - `Entity entity` — The entity to get the heading from.
 
-**Returns:**
+**Return value:**
 
 The current entity heading.
-
-**Examples:**
 
 ```lua
 local heading = GetEntityHeading(PlayerPedId())
@@ -13561,7 +13511,7 @@ Gets the heading of the entity physics in degrees, which tends to be more accura
 
 - `Entity entity` — The entity to get the heading from.
 
-**Returns:**
+**Return value:**
 
 Returns a float representing the entity's heading from eulers.
 
@@ -13591,11 +13541,9 @@ float health = *(float *)(entityAddress + 0x280);
 
 - `Entity entity` — The entity to get the health from.
 
-**Returns:**
+**Return value:**
 
 The current entity health.
-
-**Examples:**
 
 ```lua
 local health = GetEntityHealth(PlayerPedId())
@@ -13731,11 +13679,9 @@ Returns the model hash from an entity.
 
 - `Entity entity` — The entity to get the model for.
 
-**Returns:**
+**Return value:**
 
 The model hash of the entity.
-
-**Examples:**
 
 ```lua
 local hash = GetEntityModel(PlayerPedId())
@@ -13801,7 +13747,7 @@ A population type, from the following enum: https://alloc8or.re/gta5/doc/enums/e
 
 - `Entity entity` — The entity to obtain the population type from.
 
-**Returns:**
+**Return value:**
 
 A population type, from the enumeration above.
 
@@ -13858,7 +13804,6 @@ Vector3 GET_ENTITY_ROTATION(Entity entity, int rotationOrder);
 
 **NOTE**: What you use for rotationOrder when getting must be the same as rotationOrder when setting the rotation.
 
-
 ```c
 enum eRotationOrder {
     // Rotate around the z-axis, then the y-axis and finally the x-axis.
@@ -13881,11 +13826,9 @@ enum eRotationOrder {
 - `Entity entity` — The entity to get the rotation for.
 - `int rotationOrder` — The order yaw, pitch and roll is applied. Usually 2.
 
-**Returns:**
+**Return value:**
 
 A vector where the Z coordinate is the yaw.
-
-**Examples:**
 
 ```lua
 local playerRotation = GetEntityRotation(PlayerPedId(), 2)
@@ -13958,7 +13901,7 @@ Get the speed of a entity.
 
 - `Entity entity` — Entity id you want to test for speed.
 
-**Returns:**
+**Return value:**
 
 Speed of a entity in m/s. You can convert to km/h using the value you get and multiply by 3.6, and miles/h by 2.236936. Also, the float returned is the length of [GET_ENTITY_SPEED_VECTOR](#_0x9A8D700A51CB7B0D)
 
@@ -14330,7 +14273,7 @@ BOOL HAS_ENTITY_BEEN_DAMAGED_BY_ENTITY(Entity entity, Entity damager, BOOL bChec
 - `Entity damager` — The entity that caused the damage.
 - `BOOL bCheckDamagerVehicle` — If the damager is driving a vehicle then check to see if the entity was damaged by the vehicle.
 
-**Returns:**
+**Return value:**
 
 Returns true if the entity has been damaged by the specified entity.
 
@@ -14354,7 +14297,7 @@ The direction of the check matters with for example bushes, so checking from ins
 - `Entity entity2` — Entity to check to
 - `int flags` — A bit mask with bits 1, 2, 4, etc, relating to collider types (see: [START_EXPENSIVE_SYNCHRONOUS_SHAPE_TEST_LOS_PROBE](#_0x377906D8A31E5586)). 17 is most common in GTA scripts.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if no collider of specified bitmask is hit.
 
@@ -14440,11 +14383,9 @@ BOOL IS_ENTITY_ATTACHED(Entity entity);
 
 - `Entity entity` — The entity to check if it is attached to another entity.
 
-**Returns:**
+**Return value:**
 
 Whether the entity is attached to another entity.
-
-**Examples:**
 
 ```lua
 local ped = PlayerPedId()
@@ -14550,7 +14491,6 @@ Checks if the entity is within the given square of size xSize, ySize, zSize cent
 
 The sizes given are the apothem (half of side) of the square, so a size of 5 would result in a square of 10x10, not 5x5.
 
-
 For the highlightArea, if do3dCheck is true, the marker will be drawn at the bottom of the target area. So if the square is centered on the ground with a zSize larger than 0, the marker will appear under the ground.
 The marker also doesn't scale, so it is always the same size (around half a meter).
 So unfortunately the marker isn't that useful as it doesn't convey the correct information about the area (the marker doesn't reflect when the player is actually in the marker or not)
@@ -14568,11 +14508,9 @@ So unfortunately the marker isn't that useful as it doesn't convey the correct i
 - `BOOL do3dCheck` — Whether to check the z-axis
 - `int transportMode` — Checks the transport mode the ped is using, only does something if entity is a ped. Transport modes are: 0 (any), 1 (on foot), 2 (in vehicle)
 
-**Returns:**
+**Return value:**
 
 A boolean value which represents if the entity is within the given square area.
-
-**Examples:**
 
 ```lua
 -- Simple demonstration which slides the ped along the x and y axis until the ped is outside the given area
@@ -14645,7 +14583,7 @@ BOOL IS_ENTITY_A_PED(Entity entity);
 
 - `Entity entity` — The entity to check if it's a Ped.
 
-**Returns:**
+**Return value:**
 
 Whether the entity is a Ped.
 
@@ -14807,7 +14745,7 @@ This native will not check if the entity is not visible due to being occluded (f
 
 - `Entity entity` — The entity to check.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the the entity is in between the minimum and maximum values for the 2D screen bound coords; otherwise, `false`.
 
@@ -15024,10 +14962,10 @@ BOOL PLAY_SYNCHRONIZED_MAP_ENTITY_ANIM(float x, float y, float z, float radius, 
 - `float y`
 - `float z`
 - `float radius`
-- `cs_type(Any) Hash objectModelHash`
+- `Hash objectModelHash`
 - `int sceneId`
-- `cs_type(AnyPtr) char* pAnimName` — The name of the animation to play.
-- `cs_type(AnyPtr) char* pAnimDictName` — The name of the animation dictionary to use.
+- `char* pAnimName` — The name of the animation to play.
+- `char* pAnimDictName` — The name of the animation dictionary to use.
 - `float fBlendDelta` — Blend in time.
 - `float fBlendOutDelta` — Blend out time.
 - `int flags` — The flags to use when playing the animation. See [`TASK_PLAY_ANIM`](#_0xEA47FE3719165B94).
@@ -15086,14 +15024,12 @@ If lazy is true, objects will only reappear when their map is reloaded.
 
 **Parameters:**
 
-- `cs_type(Any) float x` — X Coordinate of the sphere center.
-- `cs_type(Any) float y` — Y Coordinate of the sphere center.
-- `cs_type(Any) float z` — Z Coordinate of the sphere center.
-- `cs_type(Any) float radius` — Radius of the sphere.
-- `cs_type(Any) Hash model` — The model hash to make visible again.
-- `cs_type(Any) BOOL lazy` — false to apply the change immediately.
-
-**Examples:**
+- `float x` — X Coordinate of the sphere center.
+- `float y` — Y Coordinate of the sphere center.
+- `float z` — Z Coordinate of the sphere center.
+- `float radius` — Radius of the sphere.
+- `Hash model` — The model hash to make visible again.
+- `BOOL lazy` — false to apply the change immediately.
 
 ```lua
 -- This could be any coordinates, in this example I am using the players ped coordinates
@@ -15140,7 +15076,7 @@ cs_type(Any) void RESET_ENTITY_ALPHA(Entity entity);
 
 **Parameters:**
 
-- `Any) void RESET_ENTITY_ALPHA(Entity entity`
+- `Entity entity`
 
 ---
 
@@ -15188,9 +15124,7 @@ This native sets the entity's alpha level.
 
 - `Entity entity` — The entity to change the alpha for.
 - `int alphaLevel` — The alpha level ranges from 0 to 255, but changes occur every 20% (every 51).
-- `cs_type(int) BOOL skin` — Whether or not to change the alpha of the entity's skin.
-
-**Examples:**
+- `BOOL skin` — Whether or not to change the alpha of the entity's skin.
 
 ```lua
 SetEntityAlpha(PlayerPedId(), 51, false)
@@ -15405,8 +15339,6 @@ Sets the coordinates (world position) for a specified entity, offset by the radi
 - `BOOL ragdollFlag` — A special flag used for ragdolling peds.
 - `BOOL clearArea` — Whether to clear any entities in the target area.
 
-**Examples:**
-
 ```lua
 local ped = PlayerPedId()
 local currentPos = GetEntityCoords(ped)
@@ -15545,8 +15477,6 @@ Set the heading of an entity in degrees also known as "Yaw".
 - `Entity entity` — The entity to set the heading for.
 - `float heading` — The heading in degrees.
 
-**Examples:**
-
 ```lua
 SetEntityHeading(PlayerPedId(), 40.0)
 ```
@@ -15581,14 +15511,14 @@ When setting the health for non-player peds or entities, the maximum health will
 
 Default health for male peds is `200`, for female peds it is `175`.
 
+**Added parameters:**
+
+- `inflictor` — The handle for the entity that caused the damage.
+
 **Parameters:**
 
 - `Entity entity` — The entity handle.
 - `int health` — The health we should set this entity to.
-
-**Added parameters:**
-
-- `inflictor` — The handle for the entity that caused the damage.
 
 ---
 
@@ -15917,8 +15847,6 @@ NativeDB Introduced: v323
 - `int rotationOrder` — Specifies the order in which yaw, pitch, and roll are applied, see [`GET_ENTITY_ROTATION`](#_0xAFBD61CC738D9EB9) for the available rotation orders.
 - `BOOL bDeadCheck` — Usually set to `true`. Determines whether to check if the entity is dead before applying the rotation.
 
-**Examples:**
-
 ```lua
 -- Example of rotating a vehicle 360 degrees
 RegisterCommand('360', function()
@@ -16023,8 +15951,6 @@ Toggle the visibility of a given entity.
 - `BOOL toggle` — Whether or not the entity will be visible
 - `BOOL unk` — Always 0 in scripts
 
-**Examples:**
-
 ```lua
 SetEntityVisible(PlayerPedId(), false, 0)
 ```
@@ -16084,9 +16010,7 @@ NativeDB Introduced: v1180
 **Parameters:**
 
 - `Entity entity` — The entity to be configured for pick up by Cargobob.
-- `cs_type(Any) BOOL toggle` — A boolean value where `true` prevents the entity from being picked up by Cargobobs, and `false` allows it.
-
-**Examples:**
+- `BOOL toggle` — A boolean value where `true` prevents the entity from being picked up by Cargobobs, and `false` allows it.
 
 ```lua
 -- This example prevents a entity (in this example the vehicle of the player) from being picked up by any Cargobobs.
@@ -17029,7 +16953,7 @@ The Second item in the struct `*(Hash *)(outData + 1)` is the vehicle hash.
 - `int dlcVehicleIndex` — takes a number from 0 to `GET_NUM_DLC_VEHICLES()` - 1.
 - `Any* outData` — a struct of 3 8-byte items.
 
-**Returns:**
+**Return value:**
 
 A boolean value return if find or not the dlcVehicleIndex.
 
@@ -17069,7 +16993,7 @@ dlcVehicleIndex is 0 to GET_NUM_DLC_VEHICLS()
 
 ### `GET_DLC_VEHICLE_MOD_LOCK_HASH`
 
-`0xC098810437312FFF` · `0x59352658` · returns `void`
+`0xC098810437312FFF` · `0x59352658` · returns `Hash`
 
 ```c
 cs_type(int) Hash GET_DLC_VEHICLE_MOD_LOCK_HASH(cs_type(int) Hash hash);
@@ -17077,7 +17001,7 @@ cs_type(int) Hash GET_DLC_VEHICLE_MOD_LOCK_HASH(cs_type(int) Hash hash);
 
 **Parameters:**
 
-- `int) Hash GET_DLC_VEHICLE_MOD_LOCK_HASH(cs_type(int) Hash hash`
+- `Hash hash`
 
 ---
 
@@ -17114,7 +17038,7 @@ char descLabel[64];
 
 - `int dlcWeaponIndex`
 - `int dlcWeapCompIndex`
-- `cs_type(AnyPtr) int* ComponentDataPtr`
+- `int* ComponentDataPtr`
 
 ---
 
@@ -17170,9 +17094,9 @@ void GET_FORCED_COMPONENT(Hash componentHash, int forcedComponentIndex, cs_type(
 
 - `Hash componentHash`
 - `int forcedComponentIndex`
-- `cs_type(AnyPtr) Hash* nameHash`
-- `cs_type(AnyPtr) int* enumValue`
-- `cs_type(AnyPtr) int* componentType`
+- `Hash* nameHash`
+- `int* enumValue`
+- `int* componentType`
 
 ---
 
@@ -17186,11 +17110,11 @@ void GET_FORCED_PROP(cs_type(Any) Hash componentHash, int forcedPropIndex, cs_ty
 
 **Parameters:**
 
-- `cs_type(Any) Hash componentHash`
+- `Hash componentHash`
 - `int forcedPropIndex`
-- `cs_type(AnyPtr) Hash* nameHash`
-- `cs_type(AnyPtr) int* enumValue`
-- `cs_type(AnyPtr) int* anchorPoint`
+- `Hash* nameHash`
+- `int* enumValue`
+- `int* anchorPoint`
 
 ---
 
@@ -17327,7 +17251,7 @@ Returns number of possible values of the forcedPropIndex argument of GET_FORCED_
 
 **Parameters:**
 
-- `cs_type(Any) Hash componentHash`
+- `Hash componentHash`
 
 ---
 
@@ -17389,7 +17313,7 @@ BOOL GET_SHOP_PED_OUTFIT_COMPONENT_VARIANT(cs_type(Any) Hash outfit, int slot, A
 
 **Parameters:**
 
-- `cs_type(Any) Hash outfit` — A structure, see [`GET_SHOP_PED_QUERY_OUTFIT`](#_0x6D793F03A631FE56).
+- `Hash outfit` — A structure, see [`GET_SHOP_PED_QUERY_OUTFIT`](#_0x6D793F03A631FE56).
 - `int slot` — outfit slot.
 - `Any* outComponentVariant`
 
@@ -17419,7 +17343,7 @@ BOOL GET_SHOP_PED_OUTFIT_PROP_VARIANT(cs_type(Any) Hash outfitHash, int variantI
 
 **Parameters:**
 
-- `cs_type(Any) Hash outfitHash`
+- `Hash outfitHash`
 - `int variantIndex`
 - `Any* outPropVariant`
 
@@ -17435,7 +17359,7 @@ void GET_SHOP_PED_PROP(cs_type(Any) Hash componentHash, Any* outProp);
 
 **Parameters:**
 
-- `cs_type(Any) Hash componentHash`
+- `Hash componentHash`
 - `Any* outProp`
 
 ---
@@ -17505,6 +17429,7 @@ BOOL GET_TATTOO_SHOP_DLC_ITEM_DATA(int characterType, int decorationIndex, Any* 
 Returns data that adheres to the tattoo shop item data that is used in shop_tattoo.meta
 
 Character types:
+
 ```c
 enum eTattooFaction
 {
@@ -17517,6 +17442,7 @@ enum eTattooFaction
 ```
 
 Returned struct properties:
+
 ```c
 struct sTattooShopItemValues
 {
@@ -17545,11 +17471,9 @@ struct sTattooShopItemValues
 - `int decorationIndex` — Tattoo index, value between 0 and [GET_NUM_TATTOO_SHOP_DLC_ITEMS](#_0x278F76C3B0A8F109).
 - `Any* outComponent` — The referenced struct.
 
-**Returns:**
+**Return value:**
 
 A bool indicating that the tattoo data exists in the files.
-
-**Examples:**
 
 ```lua
 local function TattooBlobToTable(blob)
@@ -17616,11 +17540,11 @@ NativeDB Introduced: v2189
 
 **Parameters:**
 
-- `cs_type(Hash) int character` — AKA eFaction in shop_tattoo.meta. Which character this tattoo belongs to. See [GET_NUM_TATTOO_SHOP_DLC_ITEMS](#_0x278F76C3B0A8F109).
+- `int character` — AKA eFaction in shop_tattoo.meta. Which character this tattoo belongs to. See [GET_NUM_TATTOO_SHOP_DLC_ITEMS](#_0x278F76C3B0A8F109).
 - `int collection` — Which collection this tattoo belongs to. If you specify `-1`, it will check all collections.
 - `int preset` — Which preset this tattoo belongs to.
 
-**Returns:**
+**Return value:**
 
 Returns the actual index (Not ID from `shop_tattoo.meta`) from `0` to [GET_NUM_TATTOO_SHOP_DLC_ITEMS](#_0x278F76C3B0A8F109), or `-1` (if it failed to find the tattoo) of a tattoo.
 
@@ -17638,9 +17562,9 @@ void GET_VARIANT_COMPONENT(Hash componentHash, int variantComponentIndex, cs_typ
 
 - `Hash componentHash`
 - `int variantComponentIndex`
-- `cs_type(AnyPtr) Hash* nameHash`
-- `cs_type(AnyPtr) int* enumValue`
-- `cs_type(AnyPtr) int* componentType`
+- `Hash* nameHash`
+- `int* enumValue`
+- `int* componentType`
 
 ---
 
@@ -17682,7 +17606,7 @@ BOOL IS_CONTENT_ITEM_LOCKED(cs_type(AnyPtr) Hash itemHash);
 
 **Parameters:**
 
-- `cs_type(AnyPtr) Hash itemHash`
+- `Hash itemHash`
 
 ---
 
@@ -17696,7 +17620,7 @@ BOOL IS_DLC_VEHICLE_MOD(cs_type(Any) Hash hash);
 
 **Parameters:**
 
-- `cs_type(Any) Hash hash`
+- `Hash hash`
 
 ---
 
@@ -17903,11 +17827,9 @@ int _GET_SHOP_PED_APPAREL_VARIANT_PROP_COUNT(Hash propHash);
 
 - `Hash propHash` — Ped helmet prop hash
 
-**Returns:**
+**Return value:**
 
 This native returns 1 when the player helmet has a visor (there is another prop index for the same helmet with closed/opened visor variant) that can be toggled. 0 if there's no alternative version with a visor for this helmet prop.
-
-**Examples:**
 
 ```lua
 local iVar16 = GetPedPropIndex(PlayerPedId(), 0) -- helmet prop index
@@ -17931,11 +17853,11 @@ void _GET_VARIANT_PROP(cs_type(Any) Hash componentHash, int variantPropIndex, cs
 
 **Parameters:**
 
-- `cs_type(Any) Hash componentHash`
+- `Hash componentHash`
 - `int variantPropIndex`
-- `cs_type(Any) Hash* nameHash`
-- `cs_type(Any) int* enumValue`
-- `cs_type(Any) int* anchorPoint`
+- `Hash* nameHash`
+- `int* enumValue`
+- `int* anchorPoint`
 
 ---
 
@@ -18536,7 +18458,7 @@ public enum DecalTypes
 - `BOOL isDynamic` — toggle dynamics.
 - `BOOL useComplexColn` — use complex coloring.
 
-**Returns:**
+**Return value:**
 
 An integer value representing the added decal index, will return `0` if the decal cannot be added.
 
@@ -18672,7 +18594,7 @@ See [`ANIMPOSTFX_PLAY`](#_0x2206BF9A37B7F724).
 
 - `char* effectName`
 
-**Returns:**
+**Return value:**
 
 Whether the specified effect is active
 
@@ -19294,8 +19216,6 @@ void DISABLE_MOON_CYCLE_OVERRIDE();
 
 Removes any custom moon cycle overrides that have been configured with [ENABLE_MOON_CYCLE_OVERRIDE](#_0x2C328AF17210F009)
 
-**Examples:**
-
 ```lua
 DisableMoonCycleOverride()
 ```
@@ -19311,8 +19231,6 @@ void DISABLE_OCCLUSION_THIS_FRAME();
 ```
 
 This disables all occluders that cause the 'flickering' rendering under the map and inside buildings with no interiors, note that this may impact performance on lower end systems.
-
-**Examples:**
 
 ```lua
 -- Example thread that has to run every frame
@@ -19731,8 +19649,6 @@ There's a [list of markers](https://docs.fivem.net/docs/game-references/markers/
 - `char* textureName` — A texture name in `textureDict` to draw the marker with, or NULL. Example: 'PuttingMarker'
 - `BOOL drawOnEnts` — Whether or not the marker should draw on intersecting entities.
 
-**Examples:**
-
 ```lua
 CreateThread(function()
 	while true do
@@ -20143,7 +20059,6 @@ void ENABLE_ALIEN_BLOOD_VFX(BOOL toggle);
 
 Creates a motion-blur sort of effect, this native does not seem to work, however by using the [`ANIMPOSTFX_PLAY`](#_0x2206BF9A37B7F724) native with `"DrugsMichaelAliensFight"` as the effect parameter, you should be able to get the effect.
 
-
 This native does not seem to work, however by using the [ANIMPOSTFX_PLAY](#_0x2206BF9A37B7F724) native with "DrugsMichaelAliensFight" as the effect parameter, you should be able to get the effect.
 
 **Parameters:**
@@ -20164,8 +20079,8 @@ If true, this native will create purple explosions upon projectile impact, add c
 
 If the PTFX asset "scr_rcbarry2" is not requested using ([`RequestNamedPtfxAsset`](#_0xD821490579791273)) then this native **will not work as intended**.
 
-
 Excerpt from fm_content_drug_lab_work.c:
+
 ```
 STREAMING::REQUEST_NAMED_PTFX_ASSET("scr_rcbarry2");
 if (STREAMING::HAS_NAMED_PTFX_ASSET_LOADED("scr_rcbarry2"))
@@ -20179,8 +20094,6 @@ if (STREAMING::HAS_NAMED_PTFX_ASSET_LOADED("scr_rcbarry2"))
 **Parameters:**
 
 - `BOOL toggle` — Whether to toggle the clown VFX on or off.
-
-**Examples:**
 
 ```lua
 RequestNamedPtfxAsset("scr_rcbarry2") -- Request the PTFX
@@ -20219,8 +20132,6 @@ The moon phase can be disabled with [DISABLE_MOON_CYCLE_OVERRIDE](#_0x2BF72AD5B4
 **Parameters:**
 
 - `float phase` — A value indicating the moon cycle.
-
-**Examples:**
 
 ```lua
 EnableMoonCycleOverride(0.5)
@@ -20323,11 +20234,11 @@ void FADE_DECALS_IN_RANGE(cs_type(Any) float x, cs_type(Any) float y, cs_type(An
 
 **Parameters:**
 
-- `cs_type(Any) float x`
-- `cs_type(Any) float y`
-- `cs_type(Any) float z`
-- `cs_type(Any) float radius`
-- `cs_type(Any) float duration` — A duration in seconds.
+- `float x`
+- `float y`
+- `float z`
+- `float radius`
+- `float duration` — A duration in seconds.
 
 ---
 
@@ -20428,7 +20339,7 @@ NativeDB Introduced: v323
 
 - `BOOL physicalAspect` — A boolean value. Passing in `true` returns the physical aspect ratio of the game window. Passing in `false` returns the aspect ratio of the main game window.
 
-**Returns:**
+**Return value:**
 
 The aspect ratio of the game window as a floating-point number.
 
@@ -20472,7 +20383,7 @@ This native indicates whether the game is running in high-definition (HD) resolu
 NativeDB Introduced: v323
 ```
 
-**Returns:**
+**Return value:**
 
 A boolean value indicating whether the game is running in high-definition (`true`) or not (`false`).
 
@@ -20509,7 +20420,7 @@ This native retrieves whether the game is running in widescreen mode or not.
 NativeDB Introduced: v323
 ```
 
-**Returns:**
+**Return value:**
 
 A boolean value indicating whether the game is running in widescreen mode (`true`) or not (`false`).
 
@@ -20581,7 +20492,7 @@ BOOL GET_SCALEFORM_MOVIE_METHOD_RETURN_VALUE_BOOL(int methodReturn);
 
 - `int methodReturn` — Operation handle returned by [`END_SCALEFORM_MOVIE_METHOD_RETURN_VALUE`](#_0xC50AA39A577AF886)
 
-**Returns:**
+**Return value:**
 
 The return value passed from actionscript to game code.
 
@@ -20601,7 +20512,7 @@ Used to get a return value from a scaleform function. Returns an int in the same
 
 - `int method_return` — The return value of this native: `EndScaleformMovieMethodReturn`
 
-**Returns:**
+**Return value:**
 
 Returns an int in the same way `GET_SCALEFORM_MOVIE_METHOD_RETURN_VALUE_STRING` returns a string.
 
@@ -20621,11 +20532,9 @@ Used to get a return value from a scaleform function. Returns a string in the sa
 
 - `int method_return` — The return value of this native: `EndScaleformMovieMethodReturn`
 
-**Returns:**
+**Return value:**
 
 Returns a string in the same way `GET_SCALEFORM_MOVIE_METHOD_RETURN_VALUE_INT` returns an int.
-
-**Examples:**
 
 ```lua
 local a = RequestScaleformMovie("translate") --scaleform gfx
@@ -20754,7 +20663,7 @@ Returns status of gallery photo fetch, which was requested by [`QUEUE_OPERATION_
 
 - `BOOL scanForSaving`
 
-**Returns:**
+**Return value:**
 
 0 - Succeeded, 1 - In progress, 2 - Failed
 
@@ -21171,7 +21080,7 @@ BOOL IS_DECAL_ALIVE(int decal);
 
 ### `IS_SCALEFORM_MOVIE_DELETING`
 
-`0x86255B1FC929E33E` · returns `void`
+`0x86255B1FC929E33E` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL IS_SCALEFORM_MOVIE_DELETING(int scaleformIndex);
@@ -21183,9 +21092,9 @@ NativeDB Introduced: v1290
 
 **Parameters:**
 
-- `Any) BOOL IS_SCALEFORM_MOVIE_DELETING(int scaleformIndex` — Scaleform index returned by [`REQUEST_SCALEFORM_MOVIE`](#_0x11FE353CF9733E6F) (or similar natives).
+- `int scaleformIndex` — Scaleform index returned by [`REQUEST_SCALEFORM_MOVIE`](#_0x11FE353CF9733E6F) (or similar natives).
 
-**Returns:**
+**Return value:**
 
 Returns true if a scaleform movie is being deleted from streaming memory (After it has been marked as no longer needed with [`SET_SCALEFORM_MOVIE_AS_NO_LONGER_NEEDED`](#_0x1D132D614DD86811).
 
@@ -21206,7 +21115,7 @@ Returns true if the return value of a scaleform function is ready to be collecte
 
 - `int method_return` — The return value of this native: `EndScaleformMovieMethodReturn`
 
-**Returns:**
+**Return value:**
 
 Returns true if the return value of a scaleform function is ready to be collected
 
@@ -21341,7 +21250,7 @@ This native is only used in `web_browser.c` as of game build 2944.
 
 - `int scaleformHandle` — Scaleform movie handle returned by [REQUEST_SCALEFORM_MOVIE](#_0x11FE353CF9733E6F)
 
-**Returns:**
+**Return value:**
 
 Bool indicating if an input occurred this frame and was passed to the scaleform.
 
@@ -21437,7 +21346,7 @@ Also see [`GET_STATUS_OF_SORTED_LIST_OPERATION`](#_0xF5BED327CEA362B1)
 
 - `BOOL scanForSaving`
 
-**Returns:**
+**Return value:**
 
 Returns true if the operation began.
 
@@ -21984,8 +21893,6 @@ Used in Humane Labs Heist for EMP.
 
 - `BOOL state` — True turns off all artificial light sources in the map: buildings, street lights, car lights, etc. False turns them back on.
 
-**Examples:**
-
 ```lua
 -- Disable all lights in the map.
 SetArtificialLightsState(true)
@@ -22141,8 +22048,6 @@ Prevents gas / petrol decals (aka gas / petrol trails and puddles) to be ignited
 
 **Note**: This native needs to be called every frame to prevent ignition.
 
-**Examples:**
-
 ```lua
 Citizen.CreateThread(function()
     while true do
@@ -22172,8 +22077,6 @@ The effect can be reset by calling [`CLEAR_DRAW_ORIGIN`](#_0xFF0B610F6BE0D7AF) a
 - `float y`
 - `float z`
 - `Any p3`
-
-**Examples:**
 
 ```cs
 // From now on, the screen coordinate which displays the given world coordinate on the screen is seen as x=0,y=0.  
@@ -22590,7 +22493,7 @@ Configures a Scaleform movie to render to a large render target (1280x720), whic
 **Parameters:**
 
 - `int scaleformMovieId` — The handle of the Scaleform to be used.
-- `cs_type(Any) BOOL useLargeRT` — A boolean switch to enable/disable the use of the large rendertarget.
+- `BOOL useLargeRT` — A boolean switch to enable/disable the use of the large rendertarget.
 
 ---
 
@@ -22639,7 +22542,7 @@ independent of the player's safe zone configuration.
 
 These values are equivalent to `alignX` and `alignY` in `common:/data/ui/frontend.xml`, which can be used as a baseline
 for default alignment.
-  
+
 Valid values for `horizontalAlign`, from original documentation:
 * **C (67)** - Center: DRAW_TEXT starts in the middle of the screen, while DRAW_RECT starts on the right; both move with
   the right side of the screen.
@@ -22647,7 +22550,7 @@ Valid values for `horizontalAlign`, from original documentation:
   centered.
 * **R (82)** - Right: DRAW_TEXT starts on the left side (normal 0,0), while DRAW_RECT starts some short distance away
   from the right side of the screen, both move with the right side of the screen.
-  
+
 Valid values for `verticalAlign`, from original documentation:
 * **B (66)** - Bottom: DRAW_RECT starts about as far as the middle of the map from the bottom, while DRAW_TEXT is about
   rather centered.
@@ -22667,8 +22570,6 @@ To reset the value, use `RESET_SCRIPT_GFX_ALIGN`.
 
 - `int horizontalAlign` — The horizontal alignment. This can be 67 ('C'), 76 ('L'), or 82 ('R').
 - `int verticalAlign` — The vertical alignment. This can be 67 ('C'), 66 ('B'), or 84 ('T').
-
-**Examples:**
 
 ```lua
 -- align the next draw to the top left
@@ -22914,6 +22815,7 @@ void SET_TV_CHANNEL(int channel);
 void SET_TV_CHANNEL_PLAYLIST(int tvChannel, char* playlistName, BOOL restart);
 ```
 
+```
 Loads specified video sequence into the TV Channel
 TV_Channel ranges from 0-2
 VideoSequence can be any of the following:
@@ -22936,6 +22838,7 @@ Restart:
 1=sequence restarts from beginning every time that channel is selected
 The above playlists work as intended, and are commonly used, but there are many more playlists, as seen in `tvplaylists.xml`. A pastebin below outlines all playlists, they will be surronded by the name tag I.E. (<Name>PL_STD_CNT</Name> = PL_STD_CNT).
 https://pastebin.com/zUzGB6h7
+```
 
 **Parameters:**
 
@@ -23079,8 +22982,6 @@ NativeDB Added Parameter 12: BOOL p11
 - `BOOL xAxis`
 - `BOOL yAxis`
 - `BOOL zAxis`
-
-**Examples:**
 
 ```lua
 -- If the PtfxAsset hasn't been loaded yet, you'll need to load it first
@@ -23431,9 +23332,12 @@ All those natives combined they will output something like this:
 ![](https://i.imgur.com/slYthff.png)
 
 Old description:
+
+```
 Only called in golf and golf_mp  
 parameters used are   
 GRAPHICS::_0x5CE62918F8D703C7(255, 0, 0, 64, 255, 255, 255, 5, 255, 255, 0, 64);  
+```
 
 **Parameters:**
 
@@ -23449,8 +23353,6 @@ GRAPHICS::_0x5CE62918F8D703C7(255, 0, 0, 64, 255, 255, 255, 5, 255, 255, 0, 64);
 - `int highG` — green value for the upper level
 - `int highB` — blue value for the upper level
 - `int highAlpha` — alpha value for the upper level
-
-**Examples:**
 
 ```cs
 N_0xa356990e161c9e65(true); // toggle on/off
@@ -23495,8 +23397,6 @@ All those natives combined they will output something like this:
 - `float glowIntensity` — glow intensity / opacity (40.0 is fine for daylight, 15.0 is fine for night time).
 - `float normalHeight` — The z coord for 'normal' height (white grid lines level).
 - `float heightDiff` — This is the height difference/margin used for line color changes. 0.2 works fine (normalHeight + 0.2 = yellow, normalHeight - 0.2 = red).
-
-**Examples:**
 
 ```cs
 N_0xa356990e161c9e65(true); // toggle on/off
@@ -23919,8 +23819,6 @@ NativeDB Introduced: v1290
 - `int blue` — blue color
 - `int alpha` — alpha
 - `int p11`
-
-**Examples:**
 
 ```lua
 -- drawing the game area for penetrator arcade game
@@ -25025,8 +24923,6 @@ Must be called each frame, will play at specified position on screen when called
 - `int b` — The blue value of the movie (0 - 255).
 - `int a` — The alpha value of the movie (0 - 255).
 
-**Examples:**
-
 ```lua
 Citizen.CreateThread(function()
     local binkint = SetBinkMovie("casino_trailer") -- BINK movie, list can be found at https://gist.github.com/ItsJunction/8046f28c29ea8ff2821e9e4f933f595f
@@ -25053,6 +24949,7 @@ void _DRAW_INTERACTIVE_SPRITE(char* textureDict, char* textureName, float screen
 
 Similar to [_DRAW_SPRITE](#_0xE7FFAE5EBF23D890), but seems to be some kind of "interactive" sprite, at least used by render targets.
 These seem to be the only dicts ever requested by this native:
+
 ```
 prop_screen_biker_laptop
 Prop_Screen_GR_Disruption
@@ -25345,7 +25242,7 @@ int _GET_EXTRA_TIMECYCLE_MODIFIER_INDEX();
 
 See [`GET_TIMECYCLE_MODIFIER_INDEX`](#_0xFDF3D97C674AFB66) for use, works the same just for the secondary timecycle modifier.
 
-**Returns:**
+**Return value:**
 
 An integer representing the Timecycle modifier
 
@@ -25368,8 +25265,6 @@ Calculates the effective X/Y fractions when applying the values set by `SET_SCRI
 - `float y` — The input Y coordinate.
 - `float* calculatedX` — A pointer to the calculated X value.
 - `float* calculatedY` — A pointer to the calculated Y value.
-
-**Examples:**
 
 ```lua
 local calcX, calcX = GetScriptGfxPosition(0.2, 0.2)
@@ -25430,7 +25325,7 @@ NativeDB Introduced: v3407
 - `int* scaleformHandle` — Scaleform movie handle
 - `char* scaleformName` — Name of the Scaleform movie to check
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the named Scaleform movie is loaded, `false` otherwise.
 
@@ -25702,8 +25597,6 @@ Creates an integer (usually 1) for a BINK movie to be called with other natives.
 
 - `char* name` — The BINK movie to play (with or without file extension).
 
-**Examples:**
-
 ```lua
 Citizen.CreateThread(function()
     local binkint = SetBinkMovie("casino_trailer")
@@ -25734,8 +25627,6 @@ Seeks a BINK movie to a specified position.
 
 - `int binkMovie` — The movie that is being played.
 - `float progress` — As a percentage (0.0 - 100.0).
-
-**Examples:**
 
 ```lua
 -- Movie drawn prior
@@ -25819,8 +25710,6 @@ This multiplies the height of the icon inside a checkpoint with the default heig
 
 - `int checkpoint` — The checkpoint the multiplier should be applied to.
 - `float height_multiplier` — The multiplier for the icon height above the checkpoint's coordinates. Default is 1.0
-
-**Examples:**
 
 ```lua
 local checkpoint = CreateCheckpoint(...)
@@ -25977,6 +25866,7 @@ NativeDB Introduced: v1290
 void ACTIVATE_FRONTEND_MENU(Hash menuhash, BOOL togglePause, int component);
 ```
 
+```
 Does stuff like this:  
 gyazo.com/7fcb78ea3520e3dbc5b2c0c0f3712617  
 Example:  
@@ -26017,6 +25907,7 @@ Below is a list of all known Frontend Menu Hashes.
 - FE_MENU_VERSION_JOINING_SCREEN
 - FE_MENU_VERSION_LANDING_MENU
 - FE_MENU_VERSION_LANDING_KEYMAPPING_MENU
+```
 
 **Parameters:**
 
@@ -26042,11 +25933,9 @@ Creates a blip for the specified coordinates. You can use `SET_BLIP_` natives to
 - `float y` — The Y coordinate.
 - `float z` — The Z coordinate.
 
-**Returns:**
+**Return value:**
 
 A blip handle.
-
-**Examples:**
 
 ```lua
 local destination = AddBlipForCoord(200.0, 200.0, 5.0)
@@ -26074,11 +25963,9 @@ Example of friend:
 
 - `Entity entity` — The entity handle to create the blip.
 
-**Returns:**
+**Return value:**
 
 A blip handle.
-
-**Examples:**
 
 ```lua
 local blip = AddBlipForEntity(PlayerPedId()) -- This adds an enemy blip to yourself
@@ -26124,11 +26011,9 @@ Example image:
 - `float posZ` — The z position of the blip (you can also send a vector3 instead of the bulk coordinates)
 - `float radius` — The number that defines the radius of the blip circle
 
-**Returns:**
+**Return value:**
 
 The blip handle that can be manipulated with every `SetBlip` natives
-
-**Examples:**
 
 ```lua
 local coords = vector3(0.0, 0.0, 0.0)
@@ -26209,8 +26094,6 @@ Adds a float to a text component placeholder, replacing `~1~` in the current tex
 - `float value` — The number to substitute in the label.
 - `int decimalPlaces` — How many decimal places to add
 
-**Examples:**
-
 ```lua
 -- on initialization
 AddTextEntry('TEST_LABEL', 'Label: ~1~')
@@ -26234,9 +26117,9 @@ void ADD_TEXT_COMPONENT_FORMATTED_INTEGER(int value, BOOL commaSeparated);
 **Parameters:**
 
 - `int value` — The integer to add to the string
-- `BOOL commaSeparated` — Whether or not to add comma seperators. So if true 1000 would become 1,000. Adds a formatted integer as a text component placeholder, replacing ~a~ in the current text command's text label.
+- `BOOL commaSeparated` — Whether or not to add comma seperators. So if true 1000 would become 1,000.
 
-**Examples:**
+Adds a formatted integer as a text component placeholder, replacing ~a~ in the current text command's text label.
 
 ```lua
 -- on initialization
@@ -26329,8 +26212,6 @@ See the documentation on text formatting for more information.
 
 - `char* text` — A string to add of up to 99 characters. This can contain additional `~` formatting directives.
 
-**Examples:**
-
 ```lua
 -- on initialization
 AddTextEntry('TEST_LABEL', 'Label: ~a~')
@@ -26413,8 +26294,6 @@ enum eTimeFormat {
 
 - `int timestamp` — The timestamp in milliseconds
 - `int format` — The format of the timestamp, as bitwise flags
-
-**Examples:**
 
 ```lua
 -- Renders the current game time in hours, minutes and seconds
@@ -26622,8 +26501,6 @@ void BEGIN_TEXT_COMMAND_IS_THIS_HELP_MESSAGE_BEING_DISPLAYED(char* labelName);
 
 - `char* labelName` — Text entry name. This can be created using [`AddTextEntry`](#_0x32CA01C3).
 
-**Examples:**
-
 ```lua
 -- Create new text entry
 AddTextEntry('TEST_LABEL', 'Hello world.')
@@ -26693,8 +26570,6 @@ This should be paired with [`END_TEXT_COMMAND_SET_BLIP_NAME`](#_0xBC38B49BCB83BC
 
 - `char* textLabel` — The text label to set.
 
-**Examples:**
-
 ```lua
 -- creates a blip called 'Food for me!' at 0.0, 0.0, 0.0
 AddTextEntry('MYBLIP', 'Food for ~a~!')
@@ -26715,6 +26590,7 @@ EndTextCommandSetBlipName(blip)
 void BEGIN_TEXT_COMMAND_THEFEED_POST(char* text);
 ```
 
+```
 Declares the entry type of a notification, for example "STRING".
 int ShowNotification(char *text)
 {
@@ -26722,12 +26598,11 @@ int ShowNotification(char *text)
 	ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME(text);
 	return _DRAW_NOTIFICATION(1, 1);
 }
+```
 
 **Parameters:**
 
 - `char* text` — The text label to use.
-
-**Examples:**
 
 ```lua
 BeginTextCommandThefeedPost("STRING")
@@ -26739,7 +26614,7 @@ EndTextCommandThefeedPostTicker(true, true)
 
 ### `BUSYSPINNER_IS_DISPLAYING`
 
-`0xB2A592B04648A9CB` · `0x3AF34DEF` · returns `void`
+`0xB2A592B04648A9CB` · `0x3AF34DEF` · returns `BOOL`
 
 ```c
 cs_type(Pickup) BOOL BUSYSPINNER_IS_DISPLAYING();
@@ -27017,7 +26892,7 @@ To create gamer tags for actual players and for more gamer tag information, see 
 - `char* crewName` — The name of the crew.
 - `int crewRank` — The rank from 1-5 that the player is within the crew. Use 0 if the player is the founder of the crew. Only relevant for private crews.
 
-**Returns:**
+**Return value:**
 
 The ID of the new gamer tag.
 
@@ -27048,8 +26923,6 @@ To create a gamer tag for a ped that is not a player, see [CREATE_FAKE_MP_GAMER_
 - `int crewR` — Red component of the crew colour.
 - `int crewG` — Green component of the crew colour.
 - `int crewB` — Blue component of the crew colour.
-
-**Examples:**
 
 ```lua
 local playerId = PlayerId() -- you can use any local player ID here
@@ -27220,7 +27093,7 @@ If Minimap / Radar should be displayed.
 
 **Parameters:**
 
-- `Any) void DISPLAY_RADAR(BOOL toggle`
+- `BOOL toggle`
 
 ---
 
@@ -27393,8 +27266,6 @@ void END_TEXT_COMMAND_DISPLAY_HELP(int shape, BOOL loop, BOOL beep, int duration
 - `BOOL beep` — If this is true, the beeping sound will play. Beeping sound name is `INFO` in sound set `HUD_FRONTEND_DEFAULT_SOUNDSET`.
 - `int duration` — Duration in ms of how long this help message should display for. -1 for default.
 
-**Examples:**
-
 ```lua
 -- Help texts support text formatting, check out https://docs.fivem.net/docs/game-references/text-formatting/
 AddTextEntry('HelpMsg', 'Press ~INPUT_CONTEXT~ to do something.')
@@ -27467,7 +27338,7 @@ enum HudIndexes {
 
 - `int hudIndex` — The hud index for help message.
 
-**Returns:**
+**Return value:**
 
 `true`: Indicates if the specific help message has been displayed.  
 `false`: Indicates that the specific help message is still being displayed.
@@ -27484,7 +27355,7 @@ void END_TEXT_COMMAND_OVERRIDE_BUTTON_TEXT(cs_type(BOOL) int buttonIndex);
 
 **Parameters:**
 
-- `cs_type(BOOL) int buttonIndex` — Index of the instructional button
+- `int buttonIndex` — Index of the instructional button
 
 ---
 
@@ -27525,8 +27396,6 @@ of the specified blip.
 
 - `Blip blip` — The blip to change the name for.
 
-**Examples:**
-
 ```lua
 -- creates a blip called 'Food for me!' at 0.0, 0.0, 0.0
 AddTextEntry('MYBLIP', 'Food for ~a~!')
@@ -27551,9 +27420,8 @@ Shows an "award" notification above the minimap, lua example result:
 
 ![](https://i.imgur.com/9U2x4ek.png)
 
-
-
 Old description:
+
 ```
 Example:  
 UI::_SET_NOTIFICATION_TEXT_ENTRY("HUNT");  
@@ -27568,11 +27436,9 @@ UI::_0xAA295B6F28BD587D("Hunting", "Hunting_Gold_128", 0, 109, "HUD_MED_UNLKED")
 - `int colorOverlay` — Hudcolor overlay that gets applied on top of the notification, conflicts with text/image visibility in most cases if set to something other than 0.
 - `char* titleLabel` — The label that will be displayed at the top of the notification (title).
 
-**Returns:**
+**Return value:**
 
 The notification handle.
-
-**Examples:**
 
 ```lua
 Citizen.CreateThread(function()
@@ -27764,11 +27630,9 @@ iconTypes:
 - `char* sender` — The notification title.
 - `char* subject` — The notification subtitle.
 
-**Returns:**
+**Return value:**
 
 The notification handle.
-
-**Examples:**
 
 ```lua
 Citizen.CreateThread(function()
@@ -27937,7 +27801,7 @@ Exactly the same as [`END_TEXT_COMMAND_THEFEED_POST_TICKER`](#_0x2ED7843F8F80102
 - `BOOL isImportant` — If true, the notification will flash.
 - `BOOL showInBrief` — If true, the message will be shown in Pause Menu > Info > Notifications.
 
-**Returns:**
+**Return value:**
 
 The notification handle.
 
@@ -27953,9 +27817,7 @@ int END_TEXT_COMMAND_THEFEED_POST_STATS(char* statTitle, int iconEnum, BOOL step
 
 [List of picture names](https://pastebin.com/XdpJVbHz)
 
-
 Example result:
-
 
 ![](https://i.imgur.com/eyXFAyN.png)
 
@@ -27969,11 +27831,9 @@ Example result:
 - `char* picTxd`
 - `char* picTxn`
 
-**Returns:**
+**Return value:**
 
 The notification handle.
-
-**Examples:**
 
 ```lua
 Citizen.CreateThread(function()
@@ -28025,11 +27885,9 @@ Posts a generic feed notification:
 - `BOOL isImportant` — Makes the notification flash on the screen.
 - `BOOL showInBrief` — Makes the notification appear in the "Pause Menu > Info/Brief > Notifications" section.
 
-**Returns:**
+**Return value:**
 
 The notification handle.
-
-**Examples:**
 
 ```lua
 AddTextEntry("MyFeedMessage", "Hello " .. GetPlayerName(PlayerId()) .. ".")
@@ -28054,7 +27912,7 @@ Posts an above minimap feed notification that is forced (Previous messages will 
 - `BOOL isImportant` — If true, the notification will flash.
 - `BOOL showInBrief` — If true, shows in Pause Menu > Info > Notifications.
 
-**Returns:**
+**Return value:**
 
 The notification handle.
 
@@ -28075,7 +27933,7 @@ Posts an above minimap feed message with tokens support (blips, input keys, etc.
 - `BOOL isImportant` — Makes the notification flash.
 - `BOOL showInBrief` — Shows in Pause Menu > Info > Notifications.
 
-**Returns:**
+**Return value:**
 
 Notification handle.
 
@@ -28181,7 +28039,7 @@ void FLASH_ABILITY_BAR(cs_type(BOOL) int millisecondsToFlash);
 
 **Parameters:**
 
-- `cs_type(BOOL) int millisecondsToFlash`
+- `int millisecondsToFlash`
 
 ---
 
@@ -28224,7 +28082,7 @@ cs_type(Any) void FLASH_WANTED_DISPLAY(BOOL p0);
 
 **Parameters:**
 
-- `Any) void FLASH_WANTED_DISPLAY(BOOL p0`
+- `BOOL p0`
 
 ---
 
@@ -28499,11 +28357,9 @@ Gets a localized string literal from a label name. This is used to get the filen
 
 - `char* labelName` — The label name for which the audio conversation filename is requested.
 
-**Returns:**
+**Return value:**
 
 Returns the filename associated with the provided labelName.
-
-**Examples:**
 
 ```lua
 -- Get the vehicle in which the player is currently seated
@@ -28574,7 +28430,7 @@ Also see [`GET_NEXT_BLIP_INFO_ID`](#_0x14F96AA50D6FBEA7) for an example.
 
 - `int blipSprite` — Sprite ID, see the [Blips Game Reference](https://docs.fivem.net/docs/game-references/blips/) for the full list.
 
-**Returns:**
+**Return value:**
 
 Returns the first blip ID in an interator that has the specified blip sprite.
 
@@ -28860,7 +28716,7 @@ MOUSE_ROLL_OUT = 8;
 MOUSE_ROLL_OVER = 9;
 MOUSE_WHEEL_UP = 10;
 MOUSE_WHEEL_DOWN = 11;
- 
+
 Scaleforms that this works with: 
 - COLOUR_SWITCHER_02
 - MP_RESULTS_PANEL
@@ -28869,20 +28725,6 @@ Scaleforms that this works with:
 Probably works with other scaleforms, needs more research.
 In order to use this Native you MUST have controls 239, 240, 237, 238 enabled!
 This native, due to its erroneous redundancy of the returned boolean value, works differently in C#: shifting the parameters (where `received` becomes `selectionType` and so on making the fourth parameter unused and always 0).
-
-**Parameters:**
-
-- `int scaleformHandle` — Handle of the scaleform
-- `cs_type(Any*) bool* received` — Returns a boolean indicating if the data was received successfully (in Lua).
-- `cs_type(Any*) int* selectionType` — The type of MouseEvent specified above.
-- `cs_type(Any*) int* context` — Context of the slot the mouse is hovering on.
-- `int* slotIndex` — Index of the slot the mouse is hovering on.
-
-**Returns:**
-
-* **retVal** Returns true if MOUSE_EVENT callback from Scaleforms has been called.
-
-**Examples:**
 
 ```lua
 local success, _eventType, _context, _itemId = GetMouseEvent(scaleform)
@@ -28896,6 +28738,18 @@ int unused = 0;
 
 var success = GetMouseEvent(scaleform.Handle, ref eventType, ref context, ref itemId, ref unused);
 ```
+
+**Parameters:**
+
+- `int scaleformHandle` — Handle of the scaleform
+- `bool* received` — Returns a boolean indicating if the data was received successfully (in Lua).
+- `int* selectionType` — The type of MouseEvent specified above.
+- `int* context` — Context of the slot the mouse is hovering on.
+- `int* slotIndex` — Index of the slot the mouse is hovering on.
+
+**Return value:**
+
+* **retVal** Returns true if MOUSE_EVENT callback from Scaleforms has been called.
 
 ---
 
@@ -28935,11 +28789,9 @@ Blip GET_NEXT_BLIP_INFO_ID(int blipSprite);
 
 - `int blipSprite` — Sprite ID, see the [Game Reference](https://docs.fivem.net/docs/game-references/blips/) for the full list.
 
-**Returns:**
+**Return value:**
 
 Returns the next blip ID in an interator that has the specified blip sprite.
-
-**Examples:**
 
 ```lua
 function GetAllBlipsWithSprite(blip_sprite)
@@ -28980,7 +28832,7 @@ int GET_NUMBER_OF_ACTIVE_BLIPS();
 Vector3 GET_PAUSE_MENU_POSITION();
 ```
 
-**Returns:**
+**Return value:**
 
 This function returns the starting position (Top left) of the Pause Menu's body.
 
@@ -29032,7 +28884,7 @@ Old name: _GET_TEXT_SCALE_HEIGHT
 
 ### `GET_STANDARD_BLIP_ENUM_ID`
 
-`0x4A9923385BDB9DAD` · `0x87871CE0` · returns `void`
+`0x4A9923385BDB9DAD` · `0x87871CE0` · returns `int`
 
 ```c
 cs_type(BOOL) int GET_STANDARD_BLIP_ENUM_ID();
@@ -29078,7 +28930,6 @@ void GIVE_PED_TO_PAUSE_MENU(Ped ped, int p1);
 p1 is either 1 or 2 in the PC scripts.  
 ```
 
-
 This native is used to "give"/duplicate a player ped to a frontend menu as configured via the `ACTIVATE_FRONTEND_MENU` native, you first must utilize the [CLONE_PED](#_0xEF29A16337FACADB) to clone said ped.
 
 **Parameters:**
@@ -29112,7 +28963,7 @@ BOOL HAS_MENU_LAYOUT_CHANGED_EVENT_OCCURRED();
 
 Make sure to use [`GET_MENU_LAYOUT_CHANGED_EVENT_DETAILS`](#_0x7E17BE53E1AAABAF) when this function returns true in a frame.
 
-**Returns:**
+**Return value:**
 
 Returns true every frame when a layout change event is active. Do note you can only check this with one script at a time.
 Layout change events become active whenever the player navigates the menu up or down.
@@ -29372,6 +29223,10 @@ BOOL IS_FRONTEND_READY_FOR_CONTROL();
 BOOL IS_HELP_MESSAGE_BEING_DISPLAYED();
 ```
 
+**Return value:**
+
+Unlike [`IS_HELP_MESSAGE_ON_SCREEN`](#_0xDAD37F45428801AE), which takes one frame to return true after calling [`END_TEXT_COMMAND_DISPLAY_HELP`](#_0x238FFE5C7B0498A6), this native will return true instantly.
+
 ---
 
 ### `IS_HELP_MESSAGE_FADING_OUT`
@@ -29502,7 +29357,7 @@ BOOL IS_MISSION_CREATOR_BLIP(Blip blip);
 
 ### `IS_MOUSE_ROLLED_OVER_INSTRUCTIONAL_BUTTONS`
 
-`0x3D9ACB1EB139E702` · returns `void`
+`0x3D9ACB1EB139E702` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL IS_MOUSE_ROLLED_OVER_INSTRUCTIONAL_BUTTONS();
@@ -29510,7 +29365,7 @@ cs_type(Any) BOOL IS_MOUSE_ROLLED_OVER_INSTRUCTIONAL_BUTTONS();
 
 **Note:** The buttons need to support mouse (with the `TOGGLE_MOUSE_SUPPORT` scaleform movie method) for it to return `true`.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the cursor is hovering above instructional buttons.
 
@@ -29740,7 +29595,7 @@ When this native returns true, do not call [`SET_MP_GAMER_TAG_NAME`](#_0xDEA2B82
 
 - `int playerId` — Local ID of the player.
 
-**Returns:**
+**Return value:**
 
 Returns if game code is currently updating gamer tag and crew details for a player's name tag.
 
@@ -29766,7 +29621,7 @@ Returns true if a Warning Message or ReportUGC menu is active.
 BOOL IS_WARNING_MESSAGE_READY_FOR_CONTROL();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns if the warning message scaleform/ui movie is loaded and ready to be controlled.
 
@@ -29883,7 +29738,7 @@ Available page IDs: https://pastebin.com/qxuhwjPT
 
 **Parameters:**
 
-- `cs_type(Any) int pageId`
+- `int pageId`
 
 ---
 
@@ -29919,28 +29774,26 @@ This basically allows you to hide certain menu sections, or things like instruct
 
 See the old description below for more info.
 
-
 ----------------------
 
-
-> Seems to add/set the current menu context (to show/hide buttons?)
-> Pausemenu.xml:
-> `<Contexts>*ALL*, DISPLAY_CORONA_BUTTONS, *NONE*, BET_LOCKED, BET_AVAILABLE, SCROLL_OPTION</Contexts>`
-> Code:
->  ```
->  if (...) {
->      sub_bbd34(a_0, 0, "FM_BET_HELP");
->      UI::PAUSE_MENU_ACTIVATE_CONTEXT(${bet_available}); // This native
->      UI::OBJECT_DECAL_TOGGLE(${bet_locked});
->  } else {
->      sub_bbd34(a_0, 0, "");
->      UI::OBJECT_DECAL_TOGGLE(${bet_available});
->      UI::PAUSE_MENU_ACTIVATE_CONTEXT(${bet_locked}); // This native
->  }
->  ```
-> OBJECT_DECAL_TOGGLE seems to remove a context, It also has a hash collision
-> // Old
-> Scripts do not make this native's purpose clear. However, this native most likely has something to do with decals since in nearly every instance, "OBJECT_DECAL_TOGGLE" is called prior.
+```
+Seems to add/set the current menu context (to show/hide buttons?)
+Pausemenu.xml:
+<Contexts>*ALL*, DISPLAY_CORONA_BUTTONS, *NONE*, BET_LOCKED, BET_AVAILABLE, SCROLL_OPTION</Contexts>
+Code:
+if (...) {
+    sub_bbd34(a_0, 0, "FM_BET_HELP");
+    UI::PAUSE_MENU_ACTIVATE_CONTEXT(${bet_available}); // This native
+    UI::OBJECT_DECAL_TOGGLE(${bet_locked});
+} else {
+    sub_bbd34(a_0, 0, "");
+    UI::OBJECT_DECAL_TOGGLE(${bet_available});
+    UI::PAUSE_MENU_ACTIVATE_CONTEXT(${bet_locked}); // This native
+}
+OBJECT_DECAL_TOGGLE seems to remove a context, It also has a hash collision
+// Old
+Scripts do not make this native's purpose clear. However, this native most likely has something to do with decals since in nearly every instance, "OBJECT_DECAL_TOGGLE" is called prior.
+```
 
 **Parameters:**
 
@@ -29970,7 +29823,7 @@ void PAUSE_MENU_DEACTIVATE_CONTEXT(Hash contextHash);
 int PAUSE_MENU_GET_MOUSE_HOVER_INDEX();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns the index of a menu item the mouse is hovering on in Pause Menu. -1 if nothing is being hovered on.
 
@@ -29984,7 +29837,7 @@ Returns the index of a menu item the mouse is hovering on in Pause Menu. -1 if n
 int PAUSE_MENU_GET_MOUSE_HOVER_UNIQUE_ID();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns the uniqueID of the pause menu item the mouse is hovering on. -1 if the mouse isn't rolled over any item.
 
@@ -30026,7 +29879,7 @@ Updates instructional buttons in Pause Menu after menu contexts have been toggle
 
 **Parameters:**
 
-- `cs_type(BOOL) int p0`
+- `int p0`
 
 ---
 
@@ -30077,7 +29930,7 @@ Toggles pause menu map rendering.
 
 **Parameters:**
 
-- `cs_type(Any) BOOL enabled`
+- `BOOL enabled`
 
 ---
 
@@ -30168,8 +30021,6 @@ void RELOAD_MAP_MENU();
 
 Forces the map menu to reload.
 
-**Examples:**
-
 ```lua
 if GetNumberOfReferencesOfScriptWithNameHash(`pausemenu_map`) > 0 then -- Ensure we're on the map screen
   ReloadMapMenu()
@@ -30194,8 +30045,6 @@ Removes the blip from your map.
 **Parameters:**
 
 - `Blip* blip` — Blip handle to remove.
-
-**Examples:**
 
 ```lua
 -- Create the blip
@@ -30413,7 +30262,7 @@ void SET_ALLOW_COMMA_ON_TEXT_INPUT(cs_type(Any) BOOL allow);
 
 **Parameters:**
 
-- `cs_type(Any) BOOL allow` — Toggles if the comma can be used in conjuction with the `filename` text input box type.
+- `BOOL allow` — Toggles if the comma can be used in conjuction with the `filename` text input box type.
 
 ---
 
@@ -30535,8 +30384,8 @@ Examples result:
 
 ![](https://i.imgur.com/8MrVdmB.png)
 
-
 **index:**
+
 ```
 1 = No distance shown in legend
 2 = Distance shown in legend
@@ -30546,10 +30395,10 @@ Examples result:
 12 - 133 = Custom named categories
 134 - 254 = Custom unnamed categories
 ```
+
 `index` wraps around after 255.
 
 Blips with categories `7`, `10`, `11` or `12 - 254` (custom categories) will all show under the specific categories listing in the map legend, regardless of sprite or name.
-
 
 **Legend entries**
 
@@ -30565,8 +30414,6 @@ Blips with categories `7`, `10`, `11` or `12 - 254` (custom categories) will all
 
 - `Blip blip` — The blip to change the category index of
 - `int index` — The category index to change to
-
-**Examples:**
 
 ```lua
 blip = AddBlipForCoord(-702.97290039063, -1393.2911376953, 5.1502623558044)
@@ -30602,8 +30449,6 @@ void SET_BLIP_COLOUR(Blip blip, int color);
 
 - `Blip blip` — The blip handle to set the color of
 - `int color` — This can be a hex color code, or a [blip color](https://docs.fivem.net/docs/game-references/blips/#blip-colors).
-
-**Examples:**
 
 ```lua
 local coords = GetEntityCoords(PlayerPedId())
@@ -30730,8 +30575,6 @@ Sets the interval in milliseconds before flashing the blip.
 - `Blip blip` — The blip to change flashing interval
 - `int interval` — Interval in milliseconds before flashing the blip
 
-**Examples:**
-
 ```lua
 local blip = AddBlipForCoord(0, 0, 0)
 
@@ -30766,8 +30609,6 @@ Flashes blip for time in milliseconds before stopping.
 
 - `Blip blip` — The blip to start flashing
 - `int duration` — Time in milliseconds to flash the blip before stopping
-
-**Examples:**
 
 ```lua
 local blip = AddBlipForCoord(0, 0, 0)
@@ -30947,9 +30788,9 @@ void SET_BLIP_SECONDARY_COLOUR(Blip blip, cs_type(float) int r, cs_type(float) i
 **Parameters:**
 
 - `Blip blip`
-- `cs_type(float) int r`
-- `cs_type(float) int g`
-- `cs_type(float) int b`
+- `int r`
+- `int g`
+- `int b`
 
 ---
 
@@ -30988,8 +30829,6 @@ There's a [list of sprites](https://docs.fivem.net/docs/game-references/blips/) 
 
 - `Blip blip` — The blip to change.
 - `int spriteId` — The sprite ID to set.
-
-**Examples:**
 
 ```lua
 SetBlipSprite(blip, 588) -- changes `blip` to radar_nhp_orbit
@@ -31286,8 +31125,6 @@ Overrides the position of the main player blip for the current frame.
 - `float x` — X coord of the position.
 - `float y` — Y coord of the position.
 
-**Examples:**
-
 ```lua
 -- Function to check if player is using the map
 local function IsPlayerUsingPausemap()
@@ -31357,8 +31194,6 @@ Needs to be called every frame
 - `int alpha` — Value for the help box opacity, from 0-255. Anything greater will simply ignore the alpha value. Always 191 in R* scripts.
 - `int arrowPosition` — Used to set the arrow positon. No value will hide the arrow
 - `int boxOffset` — Offset for the floating help box. Note: Arrow stays fixed
-
-**Examples:**
 
 ```lua
 function DisplayHelpText(string)
@@ -31596,14 +31431,14 @@ This native is used to colorize/toggle certain map components like the army base
 
 Component IDs 6 through 14 are used by the freemode event King of the Castle in GTA Online.
 
-**An incomplete list of component IDs:**
+**An incomplete list of component IDs::**
 
-* **0**: Los Santos International Airport yellow runway markers
-* **1**: Sandy Shores Airfield yellow runway markers
-* **2**: McKenzie Field yellow runway markers
-* **6**: Vespucci Beach lifeguard building
-* **7**: Top level zone of Alien Camp (Hippy Camp)
-* **8**: Paleto Bay fire station drill tower
+- `0` — Los Santos International Airport yellow runway markers
+- `1` — Sandy Shores Airfield yellow runway markers
+- `2` — McKenzie Field yellow runway markers
+- `6` — Vespucci Beach lifeguard building
+- `7` — Top level zone of Alien Camp (Hippy Camp)
+- `8` — Paleto Bay fire station drill tower
 * **9** Land Act Dam tower
 * **10** Pala Springs Aerial Tramway
 * **11** Galileo Observatory power unit
@@ -31618,11 +31453,9 @@ Component IDs 6 through 14 are used by the freemode event King of the Castle in 
 - `BOOL toggle` — True to enable/colorize, false to disable.
 - `int hudColor` — The hudcolor index, the list of hud colors can be found [here](https://docs.fivem.net/docs/game-references/hud-colors/).
 
-**Returns:**
+**Return value:**
 
 Hardcoded to always return 1 (int)
-
-**Examples:**
 
 ```lua
 -- Enables Fort Zancudo on the map
@@ -31667,8 +31500,6 @@ Use [`SET_MINIMAP_GOLF_COURSE_OFF()`](#_0x35EDD5B2E3FF01C0) to reset the map whe
 
 - `int hole` — The ID of the hole to draw on the map. ID starts with 1 for hole 1, 2 for hole 2, etc. 0 disables the golf map behaviour.
 
-**Examples:**
-
 ```cs
 // draw hole 2
 SetMinimapGolfCourse(2);
@@ -31684,6 +31515,10 @@ SetRadarBigmapEnabled(false, false);
 int blip = AddBlipForCoord(-1321.98f, 158.93f, 57.8f);
 SetBlipSprite(blip, 358);
 ```
+
+Result:
+
+![](https://i.imgur.com/6Ni2BaN.png)
 
 ---
 
@@ -31766,7 +31601,7 @@ NativeDB Introduced: v2189
 
 - `BOOL toggle` — A boolean value where `true` activates the sonar sweep animation on the minimap, and `false` turns it off.
 
-**Returns:**
+**Return value:**
 
 This native does not return any value.
 
@@ -31830,8 +31665,6 @@ void SET_MOUSE_CURSOR_THIS_FRAME();
 
 Sets the mouse pointer to be active on current frame.
 
-**Examples:**
-
 ```lua
 CreateThread(function()
   while true do
@@ -31856,8 +31689,6 @@ Toggles the visibility of the cursor. Do note that if the game loses focus and t
 **Parameters:**
 
 - `BOOL isVisible` — If the mouse cursor is visible
-
-**Examples:**
 
 ```lua
 Citizen.CreateThread(function()
@@ -31923,8 +31754,6 @@ Sets a gamer tag's component colour
 - `int component` — a component id, see the full list here: [link](https://docs.fivem.net/docs/game-references/gamer-tags/#components-list)
 - `int hudColorIndex` — a hud color index, see the full list here: [link](https://docs.fivem.net/docs/game-references/hud-colors/)
 
-**Examples:**
-
 ```lua
 local playerPed = PlayerPedId() --get our players ped
 local playerName = GetPlayerName(PlayerId()) --get our players name
@@ -31954,8 +31783,6 @@ Should be enabled as component (2). Has 0 alpha by default.
 
 - `int gamerTagId` — a gamerTagId obtained using  for example: [CREATE_FAKE_MP_GAMER_TAG](#_0xBFEFE3321A3F5015)
 - `int hudColorIndex` — a hud color index, see the full list here: [link](https://docs.fivem.net/docs/game-references/hud-colors/)
-
-**Examples:**
 
 ```lua
 local playerPed = PlayerPedId() --get our players ped
@@ -32080,8 +31907,6 @@ Preview:
 
 To change the bank balance use [`STAT_SET_INT`](#_0xB3271D7AB655B441) with "BANK_BALANCE" to whatever value you need to.
 
-**Examples:**
-
 ```cs
 // Code to show both Money and Bank HUD
 N_0x170f541e1cadd1de(true);
@@ -32129,8 +31954,6 @@ Preview:
 ![](https://i.imgur.com/b7lU2nl.png)
 
 To change money value use [`STAT_SET_INT`](#_0xB3271D7AB655B441) with "MP0_WALLET_BALANCE" to whatever value you need to.
-
-**Examples:**
 
 ```cs
 // Code to show both Money and Bank HUD
@@ -32452,8 +32275,6 @@ Please note that this only works on a **radius** blip (i.e. one generated using 
 - `Blip blip` — The blip handle
 - `BOOL toggle` — Whether to turn off or on the effect
 
-**Examples:**
-
 ```lua
 local coords = GetEntityCoords(PlayerPedId())
 local radiusBlip = AddBlipForRadius(coords, 100.0) -- need to have .0
@@ -32670,7 +32491,7 @@ void SET_TEXT_LEADING(cs_type(BOOL) int p0);
 
 **Parameters:**
 
-- `cs_type(BOOL) int p0`
+- `int p0`
 
 ---
 
@@ -32787,7 +32608,7 @@ NativeDB Introduced: v2189
 
 - `BOOL toggle` — A boolean value where `true` switches the minimap to the Cayo Perico map, and `false` reverts it to the standard map.
 
-**Returns:**
+**Return value:**
 
 This native does not return any value.
 
@@ -32874,12 +32695,10 @@ Note: this list is definitely NOT complete, but these are the ones I've been abl
 - `char* entryLine2` — The text label to display as the second line of the warning message.
 - `BOOL p3` — Purpose unknown.
 - `int p4` — Purpose unknown.
-- `cs_type(AnyPtr) char* background` — Set to anything other than 0 or false (even any string) and it will draw a background. Setting it to 0 or false will draw no background.
-- `cs_type(AnyPtr) char* p6` — Purpose unknown.
+- `char* background` — Set to anything other than 0 or false (even any string) and it will draw a background. Setting it to 0 or false will draw no background.
+- `char* p6` — Purpose unknown.
 - `BOOL showBg` — Purpose unknown.
 - `int errorCode` — When not 0, adds a field displaying the value as 'error code' to the warning message.
-
-**Examples:**
 
 ```lua
 -- Make the first line using custom text.
@@ -33025,13 +32844,13 @@ Sets a warning message for one frame with header and upper buttons bit field tha
 - `char* headerTextLabel` — Text label to set on the header/title.
 - `char* line1TextLabel` — Text label to set on the first line of the body..
 - `int buttonsBitField` — Bit field of the button flags. See [`SET_WARNING_MESSAGE`](#_0x7B1776B3B53F8D74).
-- `cs_type(char*) int buttonsBitFieldUpper` — Bit field of the upper button flags. See [`SET_WARNING_MESSAGE_WITH_HEADER_AND_SUBSTRING_FLAGS_EXTENDED`](#_0x15803FEC3B9A872B).
-- `cs_type(BOOL) char* line2TextLabel` — Text label to set on the second line of the body.
-- `cs_type(Any) BOOL addNumber` — If number should be inserted into `~1~` in the body.
-- `cs_type(Any*) int numberToAdd` — What number to insert into `~1~` in the body.
-- `cs_type(Any*) char* firstSubstring` — First substring text label to insert into `~a~` in the body.
-- `cs_type(BOOL) char* secondSubstring` — Second substring text label to insert into `~a~` in the body.
-- `cs_type(Any) BOOL showBackground` — Bool indicating if the message should have a black background.
+- `int buttonsBitFieldUpper` — Bit field of the upper button flags. See [`SET_WARNING_MESSAGE_WITH_HEADER_AND_SUBSTRING_FLAGS_EXTENDED`](#_0x15803FEC3B9A872B).
+- `char* line2TextLabel` — Text label to set on the second line of the body.
+- `BOOL addNumber` — If number should be inserted into `~1~` in the body.
+- `int numberToAdd` — What number to insert into `~1~` in the body.
+- `char* firstSubstring` — First substring text label to insert into `~a~` in the body.
+- `char* secondSubstring` — Second substring text label to insert into `~a~` in the body.
+- `BOOL showBackground` — Bool indicating if the message should have a black background.
 - `int errorCode` — Error number to show at the bottom of the message. `0` is the default.
 
 ---
@@ -33110,8 +32929,6 @@ To toggle the right side of the circle use: [`SHOW_FRIEND_INDICATOR_ON_BLIP`](#_
 - `Blip blip` — The blip to toggle the half blue circle around the blip on.
 - `BOOL toggle` — Enables or disables the half blue circle around the blip (on the left side).
 
-**Examples:**
-
 ```lua
 local player = 1 -- make sure this is an actual player, dont just use this example code!
 local blip = GetBlipFromEntity(GetPlayerPed(player))
@@ -33149,8 +32966,6 @@ To toggle the left side (crew member indicator) of the half circle around the bl
 
 - `Blip blip` — The blip to toggle the half circle on.
 - `BOOL toggle` — Enables or disables the half circle around the blip (on the right side of the blip).
-
-**Examples:**
 
 ```lua
 local player = 1 -- make sure this is an actual player, dont just use this example code!
@@ -33327,8 +33142,6 @@ The GPS custom route works like the GPS multi route, except it does not follow r
 - `BOOL displayOnFoot` — Draws the path regardless if the player is in a vehicle or not.
 - `BOOL followPlayer` — Draw the path partially between the previous and next point based on the players position between them. When false, the GPS appears to not disappear after the last leg is completed.
 
-**Examples:**
-
 ```lua
 -- Clear any old route first
 ClearGpsCustomRoute()
@@ -33372,8 +33185,6 @@ Works independently from the player-placed waypoint and blip routes.
 - `int hudColor` — The HUD color of the GPS path.
 - `BOOL routeFromPlayer` — Makes the GPS draw a path from the player to the next point, rather than the original path from the previous point.
 - `BOOL displayOnFoot` — Draws the GPS path regardless if the player is in a vehicle or not.
-
-**Examples:**
 
 ```lua
 -- Clear any old route first
@@ -33444,8 +33255,6 @@ Call [`THEFEED_AUTO_POST_GAMETIPS_OFF`](#_0xADED7F5748ACAFE6) to disable.
 
 Example result:
 ![](https://i.imgur.com/GdRa0kw.png)
-
-**Examples:**
 
 ```lua
 ThefeedAutoPostGametipsOn()
@@ -33876,7 +33685,7 @@ Seems to always return 0 from what I can tell. I've tried a lot of different bli
 
 - `Blip blip` — The blip to check.
 
-**Returns:**
+**Return value:**
 
 Seems to always return 0 from what I can tell. I've tried a lot of different blip related natives and it always seems to return 0.
 
@@ -34429,16 +34238,14 @@ radians = degrees * pi / 180
 
 **Parameters:**
 
-- `cs_type(Any) Blip blip` — A blip from an entity. The entity can not be a ped. The width and length will not change if it is a ped.
+- `Blip blip` — A blip from an entity. The entity can not be a ped. The width and length will not change if it is a ped.
 - `Any p1` — -1.0 in decompiled scripts (unk)
 - `Any p2` — 1.0 in decompiled scripts (unk)
-- `cs_type(Any) float width` — Width of the cone (0.0 to ~3.0)
+- `float width` — Width of the cone (0.0 to ~3.0)
 - `Any p4` — 1.0 in decompiled scripts (unk)
-- `cs_type(Any) float length` — Length of the cone. (8.2 is 'normal' sized)
-- `cs_type(Any) float heading` — This heading is in radians, this can be calculated with (heading + 180.00) * (pi/180)
+- `float length` — Length of the cone. (8.2 is 'normal' sized)
+- `float heading` — This heading is in radians, this can be calculated with (heading + 180.00) * (pi/180)
 - `Any p7` — 1 in decompiled scripts (unk)
-
-**Examples:**
 
 ```lua
 local ped = PlayerPedId()
@@ -34474,11 +34281,9 @@ By default, the blip will show as a _regular_ blip with the specified color/spri
 - `float width` — The width of the blip.
 - `float height` — The height of the blip.
 
-**Returns:**
+**Return value:**
 
 A handle to the blip.
-
-**Examples:**
 
 ```lua
 local coords = GetEntityCoords(PlayerPedId())
@@ -34498,8 +34303,6 @@ void _ALLOW_PAUSE_MENU_WHEN_DEAD_THIS_FRAME();
 ```
 
 Allows opening the pause menu this frame, when the player is dead.
-
-**Examples:**
 
 ```lua
 Citizen.CreateThread(function()
@@ -34630,8 +34433,6 @@ void _DISPLAY_HUD_WHEN_DEAD_THIS_FRAME();
 
 Enables drawing some hud components, such as help labels, this frame, when the player is dead.
 
-**Examples:**
-
 ```lua
 Citizen.CreateThread(function()
 	while true do
@@ -34707,10 +34508,12 @@ void _END_TEXT_COMMAND_OBJECTIVE(BOOL p0);
 int _END_TEXT_COMMAND_THEFEED_POST_MESSAGETEXT_GXT_ENTRY(char* txdName, char* textureName, BOOL flash, int iconType, char* sender, char* subject);
 ```
 
+```
 This function can show pictures of every texture that can be requested by REQUEST_STREAMED_TEXTURE_DICT.
 Needs more research.
 Only one type of usage in the scripts:
 HUD::_C6F580E4C94926AC("CHAR_ACTING_UP", "CHAR_ACTING_UP", 0, 0, "DI_FEED_CHAR", a_0);
+```
 
 **Parameters:**
 
@@ -34799,7 +34602,7 @@ Returns the current AI BLIP for the specified ped
 
 ### `_GET_AI_BLIP_2`
 
-`0x7CD934010E115C2C` · `0x06349065` · returns `void`
+`0x7CD934010E115C2C` · `0x06349065` · returns `Blip`
 
 ```c
 cs_type(void) Blip _GET_AI_BLIP_2(Ped ped);
@@ -34807,7 +34610,7 @@ cs_type(void) Blip _GET_AI_BLIP_2(Ped ped);
 
 **Parameters:**
 
-- `void) Blip _GET_AI_BLIP_2(Ped ped`
+- `Ped ped`
 
 ---
 
@@ -34867,8 +34670,8 @@ void _GET_PAUSE_MENU_SELECTION(cs_type(AnyPtr) int* lastItemMenuId, cs_type(AnyP
 
 **Parameters:**
 
-- `cs_type(AnyPtr) int* lastItemMenuId`
-- `cs_type(AnyPtr) int* selectedItemUniqueId`
+- `int* lastItemMenuId`
+- `int* selectedItemUniqueId`
 
 ---
 
@@ -35017,8 +34820,6 @@ Call [`_THEFEED_DISABLE_LOADING_SCREEN_TIPS`](#_0x32888337579A5970) to disable i
 Example result:
 ![](https://i.imgur.com/hzaHuPb.png)
 
-**Examples:**
-
 ```lua
 HudDisplayLoadingScreenTips()
 ```
@@ -35041,7 +34842,7 @@ Returns the weapon hash to the selected/highlighted weapon in the wheel
 
 ### `_HUD_WEAPON_WHEEL_GET_SLOT_HASH`
 
-`0xA13E93403F26C812` · returns `void`
+`0xA13E93403F26C812` · returns `Hash`
 
 ```c
 cs_type(Any) Hash _HUD_WEAPON_WHEEL_GET_SLOT_HASH(int weaponTypeIndex);
@@ -35053,7 +34854,7 @@ Returns the weapon hash active in a specific weapon wheel slotList
 
 **Parameters:**
 
-- `Any) Hash _HUD_WEAPON_WHEEL_GET_SLOT_HASH(int weaponTypeIndex`
+- `int weaponTypeIndex`
 
 ---
 
@@ -35147,7 +34948,7 @@ void _OVERRIDE_MULTIPLAYER_CHAT_PREFIX(cs_type(Any) Hash gxtEntryHash);
 
 **Parameters:**
 
-- `cs_type(Any) Hash gxtEntryHash`
+- `Hash gxtEntryHash`
 
 ---
 
@@ -35668,6 +35469,7 @@ cs_type(Any) void _SET_WARNING_MESSAGE_WITH_ALERT(char* labelTitle, char* labelM
 ```
 
 instructionalKey enum list:
+
 ```
 Buttons = {
       Empty = 0,
@@ -35718,20 +35520,18 @@ Alt = {
 
 **Parameters:**
 
-- `Any) void _SET_WARNING_MESSAGE_WITH_ALERT(char* labelTitle` — Label of the alert's title.
+- `char* labelTitle` — Label of the alert's title.
 - `char* labelMsg` — Label of the alert's message.
 - `int p2` — This is an enum, check the description for a list.
 - `int p3` — This is an enum, check the description for a list.
 - `char* labelMsg2` — Label of another message line
-- `cs_type(int) BOOL p5` — usually 0
+- `BOOL p5` — usually 0
 - `int p6` — usually -1
 - `int p7` — usually 0
 - `char* p8` — unknown label
 - `char* p9` — unknown label
 - `BOOL background` — Set to anything other than 0 or false (even any string) and it will draw a background. Setting it to 0 or false will draw no background.
 - `int errorCode` — Error code, shown at the bottom left if set to value other than 0.
-
-**Examples:**
 
 ```lua
 Citizen.CreateThread(function()
@@ -35760,7 +35560,6 @@ Adds a orange checkmark on top of a given blip handle.
 Preview:
 
 ![](https://i.imgur.com/KG9k6Fk.png)
-
 
 ```
 _SHOW_FRIEND_INDICATOR_ON_BLIP* - _SHOW_HEADING_INDICATOR_ON_BLIP*
@@ -35852,8 +35651,6 @@ Call [`_THEFEED_DISABLE_LOADING_SCREEN_TIPS`](#_0x32888337579A5970) to disable i
 
 Example result:
 ![](https://i.imgur.com/hzaHuPb.png)
-
-**Examples:**
 
 ```lua
 ThefeedDisplayLoadingScreenTips()
@@ -36190,7 +35987,7 @@ Hashed version of GET_INTERIOR_AT_COORDS_WITH_TYPE
 - `float x`
 - `float y`
 - `float z`
-- `cs_type(int) Hash typeHash`
+- `Hash typeHash`
 
 ---
 
@@ -36276,7 +36073,7 @@ NativeDB Introduced: v1493
 
 - `int interior` — ID of the interior
 
-**Returns:**
+**Return value:**
 
 Returns interior heading in radians. Multiply the returned value with 57.29578 (or 180.0 / math.pi) to convert it to degrees.
 
@@ -36696,7 +36493,7 @@ void _ENABLE_SCRIPT_CULL_MODEL_THIS_FRAME(cs_type(Any) Hash mapObjectHash);
 
 **Parameters:**
 
-- `cs_type(Any) Hash mapObjectHash`
+- `Hash mapObjectHash`
 
 ---
 
@@ -36760,7 +36557,7 @@ Vehicle CREATE_ITEMSET(cs_type(Vehicle) BOOL distri);
 
 **Parameters:**
 
-- `cs_type(Vehicle) BOOL distri`
+- `BOOL distri`
 
 ---
 
@@ -36864,7 +36661,7 @@ void REMOVE_FROM_ITEMSET(Any p0, Any p1);
 int _0xF2CA003F167E21D2();
 ```
 
-**Returns:**
+**Return value:**
 
 Hard-coded to always return 0.
 
@@ -37222,7 +37019,7 @@ See description of [`ADD_STUNT_JUMP_ANGLED`](#_0xBBE5D803A5360CBF) for detailed 
 - `int unk2` — Unknown, always 0.
 - `int unk3` — Unknown, always 0.
 
-**Returns:**
+**Return value:**
 
 The ID of the stunt jump that was added.
 
@@ -37242,26 +37039,21 @@ The radius1 and radius2 might actually not be a radius at all, but that's what i
 
 Info about the specific 'parameter sections':
 
-
 **x1, y1, z1, x2, y2, z2 and radius1:**
 
 First coordinates are for the jump entry area, and the radius that will be checked around that area. So if you're not exactly within the coordinates, but you are within the outter radius limit then it will still register as entering the stunt jump. Note as mentioned above, the radius is just a guess, I'm not really sure about it's exact purpose.
-
 
 **x3, y3, z3, x4, y4, z4 and radius2:**
 
 Next part is the landing area, again starting with the left bottom (nearest to the stunt jump entry zone) coordinate, and the second one being the top right furthest away part of the landing area. Followed by another (most likely) radius float, this is usually slightly larger than the entry zone 'radius' float value, just because you have quite a lot of places where you can land (I'm guessing).
 
-
 **camX, camY and camZ:**
 
 The final coordinate in this native is the Camera position. Rotation and zoom/FOV is managed by the game itself, you just need to provide the camera location.
 
-
 **unk1, unk2 and unk3:**
 
 Not sure what these are for, but they're always `150, 0, 0` in decompiled scripts.
-
 
 Visualized example in-game:
 
@@ -37292,11 +37084,9 @@ Here is a list of almost all of the stunt jumps from GTA V (taken from decompile
 - `int unk2` — always 0
 - `int unk3` — always 0
 
-**Returns:**
+**Return value:**
 
 The ID of the stuntjump that was created.
-
-**Examples:**
 
 ```lua
 local data = {
@@ -37395,7 +37185,7 @@ float ASIN(float value);
 
 - `float value`
 
-**Returns:**
+**Return value:**
 
 Returns the inverse sine in radians of the specified value
 
@@ -37580,9 +37370,7 @@ Clears an area of cops at the given coordinates and radius.
 - `float y` — The y coordinate of where to clear cops.
 - `float z` — The z coordinate of where to clear cops.
 - `float radius` — The area radius to clear cops.
-- `cs_type(int) BOOL createNetEvent` — specifies whether a `CClearAreaEvent` event of should be created for online use.
-
-**Examples:**
+- `BOOL createNetEvent` — specifies whether a `CClearAreaEvent` event of should be created for online use.
 
 ```lua
 -- Clear the area, do also create an event
@@ -37623,20 +37411,18 @@ void CLEAR_AREA_OF_PEDS(float x, float y, float z, float radius, cs_type(int) BO
 
 Clears an area of peds at the given coordinates and radius.
 
+```lua
+-- Clear the area, do also create an event
+ClearAreaOfPeds(0.0, 0.0, 0.0, 10000.0, true)
+```
+
 **Parameters:**
 
 - `float x` — The x coordinate of where to clear peds.
 - `float y` — The y coordinate of where to clear peds.
 - `float z` — The z coordinate of where to clear peds.
 - `float radius` — The area radius to clear peds.
-- `cs_type(int) BOOL createNetEvent` — specifies whether a `CClearAreaEvent` event of should be created for online use.
-
-**Examples:**
-
-```lua
--- Clear the area, do also create an event
-ClearAreaOfPeds(0.0, 0.0, 0.0, 10000.0, true)
-```
+- `BOOL createNetEvent` — specifies whether a `CClearAreaEvent` event of should be created for online use.
 
 ---
 
@@ -37650,20 +37436,18 @@ void CLEAR_AREA_OF_PROJECTILES(float x, float y, float z, float radius, cs_type(
 
 Clears an area of projectiles at the given coordinates and radius.
 
+```lua
+-- Clear the area, do also create an event
+ClearAreaOfProjectiles(0.0, 0.0, 0.0, 10000.0, true)
+```
+
 **Parameters:**
 
 - `float x` — The x coordinate of where to clear projectiles.
 - `float y` — The y coordinate of where to clear projectiles.
 - `float z` — The z coordinate of where to clear projectiles.
 - `float radius` — The area radius to clear projectiles.
-- `cs_type(int) BOOL createNetEvent` — specifies whether a `CClearAreaEvent` event of should be created for online use.
-
-**Examples:**
-
-```lua
--- Clear the area, do also create an event
-ClearAreaOfProjectiles(0.0, 0.0, 0.0, 10000.0, true)
-```
+- `BOOL createNetEvent` — specifies whether a `CClearAreaEvent` event of should be created for online use.
 
 ---
 
@@ -37752,9 +37536,7 @@ Clears the active weather type after a specific amount of time determined by `tr
 
 **Parameters:**
 
-- `cs_type(float) int transitionTimeInMs` — Transition time in milliseconds.
-
-**Examples:**
+- `int transitionTimeInMs` — Transition time in milliseconds.
 
 ```lua
 RegisterCommand('weathertransition', function(source, args)
@@ -37866,9 +37648,9 @@ NativeDB Added Parameter 7: Any p6
 - `float radius`
 - `int* outIncidentID`
 
-**Returns:**
+**Return value:**
 
-Returns true if the incident was succesfully made
+Returns true if the incident was successfully made
 
 ---
 
@@ -37998,8 +37780,6 @@ enum eKeyboardType
 - `char* defaultConcat3`
 - `int maxInputLength` — Max number of characters that can be typed (2 - 256).
 
-**Examples:**
-
 ```lua
 AddTextEntry("my_input_title", "Enter something cool:")
 
@@ -38037,7 +37817,7 @@ Displays the text input box with support for input with 500 characters.
 
 - `int keyboardType` — See [`DISPLAY_ONSCREEN_KEYBOARD`](#_0x00DC833F2568DBF6)
 - `char* windowTitle` — Text label of the window title.
-- `cs_type(AnyPtr) char* description` — Unused on PC.
+- `char* description` — Unused on PC.
 - `char* defaultText` — Default text that is written in the input field.
 - `char* defaultConcat1`
 - `char* defaultConcat2`
@@ -38344,11 +38124,9 @@ Consider using this faster native instead: SYSTEM::VDIST - DVIST always takes in
 - `float z2` — The Z coordinate of the second point.
 - `BOOL useZ` — Whether or not to use the Z coordinate.
 
-**Returns:**
+**Return value:**
 
 The distance between the passed points in units.
-
-**Examples:**
 
 ```lua
 local dist = GetDistanceBetweenCoords(0.0, 0.0, 0.0, 5.0, 5.0, 5.0, true)
@@ -38395,11 +38173,9 @@ int GET_FRAME_COUNT();
 
 Gets the number of the current frame being displayed.
 
-**Returns:**
+**Return value:**
 
 The number of the current frame being displayed.
-
-**Examples:**
 
 ```lua
 -- Create a thread
@@ -38438,11 +38214,9 @@ Gets the high precision frame time of the last frame in seconds.
 
 _note: the example above is way less precise._
 
-**Returns:**
+**Return value:**
 
 The frame time (in seconds) of the last frame.
-
-**Examples:**
 
 ```lua
 local time1 = GetGameTimer()
@@ -38489,11 +38263,9 @@ NativeDB Introduced: v323
 - `float* groundZ` — A pointer to a float where the ground Z-coordinate will be stored if found.
 - `Vector3* normal` — A pointer to a Vector3 structure where the surface normal at the ground point will be stored.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if ground is found below the given coordinates and the surface normal could be determined, otherwise `false`.
-
-**Examples:**
 
 ```lua
 local x, y, z = 100.0, -200.0, 50.0
@@ -38561,7 +38333,7 @@ NativeDB Introduced: v505
 - `float* groundZ` — A pointer to a float where the ground Z-coordinate will be stored if found.
 - `BOOL waterAsGround` — If set to `true`, water will be included in the check, and its height will be returned if it is higher than the ground level.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if ground (or water, if specified) is found below the given coordinates, otherwise `false`.
 
@@ -38590,11 +38362,9 @@ NativeDB Added Parameter 6: BOOL p5
 - `float* groundZ` — The Z coordinate for the ground.
 - `BOOL includeWater` — Determines if the top water level at the specified position should be considered the ground elevation. (It would only matter if the specified position is located above or under the water)
 
-**Returns:**
+**Return value:**
 
 This native`s first return value (retval) will return true if the ground elevation has been found, and the second (groundZ) will return the z-coord which represents the ground elevation at the specified position.
-
-**Examples:**
 
 ```lua
 local ped = PlayerPedId()
@@ -38622,11 +38392,9 @@ This native converts its past string to hash. It is hashed using jenkins one at 
 
 - `char* string` — The string to hash.
 
-**Returns:**
+**Return value:**
 
 The hash of `string`.
-
-**Examples:**
 
 ```lua
 local zentorno = GetHashKey('zentorno')
@@ -38712,11 +38480,9 @@ NativeDB Introduced: v323
 - `float planeNormalZ` — The Z-component of the plane's normal vector. Together, `planeNormalX`, `planeNormalY`, and `planeNormalZ` fully describe the plane's orientation in 3D space.
 - `float* intersectionParameter` — A pointer to a float. This parameter is used to return the value of `t` at which the line segment intersects the plane. The value of `t` is a scalar multiplier that can be used to calculate the exact intersection point on the line segment. If the line does not intersect the plane, the value of `t` is not meaningful.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the line segment intersects the plane, in which case the `intersectionParameter` will contain the intersection point's parameter value. Returns `false` if there is no intersection, making the `intersectionParameter` value irrelevant.
-
-**Examples:**
 
 ```lua
 -- Define the line segment with start and end points
@@ -38914,7 +38680,7 @@ float GET_RAIN_LEVEL();
 
 ### `GET_RANDOM_EVENT_FLAG`
 
-`0xD2D57F1D764117B1` · `0x794CC92C` · returns `void`
+`0xD2D57F1D764117B1` · `0x794CC92C` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL GET_RANDOM_EVENT_FLAG();
@@ -39002,7 +38768,7 @@ int GET_SIZE_OF_SAVE_DATA(BOOL p0);
 
 ### `GET_SNOW_LEVEL`
 
-`0xC5868A966E5BE3AE` · `0x1B09184F` · returns `void`
+`0xC5868A966E5BE3AE` · `0x1B09184F` · returns `float`
 
 ```c
 cs_type(Any) float GET_SNOW_LEVEL();
@@ -39054,11 +38820,9 @@ Vector3 GET_WIND_DIRECTION();
 
 Used for hunting in singleplayer and for golfing in both sp and online. The [`GET_HEADING_FROM_VECTOR_2D`](#_0x2FFB6B224F4B2926) native can be used to get the wind heading from the direction.
 
-**Returns:**
+**Return value:**
 
 The wind direction
-
-**Examples:**
 
 ```lua
 CreateThread(function()
@@ -39134,11 +38898,9 @@ private async Task OnTick()
 float GET_WIND_SPEED();
 ```
 
-**Returns:**
+**Return value:**
 
 The wind speed in meters per second
-
-**Examples:**
 
 ```lua
 local beaufortScale = {
@@ -39367,7 +39129,7 @@ For projectiles, see: [`IS_PROJECTILE_TYPE_IN_ANGLED_AREA`](#_0xF0BC12401061DEA0
 - `float width` — Width of the angled area
 - `BOOL ownedByPlayer`
 
-**Returns:**
+**Return value:**
 
 True if a bullet, as maintained by a pool within CWeaponManager, has been fired into the defined angled area.
 
@@ -39419,7 +39181,7 @@ BOOL IS_BULLET_IN_BOX(float x1, float y1, float z1, float x2, float y2, float z2
 BOOL IS_DURANGO_VERSION();
 ```
 
-**Returns:**
+**Return value:**
 
 Hard-coded to always return 0.
 
@@ -39473,9 +39235,9 @@ BOOL IS_JAPANESE_VERSION();
 NativeDB Introduced: 2545
 ```
 
-**Returns:**
+**Return value:**
 
-Returns `true` when GTA:V is running with the Japanese executable.
+Returns `true` when GTA:V is running with the Japanese executable. 
 
 ---
 
@@ -39523,7 +39285,7 @@ Refer to [`SET_WEATHER_TYPE_NOW`](#_0x29B487C359E19889) for weather types.
 BOOL IS_ORBIS_VERSION();
 ```
 
-**Returns:**
+**Return value:**
 
 Hard-coded to always return 0.
 
@@ -39537,7 +39299,7 @@ Hard-coded to always return 0.
 BOOL IS_PC_VERSION();
 ```
 
-**Returns:**
+**Return value:**
 
 Hard-coded to always return 1.
 
@@ -39587,7 +39349,7 @@ The BOOL parameters that are documented have not been confirmed. They are just d
 - `Entity ignoreEntity` — This entity will be ignored if it's in the area. Set to 0 if you don't want to exclude any entities.
 - `BOOL p10` — Unknown.
 
-**Returns:**
+**Return value:**
 
 Returns true if there is anything in that location matching the provided parameters.
 
@@ -39658,7 +39420,7 @@ NativeDB Removed Parameter 7: float p7
 - `float z2` — Z dimension of the angled area 'extent'
 - `float width` — Width of the angled area
 - `float p7`
-- `cs_type(Any) Hash weaponHash`
+- `Hash weaponHash`
 - `BOOL ownedByPlayer`
 
 ---
@@ -39715,7 +39477,7 @@ BOOL IS_PROJECTILE_TYPE_WITHIN_DISTANCE(float x, float y, float z, Hash projHash
 BOOL IS_PS3_VERSION();
 ```
 
-**Returns:**
+**Return value:**
 
 Hard-coded to always return 0.
 
@@ -39770,9 +39532,9 @@ BOOL IS_STEAM_VERSION();
 NativeDB Introduced: 2545
 ```
 
-**Returns:**
+**Return value:**
 
-Returns `true` when GTA:V is running with the Steam executable.
+Returns `true` when GTA:V is running with the Steam executable. 
 
 ---
 
@@ -39856,7 +39618,7 @@ BOOL IS_THIS_A_MINIGAME_SCRIPT();
 BOOL IS_XBOX360_VERSION();
 ```
 
-**Returns:**
+**Return value:**
 
 Hard-coded to always return 0.
 
@@ -40047,7 +39809,7 @@ MISC::_11B56FBBF7224868("CONTRAILS");
 
 ### `QUEUE_MISSION_REPEAT_LOAD`
 
-`0x72DE52178C291CB5` · `0xF62B3C48` · returns `void`
+`0x72DE52178C291CB5` · `0xF62B3C48` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL QUEUE_MISSION_REPEAT_LOAD();
@@ -40065,7 +39827,7 @@ BOOL QUEUE_MISSION_REPEAT_SAVE();
 
 Shows the screen which is visible before you redo a mission? The game will make a restoration point where you will cameback when the mission is over.
 
-**Returns:**
+**Return value:**
 
 Returns 1 if the message isn't currently on screen.
 
@@ -40401,8 +40163,6 @@ Allows modification of the cloud opacity. It can also be used in other contexts,
 
 - `float opacity` — The opacity value to set for clouds.
 
-**Examples:**
-
 ```lua
 -- Check if the player is in a Switch "state"
 if IsPlayerSwitchInProgress() then
@@ -40548,7 +40308,7 @@ cs_type(Any) void SET_EXPLOSIVE_MELEE_THIS_FRAME(Player player);
 
 **Parameters:**
 
-- `Any) void SET_EXPLOSIVE_MELEE_THIS_FRAME(Player player`
+- `Player player`
 
 ---
 
@@ -40649,7 +40409,7 @@ cs_type(Any) void SET_FIRE_AMMO_THIS_FRAME(Player player);
 
 **Parameters:**
 
-- `Any) void SET_FIRE_AMMO_THIS_FRAME(Player player`
+- `Player player`
 
 ---
 
@@ -40741,7 +40501,7 @@ Sets the maximum prop density and changes a loading screen flag from 'loading st
 
 **Parameters:**
 
-- `cs_type(BOOL) int toggle` — toggles the instance priority mode
+- `int toggle` — toggles the instance priority mode
 
 ---
 
@@ -40810,7 +40570,7 @@ Does nothing if the mission flag is set.
 
 **Parameters:**
 
-- `cs_type(Any) BOOL toggle`
+- `BOOL toggle`
 
 ---
 
@@ -40915,9 +40675,7 @@ It basically OR's a flag for a single frame, allowing the ped to perform a super
 
 **Parameters:**
 
-- `int) void SET_SUPER_JUMP_THIS_FRAME(Player player` — The player we are setting this for.
-
-**Examples:**
+- `Player player` — The player we are setting this for.
 
 ```lua
 Citizen.CreateThread(function()
@@ -41095,8 +40853,6 @@ Sets the the raw wind speed value. The wind speed will stay persistent until it 
 
 - `float speed` — The wind speed (clamped to between 0.0 and 1.0)
 
-**Examples:**
-
 ```lua
 -- Stops all and any wind
 SetWind(0)
@@ -41146,8 +40902,6 @@ Sets the wind direction. The wind direction will stay persistent until it is res
 
 - `float direction` — the [wind direction](https://en.wikipedia.org/wiki/Wind_direction) in radians
 
-**Examples:**
-
 ```lua
 -- 180 degrees, wind will blow from the south
 SetWindDirection(math.rad(180.0))
@@ -41187,8 +40941,6 @@ Using this native will clamp the wind speed value to a range of 0.0 - 12.0. The 
 **Parameters:**
 
 - `float speed` — wind speed in meters per second
-
-**Examples:**
 
 ```lua
 -- Sets the wind speed to 0 meters per second
@@ -41335,11 +41087,9 @@ BOOL SHOULD_USE_METRIC_MEASUREMENTS();
 
 Returns true if the game is using the metric measurement system (profile setting 227), false if imperial is used.
 
-**Returns:**
+**Return value:**
 
 Returns true if the game is using the metric measurement system, false if imperial is used.
-
-**Examples:**
 
 ```lua
 if (ShouldUseMetricMeasurements()) then
@@ -41376,8 +41126,6 @@ This native always come right before SET_ENTITY_QUATERNION where its final 4 par
 - `float* outY` — output value calculated (Y)
 - `float* outZ` — output value calculated (Z)
 - `float* outW` — output value calculated (W)
-
-**Examples:**
 
 ```cs
 // Example from am_rollercoaster.c
@@ -41419,6 +41167,7 @@ void func_134(int iParam0, int iParam1, float fParam2) cippalippo
 	MISC::_0xF2F6A2FA49278625(fVar4, uVar5[0], uVar5[1], uVar5[2], uVar5[3], uVar6[0], uVar6[1], uVar6[2], uVar6[3], &(uVar7[0]), &(uVar7[1]), &(uVar7[2]), &(uVar7[3]));
 	ENTITY::SET_ENTITY_QUATERNION(iLocal_719[iParam0], uVar7[0], uVar7[1], uVar7[2], uVar7[3]);
 }
+
 ```
 
 ---
@@ -41550,8 +41299,6 @@ enum eEventType {
 - `int eventType` — The type of the event to be suppressed or enabled. Use the `eEventType` enum for specific event types.
 - `BOOL enable` — Set to `false` to suppress the event for this frame; set to `true` to enable it.
 
-**Examples:**
-
 ```lua
 local eventToDisable = 0 -- RC_PED_STEAL_VEHICLE
 
@@ -41633,7 +41380,7 @@ BOOL UI_STARTED_END_USER_BENCHMARK();
 
 Returns whether the In-Game Pause Menu Launched the Benchmark Tests.
 
-**Returns:**
+**Return value:**
 
 Returns true if the current frontend menu is `FE_MENU_VERSION_SP_PAUSE`, `false` otherwise.
 
@@ -41680,7 +41427,7 @@ enum eOSKStatus
 };
 ```
 
-**Returns:**
+**Return value:**
 
 Returns a value from the list above.
 
@@ -43622,8 +43369,6 @@ enum eCellInput {
 
 - `int direction` — The direction to swipe to, refer to `eCellInput` enum.
 
-**Examples:**
-
 ```lua
 CreateThread(function()
 	local eCellInput = {
@@ -43974,7 +43719,7 @@ void NETWORK_BUY_PROPERTY(cs_type(float) int propertyCost, Hash propertyName, BO
 
 **Parameters:**
 
-- `cs_type(float) int propertyCost`
+- `int propertyCost`
 - `Hash propertyName`
 - `BOOL p2`
 - `BOOL p3`
@@ -44273,7 +44018,7 @@ void NETWORK_EARN_FROM_IMPORT_EXPORT(int amount, cs_type(Any) Hash modelHash);
 **Parameters:**
 
 - `int amount`
-- `cs_type(Any) Hash modelHash`
+- `Hash modelHash`
 
 ---
 
@@ -44358,7 +44103,7 @@ cs_type(Any) void NETWORK_EARN_FROM_PICKUP(int amount);
 
 **Parameters:**
 
-- `Any) void NETWORK_EARN_FROM_PICKUP(int amount`
+- `int amount`
 
 ---
 
@@ -44625,7 +44370,7 @@ void NETWORK_PAY_MATCH_ENTRY_FEE(int amount, cs_type(intPtr) char* matchId, BOOL
 **Parameters:**
 
 - `int amount`
-- `cs_type(intPtr) char* matchId`
+- `char* matchId`
 - `BOOL p2`
 - `BOOL p3`
 
@@ -44778,7 +44523,7 @@ void NETWORK_SPENT_BETTING(int amount, int p1, cs_type(AnyPtr) char* matchId, BO
 
 - `int amount`
 - `int p1`
-- `cs_type(AnyPtr) char* matchId`
+- `char* matchId`
 - `BOOL p3`
 - `BOOL p4`
 
@@ -46197,7 +45942,7 @@ void _NETWORK_BUY_CONTRABAND(int p0, int p1, cs_type(Any) Hash p2, BOOL p3, BOOL
 
 - `int p0`
 - `int p1`
-- `cs_type(Any) Hash p2`
+- `Hash p2`
 - `BOOL p3`
 - `BOOL p4`
 
@@ -47423,7 +47168,7 @@ void _NETWORK_EARN_FROM_SELL_BUNKER(int amount, cs_type(Any) Hash bunkerHash);
 **Parameters:**
 
 - `int amount`
-- `cs_type(Any) Hash bunkerHash`
+- `Hash bunkerHash`
 
 ---
 
@@ -49586,7 +49331,7 @@ BOOL _NET_GAMESERVER_BASKET_END();
 
 ### `_NET_GAMESERVER_BASKET_IS_FULL`
 
-`0x27F76CC6C55AD30E` · returns `void`
+`0x27F76CC6C55AD30E` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL _NET_GAMESERVER_BASKET_IS_FULL();
@@ -49604,9 +49349,9 @@ BOOL _NET_GAMESERVER_BASKET_START(cs_type(AnyPtr) int* transactionId, cs_type(in
 
 **Parameters:**
 
-- `cs_type(AnyPtr) int* transactionId`
-- `cs_type(int) Hash categoryHash`
-- `cs_type(int) Hash actionHash`
+- `int* transactionId`
+- `Hash categoryHash`
+- `Hash actionHash`
 - `int flags`
 
 ---
@@ -49624,7 +49369,7 @@ BOOL _NET_GAMESERVER_BEGIN_SERVICE(int* transactionId, Hash categoryHash, Hash i
 - `int* transactionId`
 - `Hash categoryHash`
 - `Hash itemHash`
-- `cs_type(int) Hash actionTypeHash`
+- `Hash actionTypeHash`
 - `int value`
 - `int flags`
 
@@ -49694,7 +49439,7 @@ BOOL _NET_GAMESERVER_DELETE_CHARACTER_SLOT(int slot, BOOL transfer, cs_type(Any)
 
 - `int slot`
 - `BOOL transfer`
-- `cs_type(Any) Hash reason`
+- `Hash reason`
 
 ---
 
@@ -49710,7 +49455,7 @@ int _NET_GAMESERVER_DELETE_CHARACTER_SLOT_GET_STATUS();
 
 ### `_NET_GAMESERVER_DELETE_SET_TELEMETRY_NONCE_SEED`
 
-`0x112CEF1615A1139F` · returns `void`
+`0x112CEF1615A1139F` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL _NET_GAMESERVER_DELETE_SET_TELEMETRY_NONCE_SEED();
@@ -49761,7 +49506,7 @@ BOOL _NET_GAMESERVER_GET_CATALOG_STATE(cs_type(AnyPtr) int* state);
 
 **Parameters:**
 
-- `cs_type(AnyPtr) int* state`
+- `int* state`
 
 ---
 
@@ -49795,7 +49540,7 @@ BOOL _NET_GAMESERVER_GET_TRANSACTION_MANAGER_DATA(cs_type(AnyPtr) int* p0, BOOL*
 
 **Parameters:**
 
-- `cs_type(AnyPtr) int* p0`
+- `int* p0`
 - `BOOL* p1`
 
 ---
@@ -50101,7 +49846,7 @@ BOOL CLOUD_DID_REQUEST_SUCCEED(int handle);
 
 ### `CLOUD_GET_AVAILABILITY_CHECK_RESULT`
 
-`0x0B0CC10720653F3B` · `0x9262744C` · returns `void`
+`0x0B0CC10720653F3B` · `0x9262744C` · returns `BOOL`
 
 ```c
 cs_type(int) BOOL CLOUD_GET_AVAILABILITY_CHECK_RESULT();
@@ -50224,7 +49969,7 @@ Returns POSIX timestamp.
 
 Renamed from `_GET_POSIX_TIME` to `GET_CLOUD_TIME_AS_INT` because of conflicting native names ([`0xDA488F299A5B164E`](#_0xDA488F299A5B164E))
 
-**Returns:**
+**Return value:**
 
 An int representing the cloud time.
 
@@ -50311,7 +50056,7 @@ NativeDB Added Parameter 3: int p2
 
 ### `GET_COMMERCE_PRODUCT_PRICE`
 
-`0xCA94551B50B4932C` · `0x37877757` · returns `void`
+`0xCA94551B50B4932C` · `0x37877757` · returns `char*`
 
 ```c
 cs_type(Any) char* GET_COMMERCE_PRODUCT_PRICE(int index);
@@ -50319,7 +50064,7 @@ cs_type(Any) char* GET_COMMERCE_PRODUCT_PRICE(int index);
 
 **Parameters:**
 
-- `Any) char* GET_COMMERCE_PRODUCT_PRICE(int index`
+- `int index`
 
 ---
 
@@ -50371,11 +50116,9 @@ int GET_MAX_NUM_NETWORK_VEHICLES();
 int GET_NETWORK_TIME();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns the network time this tick, if you want a tick-agnostic version use [`GetNetworkTimeAccurate`](#_0x89023FBBF9200E9F).
-
-**Examples:**
 
 ```lua
 print(GetNetworkTime())
@@ -50406,7 +50149,7 @@ Returns the same value as [`GetNetworkTime`](#_0x7A5487FE9FAA6B48) in freemode, 
 
 Could be used for benchmarking since it can return times in ticks.
 
-**Returns:**
+**Return value:**
 
 Returns the network time as an integer
 
@@ -51036,7 +50779,7 @@ NativeDB Introduced: v1734
 - `float x` — Object X coord.
 - `float y` — Object Y coord.
 - `float z` — Object Z coord.
-- `cs_type(float) char* animDict` — Anim dictionary to play on this object.
+- `char* animDict` — Anim dictionary to play on this object.
 - `char* animName` — Anim name to play on this object.
 - `float blendInSpeed` — Float representing how quickly the animation should be blended into. Default is `8.0`.
 - `float blendOutSpeed` — Float representing how quickly the animation should be blended out of. Default is `-8.0`
@@ -51112,15 +50855,15 @@ NativeDB Introduced: v1290
 
 **Parameters:**
 
-- `cs_type(Any) Ped ped` — Index of the ped to add to the scene.
+- `Ped ped` — Index of the ped to add to the scene.
 - `int netSceneID` — Network scene ID returned by [`NETWORK_CREATE_SYNCHRONISED_SCENE`](#_0x7CD6BC4C2BBDD526).
-- `cs_type(Any) char* animDict` — Which anim dictionary to use on this ped.
-- `cs_type(Any) char* animClip` — Which clip from the anim dictionary to use on this ped.
-- `cs_type(Any) float blendIn` — Blend in speed of the animation. Default is `8.0`.
-- `cs_type(Any) float blendOut` — Blend out speed of the animation. Default is `-8.0`.
+- `char* animDict` — Which anim dictionary to use on this ped.
+- `char* animClip` — Which clip from the anim dictionary to use on this ped.
+- `float blendIn` — Blend in speed of the animation. Default is `8.0`.
+- `float blendOut` — Blend out speed of the animation. Default is `-8.0`.
 - `int sceneFlags` — Synchronized scene flags. See [`NETWORK_ADD_PED_TO_SYNCHRONISED_SCENE`](#_0x742A637471BCECD9).
 - `int ragdollFlags` — Ragdoll blocking flags. Default is 0.
-- `cs_type(Any) float moverBlendInDelta` — Determines the rate at which the mover blends in to the scene. Useful for ensuring a seamless entry onto a synchronized scene. Default is `1000.0`.
+- `float moverBlendInDelta` — Determines the rate at which the mover blends in to the scene. Useful for ensuring a seamless entry onto a synchronized scene. Default is `1000.0`.
 - `int ikFlags` — Inverse kinematics flags. Default is `0`.
 
 ---
@@ -51287,7 +51030,7 @@ cs_type(BOOL) void NETWORK_APPLY_VOICE_PROXIMITY_OVERRIDE(float x, float y, floa
 
 **Parameters:**
 
-- `BOOL) void NETWORK_APPLY_VOICE_PROXIMITY_OVERRIDE(float x`
+- `float x`
 - `float y`
 - `float z`
 
@@ -51574,7 +51317,7 @@ BOOL NETWORK_CHECK_USER_CONTENT_PRIVILEGES(int p0, int p1, BOOL p2);
 BOOL NETWORK_CLAN_ANY_DOWNLOAD_MEMBERSHIP_PENDING();
 ```
 
-**Returns:**
+**Return value:**
 
 True if there are any pending downloads, false otherwise.
 
@@ -51619,7 +51362,7 @@ BOOL NETWORK_CLAN_GET_EMBLEM_TXD_NAME(Any* netHandle, cs_type(AnyPtr) char* txdN
 **Parameters:**
 
 - `Any* netHandle`
-- `cs_type(AnyPtr) char* txdName`
+- `char* txdName`
 
 ---
 
@@ -51652,7 +51395,7 @@ https://pastebin.com/CD8wni4C
 - `int* clanMembership` — Output buffer for the membership data. Also known as "desc".
 - `int membershipIndex` — If the player has multiple crews/memberships, use [0-9], or -1 to get the active crew/membership.
 
-**Returns:**
+**Return value:**
 
 Returns true on success, false otherwise.
 
@@ -51702,7 +51445,7 @@ Checks if a crew/membership for a player, from the cache (i.e. downloaded via NE
 - `int* networkHandle` — A player network handle.
 - `int membershipIndex` — If the player has multiple crews/memberships, use [0-9], or -1 to get the active crew/membership.
 
-**Returns:**
+**Return value:**
 
 Returns true if valid, false otherwise.
 
@@ -51724,7 +51467,7 @@ bufferSize is 35 in the scripts.
 
 - `int* clanDesc`
 - `int bufferSize`
-- `cs_type(intPtr) char* formattedTag`
+- `char* formattedTag`
 
 ---
 
@@ -52003,8 +51746,6 @@ This setup keeps instance players separate from each other while allowing intera
 - `BOOL toggle`
 - `BOOL bAllowDamagingWhileConcealed`
 
-**Examples:**
-
 ```lua
 function GetPlayerInstance(player)
 	-- you can replace this with your own data
@@ -52071,7 +51812,7 @@ Be sure to actually start the scene with [`NETWORK_START_SYNCHRONISED_SCENE`](#_
 - `float phaseToStartScene` — Which phase (from `0.0` to `1.0` to start the scene. Default is `0.0`)
 - `float animSpeed` — Speed of the animation. Default is `1.0`
 
-**Returns:**
+**Return value:**
 
 Returns the network synchronized scene's handle. You can get information regarding the phase, rate etc of this synchronised scene by using local synchronized scene natives (e.g [`GET_SYNCHRONIZED_SCENE_PHASE`](#_0xE4A310B1D7FA73CC)).
 Do note that you need to get the local scene handle from the network scene handle (using [`NETWORK_GET_LOCAL_SCENE_FROM_NETWORK_ID`](#_0x02C40BF885C567B6)) and then pass the returned value to the local synchronized scene info natives.
@@ -52421,7 +52162,7 @@ Seems it's like ADD_EXPLOSION, etc. the first 2 params. The 3rd atm no need to w
 
 **Parameters:**
 
-- `Any) void NETWORK_EXPLODE_VEHICLE(Vehicle vehicle`
+- `Vehicle vehicle`
 - `BOOL isAudible`
 - `BOOL isInvisible`
 - `BOOL p3`
@@ -52441,14 +52182,12 @@ Fade the given entity back in, usually used after the entity has been faded out 
 When used on a entity which isn't invisible or faded out then the native will still work, it will just instanly make the ped invisible before fading in.
 
 **Additional Parameters**:
-* **flash**: If set to true the entity will flash while fading in.
+- `flash` — If set to true the entity will flash while fading in.
 
 **Parameters:**
 
 - `Entity entity` — The entity to fade in
 - `BOOL bNetwork` — When set to true the fade in will be networked.
-
-**Examples:**
 
 ```lua
 local playerPed = PlayerPedId()
@@ -52702,11 +52441,9 @@ Through this native you can get back the entity that you previously converted to
 
 - `int netId` — the network id of the entity
 
-**Returns:**
+**Return value:**
 
 The local entity handle of the network id
-
-**Examples:**
 
 ```lua
 local entity = NetworkGetEntityFromNetworkId(netId)
@@ -52820,7 +52557,7 @@ char* NETWORK_GET_GAMERTAG_FROM_HANDLE(int* networkHandle);
 
 ### `NETWORK_GET_GAMER_STATUS_FROM_QUEUE`
 
-`0x2CC848A861D01493` · `0xBEB98840` · returns `void`
+`0x2CC848A861D01493` · `0xBEB98840` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL NETWORK_GET_GAMER_STATUS_FROM_QUEUE();
@@ -52937,7 +52674,7 @@ Returns a local synchronized scene handle of a networked synchronised scene.
 
 - `int netSceneId` — Network synchronised scene ID (returned by [`NETWORK_CREATE_SYNCHRONISED_SCENE`](#_0x7CD6BC4C2BBDD526)).
 
-**Returns:**
+**Return value:**
 
 Local synchronized scene ID. This value can be used with natives such as: [`GET_SYNCHRONIZED_SCENE_PHASE`](#_0xE4A310B1D7FA73CC), [`GET_SYNCHRONIZED_SCENE_RATE`](#_0xD80932D577274D40), [`IS_SYNCHRONIZED_SCENE_RUNNING`](#_0x25D39B935A038A26) and more.
 
@@ -52992,11 +52729,9 @@ Read more at [Network and local IDs](https://docs.fivem.net/docs/scripting-manua
 
 - `Entity entity` — the handle of the entity from which the network id should be taken
 
-**Returns:**
+**Return value:**
 
 The network id of the given entity
-
-**Examples:**
 
 ```lua
 local obj = CreateObject(`prop_weed_01`, vector3(0.0, 0.0, 0.0), true)
@@ -53264,7 +52999,7 @@ Returns the Name of the inviter of the specific selected Invite.
 
 - `int inviteIndex`
 
-**Returns:**
+**Return value:**
 
 The Name of the inviter.
 
@@ -53326,7 +53061,7 @@ The Native returns a hash of the session id as string from the specific invite i
 
 - `int inviteIndex`
 
-**Returns:**
+**Return value:**
 
 A hash of the session id.
 
@@ -54058,7 +53793,7 @@ You also need to use `NetworkJoinTransition(Player player)` and `NetworkLaunchTr
 - `Any p8` — Unknown int, it's an int according to decompiled scripts, however the value is always 0 or 1.
 - `int p9` — Unknown int, sometimes 0, but also 32768 or 16384 appear in decompiled scripst, maybe a flag of some sort?
 
-**Returns:**
+**Return value:**
 
 Probably a bool indicating if the transition was created.
 
@@ -54108,7 +53843,7 @@ BOOL NETWORK_IS_ACTIVITY_SESSION();
 
 ### `NETWORK_IS_ACTIVITY_SPECTATOR`
 
-`0x12103B9E0C9F92FB` · `0xAF329720` · returns `void`
+`0x12103B9E0C9F92FB` · `0xAF329720` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL NETWORK_IS_ACTIVITY_SPECTATOR();
@@ -54132,7 +53867,7 @@ BOOL NETWORK_IS_ACTIVITY_SPECTATOR_FROM_HANDLE(int* networkHandle);
 
 ### `NETWORK_IS_ADDING_FRIEND`
 
-`0x6EA101606F6E4D81` · `0xBB7EC8C4` · returns `void`
+`0x6EA101606F6E4D81` · `0xBB7EC8C4` · returns `Any`
 
 ```c
 cs_type(BOOL) Any NETWORK_IS_ADDING_FRIEND();
@@ -54442,7 +54177,7 @@ For example, if your console has two or more users signed in (on different contr
 
 - `int* networkHandle`
 
-**Returns:**
+**Return value:**
 
 Returns true if the networkHandle is signed in on the same machine, but is not the main player.
 
@@ -54537,7 +54272,7 @@ BOOL NETWORK_IS_IN_TRANSITION();
 
 ### `NETWORK_IS_IN_TUTORIAL_SESSION`
 
-`0xADA24309FE08DACF` · `0x34DD7B28` · returns `void`
+`0xADA24309FE08DACF` · `0x34DD7B28` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL NETWORK_IS_IN_TUTORIAL_SESSION();
@@ -54567,7 +54302,7 @@ BOOL NETWORK_IS_LOCAL_TALKING();
 
 ### `NETWORK_IS_MULTIPLAYER_DISABLED`
 
-`0x9747292807126EDA` · `0x05518C0F` · returns `void`
+`0x9747292807126EDA` · `0x05518C0F` · returns `BOOL`
 
 ```c
 cs_type(ScrHandle) BOOL NETWORK_IS_MULTIPLAYER_DISABLED();
@@ -54577,7 +54312,7 @@ cs_type(ScrHandle) BOOL NETWORK_IS_MULTIPLAYER_DISABLED();
 
 ### `NETWORK_IS_OFFLINE_INVITE_PENDING`
 
-`0x74698374C45701D2` · `0x70ED476A` · returns `void`
+`0x74698374C45701D2` · `0x70ED476A` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL NETWORK_IS_OFFLINE_INVITE_PENDING();
@@ -54624,7 +54359,7 @@ https://i.imgur.com/6QTCRj2.png
 
 ### `NETWORK_IS_PENDING_FRIEND`
 
-`0x0BE73DA6984A6E33` · `0x5C85FF81` · returns `void`
+`0x0BE73DA6984A6E33` · `0x5C85FF81` · returns `Any`
 
 ```c
 cs_type(BOOL) Any NETWORK_IS_PENDING_FRIEND(Any p0);
@@ -54636,7 +54371,7 @@ This function is hard-coded to always return 0.
 
 **Parameters:**
 
-- `BOOL) Any NETWORK_IS_PENDING_FRIEND(Any p0`
+- `Any p0`
 
 ---
 
@@ -54869,7 +54604,7 @@ seemed not to work for some ppl
 
 ### `NETWORK_IS_TRANSITION_BUSY`
 
-`0x520F3282A53D26B7` · `0xA357A2C6` · returns `void`
+`0x520F3282A53D26B7` · `0xA357A2C6` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL NETWORK_IS_TRANSITION_BUSY();
@@ -54899,7 +54634,7 @@ BOOL NETWORK_IS_TRANSITION_CLOSED_FRIENDS();
 
 ### `NETWORK_IS_TRANSITION_HOST`
 
-`0x0B824797C9BF2159` · `0x0C0900BC` · returns `void`
+`0x0B824797C9BF2159` · `0x0C0900BC` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL NETWORK_IS_TRANSITION_HOST();
@@ -54923,7 +54658,7 @@ BOOL NETWORK_IS_TRANSITION_HOST_FROM_HANDLE(int* networkHandle);
 
 ### `NETWORK_IS_TRANSITION_MATCHMAKING`
 
-`0x292564C735375EDF` · `0x8262C70E` · returns `void`
+`0x292564C735375EDF` · `0x8262C70E` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL NETWORK_IS_TRANSITION_MATCHMAKING();
@@ -54973,7 +54708,7 @@ BOOL NETWORK_IS_TRANSITION_STARTED();
 
 ### `NETWORK_IS_TRANSITION_TO_GAME`
 
-`0x9D7696D8F4FA6CB7` · `0x17146B2B` · returns `void`
+`0x9D7696D8F4FA6CB7` · `0x17146B2B` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL NETWORK_IS_TRANSITION_TO_GAME();
@@ -55065,7 +54800,7 @@ NETWORK_JOIN_TRANSITION(uVar2);
 
 ### `NETWORK_LAUNCH_TRANSITION`
 
-`0x2DCF46CB1A4F0884` · `0xE3570BA2` · returns `void`
+`0x2DCF46CB1A4F0884` · `0xE3570BA2` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL NETWORK_LAUNCH_TRANSITION();
@@ -55075,7 +54810,7 @@ cs_type(Any) BOOL NETWORK_LAUNCH_TRANSITION();
 
 ### `NETWORK_LEAVE_TRANSITION`
 
-`0xD23A1A815D21DB19` · `0x3A3599B7` · returns `void`
+`0xD23A1A815D21DB19` · `0x3A3599B7` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL NETWORK_LEAVE_TRANSITION();
@@ -55281,7 +55016,7 @@ void NETWORK_OVERRIDE_TRANSITION_CHAT(BOOL p0);
 
 ### `NETWORK_PLAYER_GET_CHEATER_REASON`
 
-`0x172F75B6EE2233BA` · `0x1720ABA6` · returns `void`
+`0x172F75B6EE2233BA` · `0x1720ABA6` · returns `int`
 
 ```c
 cs_type(BOOL) int NETWORK_PLAYER_GET_CHEATER_REASON();
@@ -55322,7 +55057,7 @@ Takes a 24 char buffer. Returns the buffer or "**Invalid**" if CPlayerInfo of th
 **Parameters:**
 
 - `Player player`
-- `cs_type(charPtr) int* userID`
+- `int* userID`
 
 ---
 
@@ -55695,20 +55430,20 @@ enum eSpawnReason {
 };
 ```
 
+**Added parameters:**
+
+- `bUnpauseRenderPhases` — This boolean parameter will unpause the render phases when set to `true`.
+- `iSpawnLocation` — This integer parameter sets the player's spawn location metric for telemetry. See `ePlayerSpawnLocation` enum.
+- `iSpawnReason` — This integer parameter sets the player's spawn reason metric for telemetry. See `eSpawnReason` enum.
+
 **Parameters:**
 
 - `float x`
 - `float y`
 - `float z`
 - `float heading`
-- `cs_type(BOOL) int nInvincibilityTime` — This is the length of time in milliseconds that the player will be invincible for after resurrection.
+- `int nInvincibilityTime` — This is the length of time in milliseconds that the player will be invincible for after resurrection.
 - `BOOL bLeaveDeadPed` — Leaves the dead ped behind when resurrecting.
-
-**Added parameters:**
-
-- `bUnpauseRenderPhases` — This boolean parameter will unpause the render phases when set to `true`.
-- `iSpawnLocation` — This integer parameter sets the player's spawn location metric for telemetry. See `ePlayerSpawnLocation` enum.
-- `iSpawnReason` — This integer parameter sets the player's spawn reason metric for telemetry. See `eSpawnReason` enum.
 
 ---
 
@@ -57276,8 +57011,8 @@ BOOL SET_BALANCE_ADD_MACHINE(cs_type(AnyPtr) char* contentId, cs_type(AnyPtr) ch
 
 **Parameters:**
 
-- `cs_type(AnyPtr) char* contentId`
-- `cs_type(AnyPtr) char* contentTypeName`
+- `char* contentId`
+- `char* contentTypeName`
 
 ---
 
@@ -57293,7 +57028,7 @@ BOOL SET_BALANCE_ADD_MACHINES(Any* data, int dataCount, cs_type(AnyPtr) char* co
 
 - `Any* data`
 - `int dataCount`
-- `cs_type(AnyPtr) char* contentTypeName`
+- `char* contentTypeName`
 
 ---
 
@@ -57310,8 +57045,6 @@ Sets the provided entity not visible for yourself for the current frame.
 **Parameters:**
 
 - `Entity entity`
-
-**Examples:**
 
 ```lua
 CreateThread(function()
@@ -57342,8 +57075,6 @@ Sets the provided entity visible for yourself for the current frame.
 **Parameters:**
 
 - `Entity entity` — The entity to set locally visible.
-
-**Examples:**
 
 ```lua
 CreateThread(function()
@@ -57824,7 +57555,7 @@ Any UGC_GET_CONTENT_FILE_VERSION(Any p0, Any p1);
 
 ### `UGC_GET_CONTENT_HASH`
 
-`0x3A17A27D75C74887` · `0x8E1D8F78` · returns `void`
+`0x3A17A27D75C74887` · `0x8E1D8F78` · returns `Hash`
 
 ```c
 cs_type(Any) Hash UGC_GET_CONTENT_HASH();
@@ -57955,7 +57686,7 @@ char* UGC_GET_CONTENT_PATH(int p0, cs_type(AnyPtr) int p1);
 **Parameters:**
 
 - `int p0`
-- `cs_type(AnyPtr) int p1`
+- `int p1`
 
 ---
 
@@ -58212,7 +57943,7 @@ Return the root content id of a job.
 
 ### `UGC_HAS_CREATE_FINISHED`
 
-`0x5E24341A7F92A74B` · `0xE69E8D0D` · returns `void`
+`0x5E24341A7F92A74B` · `0xE69E8D0D` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL UGC_HAS_CREATE_FINISHED();
@@ -58222,7 +57953,7 @@ cs_type(Any) BOOL UGC_HAS_CREATE_FINISHED();
 
 ### `UGC_HAS_GET_FINISHED`
 
-`0x02ADA21EA2F6918F` · `0x50296140` · returns `void`
+`0x02ADA21EA2F6918F` · `0x50296140` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL UGC_HAS_GET_FINISHED();
@@ -58232,7 +57963,7 @@ cs_type(Any) BOOL UGC_HAS_GET_FINISHED();
 
 ### `UGC_HAS_MODIFY_FINISHED`
 
-`0x299EF3C576773506` · `0x611E0BE2` · returns `void`
+`0x299EF3C576773506` · `0x611E0BE2` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL UGC_HAS_MODIFY_FINISHED();
@@ -58242,7 +57973,7 @@ cs_type(Any) BOOL UGC_HAS_MODIFY_FINISHED();
 
 ### `UGC_IS_GETTING`
 
-`0xD53ACDBEF24A46E8` · `0x4908A514` · returns `void`
+`0xD53ACDBEF24A46E8` · `0x4908A514` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL UGC_IS_GETTING();
@@ -59115,7 +58846,7 @@ But another p0 value may return an entity for player x, but not for player y (it
 
 - `Any p0` — unknown.
 
-**Returns:**
+**Return value:**
 
 Returns an entity handle or -1, value changes based on p0's value.
 
@@ -59652,7 +59383,7 @@ NativeDB Introduced: v1734
 Any _0x67FC09BC554A75E5();
 ```
 
-**Returns:**
+**Return value:**
 
 Hard-coded to always return 0.
 
@@ -59740,7 +59471,7 @@ void _0x6CE50E47F5543D0C();
 Any _0x6FB7BB3607D27FA2();
 ```
 
-**Returns:**
+**Return value:**
 
 Hard-coded to always return 0.
 
@@ -59828,7 +59559,7 @@ Returns some sort of unavailable reason:
 =================================
 ```
 
-**Returns:**
+**Return value:**
 
 Hard-coded to always return 0.
 
@@ -59891,7 +59622,7 @@ void _0x77FADDCBE3499DF7(Any p0);
 Any _0x7808619F31FF22DB();
 ```
 
-**Returns:**
+**Return value:**
 
 Hard-coded to always return 1.
 
@@ -60012,7 +59743,7 @@ void _0x83FE8D7229593017();
 Any _0x88B588B41FF7868E();
 ```
 
-**Returns:**
+**Return value:**
 
 Hard-coded to always return 0.
 
@@ -60026,7 +59757,7 @@ Hard-coded to always return 0.
 Any _0x8B0C2964BA471961();
 ```
 
-**Returns:**
+**Return value:**
 
 Hard-coded to always return 0.
 
@@ -60211,7 +59942,7 @@ Any _0x9FEDF86898F100E9();
 Any _0xA0FA4EC6A05DA44E();
 ```
 
-**Returns:**
+**Return value:**
 
 Hard-coded to always return 0.
 
@@ -60483,7 +60214,7 @@ void _0xBA7F0B77D80A4EB7(Any p0, Any p1);
 BOOL _0xBD545D44CCE70597();
 ```
 
-**Returns:**
+**Return value:**
 
 Hard-coded to always return 1.
 
@@ -60794,7 +60525,7 @@ NativeDB Introduced: v1868
 Any _0xEBCAB9E5048434F4();
 ```
 
-**Returns:**
+**Return value:**
 
 Hard-coded to always return 1.
 
@@ -60920,9 +60651,9 @@ void _0xFAE628F1E9ADB239(cs_type(Any) Hash p0, int p1, cs_type(Any) Hash p2);
 
 **Parameters:**
 
-- `cs_type(Any) Hash p0`
+- `Hash p0`
 - `int p1`
-- `cs_type(Any) Hash p2`
+- `Hash p2`
 
 ---
 
@@ -61433,7 +61164,7 @@ int _NETWORK_GET_DISPLAYNAMES_FROM_HANDLES(Any p0, Any p1, Any p2);
 - `Any p1`
 - `Any p2`
 
-**Returns:**
+**Return value:**
 
 Hard-coded to always return 0.
 
@@ -61559,7 +61290,7 @@ Does not work if you enter your own player id as p0 (will return `(0.0, 0.0, 0.0
 
 - `Player player` — The player id, MUST be another player.
 
-**Returns:**
+**Return value:**
 
 A Vector3 containing the coordinates of another player.
 
@@ -61752,7 +61483,7 @@ Returns true if the specified network id is controlled by someone else.
 
 - `int netId` — The network id for an object or entity.
 
-**Returns:**
+**Return value:**
 
 Probably a bool, returns 1 if you don't have control over the netId entity.
 
@@ -61884,8 +61615,8 @@ BOOL _NETWORK_REGISTER_TUNABLE_BOOL_HASH(cs_type(Any) Hash contextHash, cs_type(
 
 **Parameters:**
 
-- `cs_type(Any) Hash contextHash`
-- `cs_type(Any) Hash nameHash`
+- `Hash contextHash`
+- `Hash nameHash`
 - `BOOL* value`
 
 ---
@@ -61900,8 +61631,8 @@ BOOL _NETWORK_REGISTER_TUNABLE_FLOAT_HASH(cs_type(Any) Hash contextHash, cs_type
 
 **Parameters:**
 
-- `cs_type(Any) Hash contextHash`
-- `cs_type(Any) Hash nameHash`
+- `Hash contextHash`
+- `Hash nameHash`
 - `float* value`
 
 ---
@@ -61916,8 +61647,8 @@ BOOL _NETWORK_REGISTER_TUNABLE_INT_HASH(cs_type(Any) Hash contextHash, cs_type(A
 
 **Parameters:**
 
-- `cs_type(Any) Hash contextHash`
-- `cs_type(Any) Hash nameHash`
+- `Hash contextHash`
+- `Hash nameHash`
 - `int* value`
 
 ---
@@ -62202,7 +61933,7 @@ void _NETWORK_TRANSITION_TRACK(cs_type(Any) Hash hash, int p1, int p2, int state
 
 **Parameters:**
 
-- `cs_type(Any) Hash hash`
+- `Hash hash`
 - `int p1`
 - `int p2`
 - `int state`
@@ -62436,7 +62167,7 @@ You might need to DoScreenFadeIn and ShutdownLoadingScreen otherwise you probabl
 
 Somewhat related note: opening the pause menu after loading into this 'singleplayer' mode crashes the game.
 
-**Returns:**
+**Return value:**
 
 always seems to be 1
 
@@ -62521,7 +62252,7 @@ BOOL ARE_ENTITIES_ENTIRELY_INSIDE_GARAGE(cs_type(Any) Hash garageHash, BOOL p1, 
 
 **Parameters:**
 
-- `cs_type(Any) Hash garageHash`
+- `Hash garageHash`
 - `BOOL p1`
 - `BOOL p2`
 - `BOOL p3`
@@ -62570,7 +62301,7 @@ void CLEAR_OBJECTS_INSIDE_GARAGE(cs_type(Any) Hash garageHash, BOOL vehicles, BO
 
 **Parameters:**
 
-- `cs_type(Any) Hash garageHash`
+- `Hash garageHash`
 - `BOOL vehicles`
 - `BOOL peds`
 - `BOOL objects`
@@ -62668,7 +62399,7 @@ This object will initially be owned by the creating script as a mission entity, 
 
 **Parameters:**
 
-- `cs_type(int) Hash modelHash` — The model to spawn.
+- `Hash modelHash` — The model to spawn.
 - `float x` — Spawn coordinate X component.
 - `float y` — Spawn coordinate Y component.
 - `float z` — Spawn coordinate Z component, 'ground level'.
@@ -62676,11 +62407,9 @@ This object will initially be owned by the creating script as a mission entity, 
 - `BOOL netMissionEntity` — Whether to register the object as pinned to the script host in the R* network model.
 - `BOOL doorFlag` — False to create a door archetype (archetype flag bit 26 set) as a door. Required to be set to true to create door models in network mode.
 
-**Returns:**
+**Return value:**
 
 A script handle (fwScriptGuid index) for the object, or `0` if the object failed to be created.
-
-**Examples:**
 
 ```lua
 local modelHash = `prop_weed_01` -- The ` return the jenkins hash of a string. see more at: https://cookbook.fivem.net/2019/06/23/lua-support-for-compile-time-jenkins-hashes/
@@ -62741,7 +62470,7 @@ This object will initially be owned by the creating script as a mission entity, 
 - `BOOL netMissionEntity` — Whether to register the object as pinned to the script host in the R* network model.
 - `BOOL doorFlag` — False to create a door archetype (archetype flag bit 26 set) as a door. Required to be set to true to create door models in network mode.
 
-**Returns:**
+**Return value:**
 
 A script handle (fwScriptGuid index) for the object, or `0` if the object failed to be created.
 
@@ -62842,8 +62571,6 @@ NativeDB Introduced: v323
 **Parameters:**
 
 - `Object* object` — The object you want to delete.
-
-**Examples:**
 
 ```lua
 local playerPed = PlayerPedId()
@@ -63015,8 +62742,8 @@ Search radius: 0.5
 - `float x` — The X coordinate of the door object
 - `float y` — The Y coordinate of the door object
 - `float z` — The Z coordinate of the door object
-- `cs_type(Any) Hash modelHash` — Entity model hash
-- `cs_type(AnyPtr) Hash* doorOutPointer`
+- `Hash modelHash` — Entity model hash
+- `Hash* doorOutPointer`
 
 ---
 
@@ -63058,7 +62785,7 @@ BOOL DOOR_SYSTEM_GET_IS_PHYSICS_LOADED(cs_type(Any) Hash doorHash);
 
 **Parameters:**
 
-- `cs_type(Any) Hash doorHash`
+- `Hash doorHash`
 
 ---
 
@@ -63124,13 +62851,13 @@ Lockstates not applied and CNetObjDoor's not created until [DOOR_SYSTEM_GET_IS_P
 
 **Door lock states: (v323):**
 
-* **0**: UNLOCKED
-* **1**: LOCKED
-* **2**: DOORSTATE_FORCE_LOCKED_UNTIL_OUT_OF_AREA
-* **3**: DOORSTATE_FORCE_UNLOCKED_THIS_FRAME
-* **4**: DOORSTATE_FORCE_LOCKED_THIS_FRAME
-* **5**: DOORSTATE_FORCE_OPEN_THIS_FRAME
-* **6**: DOORSTATE_FORCE_CLOSED_THIS_FRAME
+- `0` — UNLOCKED
+- `1` — LOCKED
+- `2` — DOORSTATE_FORCE_LOCKED_UNTIL_OUT_OF_AREA
+- `3` — DOORSTATE_FORCE_UNLOCKED_THIS_FRAME
+- `4` — DOORSTATE_FORCE_LOCKED_THIS_FRAME
+- `5` — DOORSTATE_FORCE_OPEN_THIS_FRAME
+- `6` — DOORSTATE_FORCE_CLOSED_THIS_FRAME
 
 **Parameters:**
 
@@ -63234,8 +62961,6 @@ Example given down below.
 **Parameters:**
 
 - `Object object` — The object to fix fragments for (a handle should be passed).
-
-**Examples:**
 
 ```lua
 RegisterCommand("fixobject", function(source, args, rawCommand)
@@ -63374,7 +63099,7 @@ This native is similar to [`GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS`](#_0x1899F32
 - `float yOffset` — Forward/backward offset from the coord.
 - `float zOffset` — Upward/downward offset from the coord.
 
-**Returns:**
+**Return value:**
 
 Returns a Vector3 representing the new world coordinates after applying the offsets to the original position relative to the specified heading.
 
@@ -63448,11 +63173,9 @@ Return value is a float between 0.0 and 1.0, 0.0 is the beginning of the animati
 
 - `Object object` — The des-object handle to get the animation progress from.
 
-**Returns:**
+**Return value:**
 
 A float between 0.0 and 1.0, 0.0 is the beginning of the animation, 1.0 is the end. Value resets to 0.0 instantly after reaching 1.0.
-
-**Examples:**
 
 ```lua
 local handle = GetRayfireMapObject(7.25, -656.98, 17.14, 50.0, "des_finale_tunnel")
@@ -63477,6 +63200,7 @@ Citizen.CreateThread(function()
     end
     print("Animation 2 is done!")
 end)
+
 ```
 
 ---
@@ -63494,8 +63218,8 @@ Vector3 GET_SAFE_PICKUP_COORDS(float x, float y, float z, cs_type(Any) float p3,
 - `float x`
 - `float y`
 - `float z`
-- `cs_type(Any) float p3`
-- `cs_type(Any) float p4`
+- `float p3`
+- `float p4`
 
 ---
 
@@ -63554,7 +63278,7 @@ Hash GET_WEAPON_TYPE_FROM_PICKUP_TYPE(cs_type(Pickup) Hash pickupHash);
 
 **Parameters:**
 
-- `cs_type(Pickup) Hash pickupHash`
+- `Hash pickupHash`
 
 ---
 
@@ -63653,7 +63377,7 @@ BOOL IS_ANY_ENTITY_ENTIRELY_INSIDE_GARAGE(cs_type(Any) Hash garageHash, BOOL p1,
 
 **Parameters:**
 
-- `cs_type(Any) Hash garageHash`
+- `Hash garageHash`
 - `BOOL p1`
 - `BOOL p2`
 - `BOOL p3`
@@ -63724,7 +63448,7 @@ BOOL IS_GARAGE_EMPTY(cs_type(Any) Hash garageHash, BOOL p1, int p2);
 
 **Parameters:**
 
-- `cs_type(Any) Hash garageHash`
+- `Hash garageHash`
 - `BOOL p1`
 - `int p2`
 
@@ -63772,7 +63496,7 @@ BOOL IS_OBJECT_ENTIRELY_INSIDE_GARAGE(cs_type(Any) Hash garageHash, Entity entit
 
 **Parameters:**
 
-- `cs_type(Any) Hash garageHash`
+- `Hash garageHash`
 - `Entity entity`
 - `float p2`
 - `int p3`
@@ -63807,7 +63531,7 @@ BOOL IS_OBJECT_PARTIALLY_INSIDE_GARAGE(cs_type(Any) Hash garageHash, Entity enti
 
 **Parameters:**
 
-- `cs_type(Any) Hash garageHash`
+- `Hash garageHash`
 - `Entity entity`
 - `int p2`
 
@@ -63851,7 +63575,7 @@ BOOL IS_PLAYER_ENTIRELY_INSIDE_GARAGE(cs_type(Any) Hash garageHash, Player playe
 
 **Parameters:**
 
-- `cs_type(Any) Hash garageHash`
+- `Hash garageHash`
 - `Player player`
 - `float p2`
 - `int p3`
@@ -63868,7 +63592,7 @@ BOOL IS_PLAYER_PARTIALLY_INSIDE_GARAGE(cs_type(Any) Hash garageHash, Player play
 
 **Parameters:**
 
-- `cs_type(Any) Hash garageHash`
+- `Hash garageHash`
 - `Player player`
 - `int p2`
 
@@ -64069,10 +63793,10 @@ void SET_FORCE_OBJECT_THIS_FRAME(cs_type(Any) float x, cs_type(Any) float y, cs_
 
 **Parameters:**
 
-- `cs_type(Any) float x`
-- `cs_type(Any) float y`
-- `cs_type(Any) float z`
-- `cs_type(Any) float p3`
+- `float x`
+- `float y`
+- `float z`
+- `float p3`
 
 ---
 
@@ -64182,7 +63906,7 @@ cs_type(Any) void SET_OBJECT_TARGETTABLE(Object object, BOOL targettable);
 
 **Parameters:**
 
-- `Any) void SET_OBJECT_TARGETTABLE(Object object`
+- `Object object`
 - `BOOL targettable`
 
 ---
@@ -64530,7 +64254,7 @@ NativeDB Introduced: v757
 **Parameters:**
 
 - `Object object`
-- `cs_type(Any) BOOL toggle`
+- `BOOL toggle`
 - `int R`
 - `int G`
 - `int B`
@@ -65198,7 +64922,7 @@ void _CLEAR_GARAGE_AREA(cs_type(Any) Hash garageHash, BOOL isNetwork);
 
 **Parameters:**
 
-- `cs_type(Any) Hash garageHash`
+- `Hash garageHash`
 - `BOOL isNetwork`
 
 ---
@@ -65256,8 +64980,6 @@ OBJECT::_9B12F9A24FABEDB0(${prop_gate_prison_01}, 1845.0, 2605.0, 45.0, 1, 0.0, 
 - `float yRotMult` — multiplier that specifies how fast the door/gate will rotate in degrees per second.
 - `float zRotMult` — multiplier that specifies how fast the door/gate will rotate in degrees per second.
 
-**Examples:**
-
 ```lua
 DoorControl(`prop_gate_prison_01`, 1845.0, 2605.0, 45.0, 0, 0.0, 50.0, 0) -- door unlocked
 DoorControl(`prop_gate_prison_01`, 1845.0, 2605.0, 45.0, 1, 0.0, 50.0, 0) -- door locked
@@ -65299,7 +65021,7 @@ void _FORCE_PICKUP_REGENERATE(Any p0);
 
 ### `_GET_IS_ARENA_PROP_PHYSICS_DISABLED`
 
-`0x43C677F1E1158005` · returns `void`
+`0x43C677F1E1158005` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL _GET_IS_ARENA_PROP_PHYSICS_DISABLED(Object entity, Any p1);
@@ -65311,7 +65033,7 @@ NativeDB Introduced: v1604
 
 **Parameters:**
 
-- `Any) BOOL _GET_IS_ARENA_PROP_PHYSICS_DISABLED(Object entity`
+- `Object entity`
 - `Any p1`
 
 ---
@@ -65354,7 +65076,7 @@ returns pickup hash.
 
 **Parameters:**
 
-- `cs_type(Pickup) Hash pickupHash`
+- `Hash pickupHash`
 
 ---
 
@@ -65374,7 +65096,7 @@ NativeDB Introduced: v1290
 
 - `Hash weapon`
 
-**Returns:**
+**Return value:**
 
 Returns the pickup hash for the given weapon hash
 
@@ -65656,7 +65378,7 @@ BOOL _SET_TEXTURE_VARIATION_OF_CLOSEST_OBJECT_OF_TYPE(float x, float y, float z,
 - `float y`
 - `float z`
 - `float radius`
-- `cs_type(Any) Hash modelHash`
+- `Hash modelHash`
 - `int textureVariation`
 
 ---
@@ -65697,8 +65419,6 @@ OBJECT::_616093EC6B139DD9(PLAYER::PLAYER_ID(), ${pickup_portable_package}, 0);
 - `Player player` — Player ID. Use [`PLAYER_ID`](#_0x4F8644AF03D0E0D6) for your own player.
 - `Hash pickupHash` — Hash of the pickup, obtainable with [`GET_HASH_KEY`](#_0xD24D37CC275948CC)
 - `BOOL toggle` — boolean that enables/disables the pickup drop (false to disable, true to enable)
-
-**Examples:**
 
 ```lua
 -- Toggles the possibility for the player to drop the weapon pickups after death
@@ -65887,7 +65607,7 @@ gtaforums.com/topic/819070-c-draw-instructional-buttons-scaleform-movie/#entry10
 
 - `int padIndex`
 - `int control`
-- `cs_type(Player) BOOL p2`
+- `BOOL p2`
 
 ---
 
@@ -65904,7 +65624,7 @@ float GET_CONTROL_NORMAL(int padIndex, int control);
 - `int padIndex` — The control system instance to use. See [`ENABLE_ALL_CONTROL_ACTIONS`](#_0xA5FFE9B05F199DE7).
 - `int control` — The [control ID](https://docs.fivem.net/docs/game-references/controls/#controls) to check.
 
-**Returns:**
+**Return value:**
 
 Returns the value of [`GET_CONTROL_VALUE`](#_0xD95E79E8686D2C27) normalized, i.e. a real number value between -1.0 and 1.0
 
@@ -66010,7 +65730,7 @@ int GET_LOCAL_PLAYER_GAMEPAD_AIM_STATE();
 
 Same behavior as [`GET_LOCAL_PLAYER_AIM_STATE`](#_0xBB41AFBBBC0A0287) but will also return if player using a keyboard.  
 
-**Returns:**
+**Return value:**
 
 Returns the local player's targeting mode. See [`SET_PLAYER_TARGETING_MODE`](#_0xB1906895227793F3).
 
@@ -66046,7 +65766,7 @@ Returns whether a control was newly pressed since the last check.
 - `int padIndex` — The control system instance to use. See [`ENABLE_ALL_CONTROL_ACTIONS`](#_0xA5FFE9B05F199DE7).
 - `int control` — The [control ID](https://docs.fivem.net/docs/game-references/controls/#controls) to check.
 
-**Returns:**
+**Return value:**
 
 True if the control was pressed.
 
@@ -66067,7 +65787,7 @@ Returns whether a control was newly released since the last check.
 - `int padIndex` — The control system instance to use. See [`ENABLE_ALL_CONTROL_ACTIONS`](#_0xA5FFE9B05F199DE7).
 - `int control` — The [control ID](https://docs.fivem.net/docs/game-references/controls/#controls) to check.
 
-**Returns:**
+**Return value:**
 
 True if the control was recently released.
 
@@ -66088,7 +65808,7 @@ Returns whether a control is currently pressed.
 - `int padIndex` — The control system instance to use. See [`ENABLE_ALL_CONTROL_ACTIONS`](#_0xA5FFE9B05F199DE7).
 - `int control` — The [control ID](https://docs.fivem.net/docs/game-references/controls/#controls) to check.
 
-**Returns:**
+**Return value:**
 
 True if the control was pressed.
 
@@ -66109,7 +65829,7 @@ Returns whether a control is currently _not_ pressed.
 - `int padIndex` — The control system instance to use. See [`ENABLE_ALL_CONTROL_ACTIONS`](#_0xA5FFE9B05F199DE7).
 - `int control` — The [control ID](https://docs.fivem.net/docs/game-references/controls/#controls) to check.
 
-**Returns:**
+**Return value:**
 
 True if the control is not pressed.
 
@@ -66524,7 +66244,7 @@ Coordinates must be in the range 0.0 to 1.0, where (0.5, 0.5) represents the cen
 - `float x` — Horizontal position (0.0 = left, 1.0 = right)
 - `float y` — Vertical position (0.0 = top, 1.0 = bottom)
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the cursor position was successfully set, otherwise `false`.
 
@@ -66711,13 +66431,13 @@ For smaller areas, use [`ADD_NAVMESH_BLOCKING_OBJECT`](#_0xFCD5C8E06E502F5A) ins
 
 **Parameters:**
 
-- `cs_type(Any) float posMinX` — X Min Coordinate.
-- `cs_type(Any) float posMinY` — Y Min Coordinate.
-- `cs_type(Any) float posMinZ` — Z Min Coordinate.
-- `cs_type(Any) float posMaxX` — X Max Coordinate.
-- `cs_type(Any) float posMaxY` — Y Max Coordinate.
-- `cs_type(Any) float posMaxZ` — Z Max Coordinate.
-- `cs_type(Any) bool bDisable` — Whether to disable the navmesh or not.
+- `float posMinX` — X Min Coordinate.
+- `float posMinY` — Y Min Coordinate.
+- `float posMinZ` — Z Min Coordinate.
+- `float posMaxX` — X Max Coordinate.
+- `float posMaxY` — Y Max Coordinate.
+- `float posMaxZ` — Z Max Coordinate.
+- `bool bDisable` — Whether to disable the navmesh or not.
 
 ---
 
@@ -66790,7 +66510,7 @@ Same as [`GET_CLOSEST_VEHICLE_NODE`](#_0x240A18690AE96513), but with the node fl
 - `float zMeasureMult` — How strongly the difference in the Z direction should be weighted
 - `int zTolerance` — How far apart the Z coords have to be before `zMeasureMult` kicks in
 
-**Returns:**
+**Return value:**
 
 Returns the closest major vehicle node.
 
@@ -66798,7 +66518,7 @@ Returns the closest major vehicle node.
 
 ### `GET_CLOSEST_ROAD`
 
-`0x132F52BBA570FE92` · `0x567B0E11` · returns `void`
+`0x132F52BBA570FE92` · `0x567B0E11` · returns `bool`
 
 ```c
 cs_type(Any) bool GET_CLOSEST_ROAD(float x, float y, float z, float minimumEdgeLength, int minimumLaneCount, Vector3* srcNode, Vector3* targetNode, int* laneCountForward, int* laneCountBackward, float* width, BOOL onlyMajorRoads);
@@ -66808,7 +66528,7 @@ Finds an edge (node connection to another node) that satisfies the specified cri
 
 **Parameters:**
 
-- `Any) bool GET_CLOSEST_ROAD(float x` — x position
+- `float x` — x position
 - `float y` — y position
 - `float z` — z position
 - `float minimumEdgeLength` — Minimum distance the srcNode must be from the targetNode.
@@ -66820,7 +66540,7 @@ Finds an edge (node connection to another node) that satisfies the specified cri
 - `float* width` — Width of gap in middle of road between forward and backward lanes.
 - `BOOL onlyMajorRoads` — Return major roads only.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if a road was found, `false` otherwise.
 
@@ -66855,7 +66575,7 @@ enum eGetClosestNodeFlags {
 - `float zMeasureMult` — How strongly the difference in the Z direction should be weighted
 - `float zTolerance` — How far apart the Z coords have to be before `zMeasureMult` kicks in
 
-**Returns:**
+**Return value:**
 
 Returns the closest vehicle node matching the node flags.
 
@@ -66882,7 +66602,7 @@ Same as [`GET_CLOSEST_VEHICLE_NODE`](#_0x240A18690AE96513), but with the node fl
 - `float zMeasureMult` — How strongly the difference in the Z direction should be weighted
 - `int zTolerance` — How far apart the Z coords have to be before `zMeasureMult` kicks in
 
-**Returns:**
+**Return value:**
 
 Returns the closest vehicle node with its heading.
 
@@ -66926,7 +66646,7 @@ NativeDB Removed Parameter 1: int index
 
 - `int index`
 
-**Returns:**
+**Return value:**
 
 The disabled zone index
 
@@ -66950,10 +66670,10 @@ Same as [`GET_CLOSEST_VEHICLE_NODE`](#_0x240A18690AE96513), but returns the nth 
 - `int nthClosest` — The index of the node to return
 - `Vector3* outPosition` — Pointer to the found nodes coords
 - `int nodeFlags` — Node flags, see [`GET_CLOSEST_VEHICLE_NODE`](#_0x240A18690AE96513)
-- `cs_type(Any) float zMeasureMult` — How strongly the difference in the Z direction should be weighted
-- `cs_type(Any) float zTolerance` — How far apart the Z coords have to be before `zMeasureMult` kicks in
+- `float zMeasureMult` — How strongly the difference in the Z direction should be weighted
+- `float zTolerance` — How far apart the Z coords have to be before `zMeasureMult` kicks in
 
-**Returns:**
+**Return value:**
 
 Returns the nth closest vehicle node.
 
@@ -66981,10 +66701,10 @@ Like [`GET_CLOSEST_VEHICLE_NODE_WITH_HEADING`](#_0xFF071FB798B803B0), but return
 - `Vector3* outPosition` — Pointer to the found nodes coords
 - `float* outHeading` — Pointer to the found nodes heading
 - `int nodeFlags` — Node flags, see [`GET_CLOSEST_VEHICLE_NODE`](#_0x240A18690AE96513)
-- `cs_type(Any) float zMeasureMult` — How strongly the difference in the Z direction should be weighted
-- `cs_type(Any) float zTolerance` — How far apart the Z coords have to be before `zMeasureMult` kicks in
+- `float zMeasureMult` — How strongly the difference in the Z direction should be weighted
+- `float zTolerance` — How far apart the Z coords have to be before `zMeasureMult` kicks in
 
-**Returns:**
+**Return value:**
 
 Returns the nth closest vehicle node with its heading favouring the desired direction.
 
@@ -67008,7 +66728,7 @@ int GET_NTH_CLOSEST_VEHICLE_NODE_ID(float x, float y, float z, int nthClosest, i
 - `float zMeasureMult` — How strongly the difference in the Z direction should be weighted
 - `float zTolerance` — How far apart the Z coords have to be before `zMeasureMult` kicks in
 
-**Returns:**
+**Return value:**
 
 Returns the nth closest vehicle nodes id.
 
@@ -67029,12 +66749,12 @@ int GET_NTH_CLOSEST_VEHICLE_NODE_ID_WITH_HEADING(float x, float y, float z, int 
 - `float z` — Z coordinate
 - `int nthClosest` — The index of the node to return
 - `Vector3* outPosition` — Pointer to the found nodes coords
-- `cs_type(float) float* outHeading` — Pointer to the found nodes heading
+- `float* outHeading` — Pointer to the found nodes heading
 - `int nodeFlags` — Node flags, see [`GET_CLOSEST_VEHICLE_NODE`](#_0x240A18690AE96513)
 - `float zMeasureMult` — How strongly the difference in the Z direction should be weighted
 - `float zTolerance` — How far apart the Z coords have to be before `zMeasureMult` kicks in
 
-**Returns:**
+**Return value:**
 
 Returns the nth closest vehicle nodes id with its heading.
 
@@ -67063,7 +66783,7 @@ Get the nth closest vehicle node with its heading and total lane count. If you n
 - `float zMeasureMult` — How strongly the difference in the Z direction should be weighted
 - `float zTolerance` — How far apart the Z coords have to be before `zMeasureMult` kicks in
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the node was found, or `false` if the node was not found, or was not streamed in.
 
@@ -67086,7 +66806,7 @@ int GET_NUM_NAVMESHES_EXISTING_IN_AREA(float posMinX, float posMinY, float posMi
 - `float posMaxY` — Max Y Coordinate.
 - `float posMaxZ` — Max Z Coordinate.
 
-**Returns:**
+**Return value:**
 
 Returns the number of navmeshes which exist in the given area (irrespective of whether they are currently loaded or not)
 
@@ -67118,7 +66838,7 @@ enum eGpsSlotType {
 - `float fDistanceAlongRoute` — Distance we want to get the position along the route.
 - `int slotType` — Type of gps route to check against. See `eGpsSlotType`.
 
-**Returns:**
+**Return value:**
 
 will return `true` if a position is returned, `false` if not.
 
@@ -67198,7 +66918,7 @@ enum eSafePositionFlags {
 - `Vector3* outPosition` — The location of the safe coord.
 - `int flags` — The search flags.
 
-**Returns:**
+**Return value:**
 
 Returns true if a safe coord was found and false otherwise.
 
@@ -67325,7 +67045,7 @@ enum eVehicleNodeProperties {
 - `int* density` — The traffic density the current node will spawn in a range of 0-15.
 - `int* flags` — The vehicle node flags, see `eVehicleNodeProperties`.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the node was found, or `false` if the node was not found, or was not streamed in.
 
@@ -67461,12 +67181,12 @@ void SET_GPS_DISABLED_ZONE(cs_type(Any) float x1, cs_type(Any) float y1, cs_type
 
 **Parameters:**
 
-- `cs_type(Any) float x1`
-- `cs_type(Any) float y1`
-- `cs_type(Any) float z1`
-- `cs_type(Any) float x2`
-- `cs_type(Any) float y2`
-- `cs_type(Any) float z2`
+- `float x1`
+- `float y1`
+- `float z1`
+- `float x2`
+- `float y2`
+- `float z2`
 
 ---
 
@@ -68133,6 +67853,18 @@ Applies blood damage to a ped with specific parameters for zone, UV offsets, rot
 NativeDB Introduced: v323
 ```
 
+**Parameters:**
+
+* **ped** The Ped to which blood damage is applied.
+* **component** Specific component or body part.
+* **u** UV texture coordinates for placing the decal in the specified zone.
+* **v** UV texture coordinates for placing the decal in the specified zone.
+* **rotation** Angle in degrees for the rotation of the blood decal.
+* **scale** Scale factor for the damage, ranging from 0.0 to 1.0.
+* **forcedFrame** Allows a specific frame of damage to be chosen (-1 for random selection).
+* **preAge** Number of seconds to pre-age the damage for an "old wound" effect (0.0 for fresh wound).
+* **bloodName** Name of the blood type, matching an entry in peddamage.xml.
+
 ---
 
 ### `APPLY_PED_DAMAGE_DECAL`
@@ -68689,15 +68421,13 @@ Creates a copy of the passed ped, optionally setting it as local and/or shallow-
 **Parameters:**
 
 - `Ped ped` — The input ped.
-- `cs_type(float) BOOL isNetwork` — Whether or not the ped should be registered as a network object.
+- `BOOL isNetwork` — Whether or not the ped should be registered as a network object.
 - `BOOL bScriptHostPed` — Script host flag.
 - `BOOL copyHeadBlendFlag` — If true, head blend data is referenced, not copied.
 
-**Returns:**
+**Return value:**
 
 A new ped handle representing the ped's copy.
-
-**Examples:**
 
 ```lua
 -- makes a locally visible duplicate of the local player for presentation
@@ -68808,7 +68538,7 @@ This ped will initially be owned by the creating script as a mission entity, and
 - `BOOL isNetwork` — Whether to create a network object for the ped. If false, the ped exists only locally.
 - `BOOL bScriptHostPed` — Whether to register the ped as pinned to the script host in the R* network model.
 
-**Returns:**
+**Return value:**
 
 A script handle (fwScriptGuid index) for the ped, or `0` if the ped failed to be created.
 
@@ -69088,10 +68818,10 @@ enum ePedMotionState
 - `Ped ped` — The ped handle.
 - `Hash motionStateHash` — The motion state hash.
 - `BOOL shouldReset` — If the motion state should be set even if the ped is already in the specified motion state.
-- `cs_type(BOOL) int updateState` — Integer but treated as a boolean (only allows 1 or 0). Sets ped reset flags `CPED_RESET_FLAG_ForcePreCameraAiAnimUpdateIfFirstPerson` and `CPED_RESET_FLAG_ForcePostCameraAnimUpdate`.
+- `int updateState` — Integer but treated as a boolean (only allows 1 or 0). Sets ped reset flags `CPED_RESET_FLAG_ForcePreCameraAiAnimUpdateIfFirstPerson` and `CPED_RESET_FLAG_ForcePostCameraAnimUpdate`.
 - `BOOL forceAIPreCameraUpdate` — If `updateState` is 1, will set either `CPED_RESET_FLAG_ForcePreCameraAIUpdate` (if true) or `CPED_RESET_FLAG_ForcePostCameraAIUpdate` (if false) ped reset flags.
 
-**Returns:**
+**Return value:**
 
 Whether or not the motion state was forced on the ped successfully.
 
@@ -70049,7 +69779,7 @@ enum ePedDecorationZone
 - `Hash collection`
 - `Hash overlay`
 
-**Returns:**
+**Return value:**
 
 Returns the doeciration zone for the specific collection and overlay combination, refer to `ePedDecorationZone`
 
@@ -70316,7 +70046,7 @@ int GET_PED_NEARBY_PEDS(Ped ped, int* sizeAndPeds, int ignore);
 
 Console/PC structure definitions and example: pastebin.com/SsFej963
 
-For FiveM/Cfx.Re use-cases refer to: [`GET_GAME_POOL`](#_0x2B9D4F50).
+For Cfx/FiveM use-cases refer to: [`GET_GAME_POOL`](#_0x2B9D4F50).
 
 **Parameters:**
 
@@ -70831,11 +70561,9 @@ Retrieves the vehicle the specified ped is currently in, or the last vehicle the
 - `Ped ped` — The target ped
 - `BOOL lastVehicle` — A boolean value where `false` represents the current vehicle the Ped is in, and `true` represents the last vehicle the Ped was in.
 
-**Returns:**
+**Return value:**
 
 The vehicle id. Returns 0 if the ped is/was not in a vehicle.
-
-**Examples:**
 
 ```lua
 -- This example gets the vehicle the player is currently in and print the vehicle id.
@@ -71022,7 +70750,7 @@ BOOL HAS_ACTION_MODE_ASSET_LOADED(char* asset);
 
 ### `HAS_PEDHEADSHOT_IMG_UPLOAD_FAILED`
 
-`0x876928DDDFCCC9CD` · `0x05023F8F` · returns `void`
+`0x876928DDDFCCC9CD` · `0x05023F8F` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL HAS_PEDHEADSHOT_IMG_UPLOAD_FAILED();
@@ -71032,7 +70760,7 @@ cs_type(Any) BOOL HAS_PEDHEADSHOT_IMG_UPLOAD_FAILED();
 
 ### `HAS_PEDHEADSHOT_IMG_UPLOAD_SUCCEEDED`
 
-`0xE8A169E666CBC541` · `0xAA39FD6C` · returns `void`
+`0xE8A169E666CBC541` · `0xAA39FD6C` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL HAS_PEDHEADSHOT_IMG_UPLOAD_SUCCEEDED();
@@ -71207,7 +70935,7 @@ Verifies whether a ped is firing within a specific area.
 - `BOOL bHighlightArea` — Highlights the area to check when set to `true`.
 - `BOOL bDo3DCheck` — Conducts a 3D height check when set to `true`.
 
-**Returns:**
+**Return value:**
 
 `true` if a ped is within the defined area, `false` otherwise.
 
@@ -71252,7 +70980,7 @@ xyz - relative to the world origin.
 
 ### `IS_PEDHEADSHOT_IMG_UPLOAD_AVAILABLE`
 
-`0xEBB376779A760AA8` · `0x810158F8` · returns `void`
+`0xEBB376779A760AA8` · `0x810158F8` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL IS_PEDHEADSHOT_IMG_UPLOAD_AVAILABLE();
@@ -71427,7 +71155,7 @@ NativeDB Introduced: v323
 - `Ped ped` — The ped to check.
 - `BOOL checkMeleeDeathFlags` — If set to `true`, extends the check to include melee takedown moves as part of the dying phase.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the ped is dead. When `checkMeleeDeathFlags` is set to `true`, it also considers peds in melee takedown moves as dying, although the broader 'dying' phase may not be detected.
 
@@ -71743,7 +71471,7 @@ The default threshold is 100, these are stored in the `pedhealth.meta` file loca
 
 - `Ped ped` — The ped to check for injuries.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the ped is injured, `false` otherwise.
 
@@ -71863,11 +71591,9 @@ currently in the process of entering a vehicle (a specific stage check for `CTas
 - `Ped ped` — The ped to check.
 - `BOOL atGetIn` — `true` to also consider attempting to enter a vehicle.
 
-**Returns:**
+**Return value:**
 
 Whether or not the ped is currently involved in any vehicle.
-
-**Examples:**
 
 ```lua
 if IsPedInAnyVehicle(PlayerPedId(), false) then
@@ -72040,7 +71766,7 @@ NativeDB Introduced: v3407
 - `float z` — Z coordinate
 - `float range` — Radius of sphere.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if ped is within range of any enemies, `false` otherwise.
 
@@ -72401,11 +72127,9 @@ A ped is considered sheltered if they are under a **roof**, a **bridge**, inside
 
 - `Ped ped` — The ped entity to check.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the ped is sheltered, `false` otherwise.
-
-**Examples:**
 
 ```lua
 -- Check if the player's ped is currently under a shelter.
@@ -72645,7 +72369,7 @@ BOOL IS_PED_USING_ANY_SCENARIO(Ped ped);
 
 - `Ped ped` — The ped handle.
 
-**Returns:**
+**Return value:**
 
 Returns true if the ped is using any scenario.
 
@@ -72666,7 +72390,7 @@ See [`TASK_START_SCENARIO_IN_PLACE`](#_0x142A02425FF02BD9) for a list of scenari
 - `Ped ped` — The ped handle.
 - `char* scenario` — The scenario name.
 
-**Returns:**
+**Return value:**
 
 Returns true if the specified ped is using the specified scenario.
 
@@ -72870,11 +72594,9 @@ gtaforums.com/topic/885580-ped-headshotmugshot-txd/
 
 - `Ped ped` — The ped you want to take the "headshot" of.
 
-**Returns:**
+**Return value:**
 
 It returns a Pedheadshot handle, which can be used by natives such as [`GET_PEDHEADSHOT_TXD_STRING`](#_0xDB4EACD4AD0A5D6B)
-
-**Examples:**
 
 ```lua
 CreateThread(function()
@@ -72947,11 +72669,9 @@ Similar to REGISTER_PEDHEADSHOT but creates a transparent background instead of 
 
 - `Ped ped` — A ped handle.
 
-**Returns:**
+**Return value:**
 
 The Pedheadshot handle.
-
-**Examples:**
 
 ```lua
 CreateThread(function()
@@ -73392,7 +73112,7 @@ cs_type(Any) void RESET_PED_VISIBLE_DAMAGE(Ped ped);
 
 **Parameters:**
 
-- `Any) void RESET_PED_VISIBLE_DAMAGE(Ped ped`
+- `Ped ped`
 
 ---
 
@@ -73684,8 +73404,6 @@ Used in combination with [SET_ENABLE_BOUND_ANKLES](#_0xC52E0F855C58FC2E) in deco
 - `Ped ped` — The ped to toggle handcuffs on
 - `BOOL toggle` — true to enable handcuffs, false to disable
 
-**Examples:**
-
 ```lua
 local playerId = PlayerId()
 local isHandcuffed = false
@@ -73965,8 +73683,6 @@ NativeDB Introduced: v323
 - `int blendInDuration` — Animation blending in (in ms). `-1` by default.
 - `int blendOutDuration` — Animation blending out (in ms). `-1` by default.
 
-**Examples:**
-
 ```lua
 -- Points the right arm to -1849.0, -1231.0, 13.0 for 10 seconds
 SetIkTarget(PlayerPedId(), 4, 0, 0, -1849.0, -1231.0, 13.0, 0, 0, 10000)
@@ -74020,7 +73736,7 @@ accuracy = 0-100, 100 being perfectly accurate
 
 **Parameters:**
 
-- `Any) void SET_PED_ACCURACY(Ped ped`
+- `Ped ped`
 - `int accuracy`
 
 ---
@@ -74524,8 +74240,6 @@ This is probably what's being used in GTA:O to keep players from knocking other 
 - `Ped ped` — The target ped
 - `BOOL loseProps` — true = allow props to fall off, false = don't let props fall off
 - `int p2` — purpose unknown, usually 0
-
-**Examples:**
 
 ```lua
 -- Make the ped NOT lose their props when they're hit or pushed.
@@ -75100,6 +74814,7 @@ This native is used to set component variation on a ped. Components, drawables a
 **11**: Torso 2
 
 List of Component IDs
+
 ```c
 // Components
 enum ePedVarComp
@@ -75788,8 +75503,6 @@ void SET_PED_DENSITY_MULTIPLIER_THIS_FRAME(float multiplier);
 
 - `float multiplier` — Adjust from 0.0 (minimum, indicating no pedestrians in the street) to 1.0 (maximum, representing a normal amount of pedestrians on the street).
 
-**Examples:**
-
 ```lua
 -- 0.0 means no peds, while 1.0 indicates the regular density of peds.
 local pedsDensityFactor = 0.0 
@@ -75898,7 +75611,7 @@ cs_type(Any) void SET_PED_DIES_WHEN_INJURED(Ped ped, BOOL toggle);
 
 **Parameters:**
 
-- `Any) void SET_PED_DIES_WHEN_INJURED(Ped ped`
+- `Ped ped`
 - `BOOL toggle`
 
 ---
@@ -75947,7 +75660,7 @@ cs_type(Any) void SET_PED_ENABLE_WEAPON_BLOCKING(Ped ped, BOOL toggle);
 
 **Parameters:**
 
-- `Any) void SET_PED_ENABLE_WEAPON_BLOCKING(Ped ped`
+- `Ped ped`
 - `BOOL toggle`
 
 ---
@@ -76196,8 +75909,6 @@ This native function is often called prior to calling natives such as:
 - `float thirdMix` — Overrides the others in favor of the third IDs.
 - `BOOL isParent` — IsParent is set for "children" of the player character's grandparents during old-gen character creation. It has unknown effect otherwise.
 
-**Examples:**
-
 ```lua
 -- Unfortunately, there's no clear way of getting the head blend data in lua out of the box, but there are wrappers:
 -- https://forum.cfx.re/t/small-c-export-event-wrapper-for-getpedheadblenddata/214611
@@ -76271,7 +75982,7 @@ void SET_PED_HEATSCALE_OVERRIDE(Ped ped, cs_type(Any) float heatScale);
 **Parameters:**
 
 - `Ped ped`
-- `cs_type(Any) float heatScale`
+- `float heatScale`
 
 ---
 
@@ -76557,8 +76268,6 @@ Passing -1 into the second parameter `minTimeInMs` will reset the modifier, maki
 - `Ped ped` — The ped to set the min ground time for
 - `int minTimeInMs` — The minimum time the stun should last in milliseconds.
 
-**Examples:**
-
 ```lua
 -- This sets the minimum stun ground time for the player's ped to 10 seconds (and re-applies it if the player's ped changes)
 
@@ -76655,7 +76364,7 @@ void SET_PED_MODEL_IS_SUPPRESSED(cs_type(int) Hash model, BOOL toggle);
 
 **Parameters:**
 
-- `cs_type(int) Hash model`
+- `Hash model`
 - `BOOL toggle`
 
 ---
@@ -76922,8 +76631,6 @@ NativeDB Introduced: v323
 - `Ped ped` — The Ped whose phone palette is to be set.
 - `int index` — The index of the color palette to apply to the ped's phone.
 
-**Examples:**
-
 ```lua
 -- Define a table with color names mapped to their corresponding palette indices for phone colors
 local PhoneColors = {
@@ -77123,6 +76830,7 @@ This native is used to set prop variation on a ped. Components, drawables and te
 **7**: Bracelets
 
 List of Prop IDs
+
 ```c
 enum eAnchorPoints
 {
@@ -77163,7 +76871,7 @@ cs_type(Any) void SET_PED_RAGDOLL_FORCE_FALL(Ped ped);
 
 **Parameters:**
 
-- `Any) void SET_PED_RAGDOLL_FORCE_FALL(Ped ped`
+- `Ped ped`
 
 ---
 
@@ -77200,7 +76908,7 @@ p1 is always 0 in R* scripts; and a quick disassembly seems to indicate that p1 
 **Parameters:**
 
 - `Ped ped`
-- `cs_type(BOOL) int p1`
+- `int p1`
 
 ---
 
@@ -77271,8 +76979,10 @@ void SET_PED_RESERVE_PARACHUTE_TINT_INDEX(Ped ped, Any p1);
 void SET_PED_RESET_FLAG(Ped ped, int flagId, BOOL doReset);
 ```
 
+```
 PED::SET_PED_RESET_FLAG(PLAYER::PLAYER_PED_ID(), 240, 1);
 Known values:
+```
 
 **Parameters:**
 
@@ -78976,7 +78686,7 @@ BOOL _0x9C6A6C19B6C0C496(Ped ped, cs_type(AnyPtr) int* p1);
 **Parameters:**
 
 - `Ped ped`
-- `cs_type(AnyPtr) int* p1`
+- `int* p1`
 
 ---
 
@@ -79098,7 +78808,7 @@ NativeDB Introduced: v1290
 - `Ped ped`
 - `Any p1`
 - `float p2`
-- `cs_type(Any) Hash hash`
+- `Hash hash`
 - `Any p4`
 - `Any p5`
 
@@ -79534,9 +79244,9 @@ Used one time in fmmc_launcher.c instead of CLONE_PED because ?
 **Parameters:**
 
 - `Ped ped`
-- `cs_type(Any) float heading`
-- `cs_type(Any) BOOL isNetwork`
-- `cs_type(Any) BOOL bScriptHostPed`
+- `float heading`
+- `BOOL isNetwork`
+- `BOOL bScriptHostPed`
 - `Any p4`
 
 ---
@@ -79585,7 +79295,7 @@ BOOL _DOES_RELATIONSHIP_GROUP_EXIST(cs_type(Any) Hash groupHash);
 
 **Parameters:**
 
-- `cs_type(Any) Hash groupHash`
+- `Hash groupHash`
 
 ---
 
@@ -79694,7 +79404,7 @@ Use [`SetPedIlluminatedClothingGlowIntensity`](#_0x4E90D746056E273D) to set the 
 
 - `Ped ped` — The ped to get the glow intensity from.
 
-**Returns:**
+**Return value:**
 
 A float between 0.0 and 1.0 representing the current illuminated clothing glow intensity.
 
@@ -79734,11 +79444,9 @@ A getter for [`_SET_PED_EYE_COLOR`](#_0x50B56988B170AFDF).
 
 - `Ped ped` — The target ped
 
-**Returns:**
+**Return value:**
 
 Returns ped's eye colour, or -1 if fails to get.
-
-**Examples:**
 
 ```lua
 local pedEyeColour = N_0x76bba2cee66d47e9(PlayerPedId())
@@ -79869,7 +79577,7 @@ GET_TIME_*
 **Parameters:**
 
 - `Ped ped`
-- `cs_type(Any) Hash weaponHash`
+- `Hash weaponHash`
 
 ---
 
@@ -79903,7 +79611,7 @@ BOOL _IS_PED_BLUSH_COLOR_VALID_2(int colorId);
 
 ### `_IS_PED_BODY_BLEMISH_VALID`
 
-`0x09E7ECA981D9B210` · returns `void`
+`0x09E7ECA981D9B210` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL _IS_PED_BODY_BLEMISH_VALID(int colorID);
@@ -79915,7 +79623,7 @@ NativeDB Introduced: v1290
 
 **Parameters:**
 
-- `Any) BOOL _IS_PED_BODY_BLEMISH_VALID(int colorID`
+- `int colorID`
 
 ---
 
@@ -80197,7 +79905,6 @@ This native sets the glow intensity of illuminated clothing items.
 This native does **NOT** need to be executed every tick.
 This native is **NOT** synced with other connected players, you will have to set the opacity on the ped on all clients individually.
 
-
 Glow intensity is a value between `0.0` and `1.0`.
 
 In some older decompiled scripts this is known as `_SET_PED_REFLECTION_INTENSITY`.
@@ -80220,8 +79927,6 @@ Intensity: `0.0`:
 
 - `Ped ped` — The ped to set the glow intensity on.
 - `float intensity` — The glow intensity, value between `0.0` and `1.0`.
-
-**Examples:**
 
 ```lua
 CreateThread(function()
@@ -80342,26 +80047,26 @@ Sets the various freemode face features, e.g. nose length, chin shape.
 
 Parentheses indicate morph scale/direction as in (-1.0 to 1.0)
 
-* **0**: Nose Width (Thin/Wide)
-* **1**: Nose Peak (Up/Down)
-* **2**: Nose Length (Long/Short)
-* **3**: Nose Bone Curveness (Crooked/Curved)
-* **4**: Nose Tip (Up/Down)
-* **5**: Nose Bone Twist (Left/Right)
-* **6**: Eyebrow (Up/Down)
-* **7**: Eyebrow (In/Out)
-* **8**: Cheek Bones (Up/Down)
-* **9**: Cheek Sideways Bone Size (In/Out)
-* **10**: Cheek Bones Width (Puffed/Gaunt)
-* **11**: Eye Opening (Both) (Wide/Squinted)
-* **12**: Lip Thickness (Both) (Fat/Thin)
-* **13**: Jaw Bone Width (Narrow/Wide)
-* **14**: Jaw Bone Shape (Round/Square)
-* **15**: Chin Bone (Up/Down)
-* **16**: Chin Bone Length (In/Out or Backward/Forward)
-* **17**: Chin Bone Shape (Pointed/Square)
-* **18**: Chin Hole (Chin Bum)
-* **19**: Neck Thickness (Thin/Thick)
+- `0` — Nose Width (Thin/Wide)
+- `1` — Nose Peak (Up/Down)
+- `2` — Nose Length (Long/Short)
+- `3` — Nose Bone Curveness (Crooked/Curved)
+- `4` — Nose Tip (Up/Down)
+- `5` — Nose Bone Twist (Left/Right)
+- `6` — Eyebrow (Up/Down)
+- `7` — Eyebrow (In/Out)
+- `8` — Cheek Bones (Up/Down)
+- `9` — Cheek Sideways Bone Size (In/Out)
+- `10` — Cheek Bones Width (Puffed/Gaunt)
+- `11` — Eye Opening (Both) (Wide/Squinted)
+- `12` — Lip Thickness (Both) (Fat/Thin)
+- `13` — Jaw Bone Width (Narrow/Wide)
+- `14` — Jaw Bone Shape (Round/Square)
+- `15` — Chin Bone (Up/Down)
+- `16` — Chin Bone Length (In/Out or Backward/Forward)
+- `17` — Chin Bone Shape (Pointed/Square)
+- `18` — Chin Hole (Chin Bum)
+- `19` — Neck Thickness (Thin/Thick)
 
 **Note:**
 
@@ -80437,7 +80142,7 @@ This native sets a scuba mask for freemode models and an oxygen bottle for playe
 
 ### `_SET_PED_SHOULD_PLAY_DIRECTED_SCENARIO_EXIT`
 
-`0xEC6935EBE0847B90` · `0x761F8F48` · returns `void`
+`0xEC6935EBE0847B90` · `0x761F8F48` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL _SET_PED_SHOULD_PLAY_DIRECTED_SCENARIO_EXIT(Ped ped, cs_type(Any) float x, cs_type(Any) float y, cs_type(Any) float z);
@@ -80450,12 +80155,12 @@ then the ped will by default attempt to direct their exit forwards.
 
 **Parameters:**
 
-- `Any) BOOL _SET_PED_SHOULD_PLAY_DIRECTED_SCENARIO_EXIT(Ped ped` — the ped who should play a normal (unhurried) exit the next time they are given a script command.
-- `cs_type(Any) float x` — X Coordinate.
-- `cs_type(Any) float y` — Y Coordinate.
-- `cs_type(Any) float z` — Z Coordinate.
+- `Ped ped` — the ped who should play a normal (unhurried) exit the next time they are given a script command.
+- `float x` — X Coordinate.
+- `float y` — Y Coordinate.
+- `float z` — Z Coordinate.
 
-**Returns:**
+**Return value:**
 
 Returns true if the position was successfully set.
 
@@ -80480,7 +80185,7 @@ NativeDB Introduced: v3407
 - `Ped ped` — The marine animal ped
 - `BOOL toggle` — `true` to allow survival out of water, `false` to apply normal water restrictions.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if successful.
 
@@ -80496,7 +80201,7 @@ void _SET_RELATIONSHIP_GROUP_DONT_AFFECT_WANTED_LEVEL(cs_type(Any) Hash group, B
 
 **Parameters:**
 
-- `cs_type(Any) Hash group`
+- `Hash group`
 - `BOOL p1`
 
 ---
@@ -80570,11 +80275,9 @@ enum ePhysicsRopeType {
 - `BOOL breakable` — Whether shooting the rope will break it.
 - `Any* unkPtr` — Unknown pointer, always 0 in original scrips.
 
-**Returns:**
+**Return value:**
 
 A script handle for the rope
-
-**Examples:**
 
 ```lua
 local function cleanup_rope_textures()
@@ -80799,7 +80502,7 @@ cs_type(Any) void DELETE_CHILD_ROPE(int ropeId);
 
 **Parameters:**
 
-- `Any) void DELETE_CHILD_ROPE(int ropeId`
+- `int ropeId`
 
 ---
 
@@ -80852,7 +80555,7 @@ For an example on how to use this native please refer to [ADD_ROPE](#_0xE832D760
 
 - `int* ropeId` — The handle of the rope to check
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the rope exists, `false` otherwise.
 
@@ -80893,7 +80596,7 @@ NativeDB Introduced: v3407
 
 ### `GET_ROPE_LAST_VERTEX_COORD`
 
-`0x21BB0FBD3E217C2D` · `0x91F6848B` · returns `void`
+`0x21BB0FBD3E217C2D` · `0x91F6848B` · returns `Vector3`
 
 ```c
 cs_type(Any) Vector3 GET_ROPE_LAST_VERTEX_COORD(int ropeId);
@@ -80901,7 +80604,7 @@ cs_type(Any) Vector3 GET_ROPE_LAST_VERTEX_COORD(int ropeId);
 
 **Parameters:**
 
-- `Any) Vector3 GET_ROPE_LAST_VERTEX_COORD(int ropeId`
+- `int ropeId`
 
 ---
 
@@ -80948,7 +80651,7 @@ Rope presets can be found in the gamefiles. One example is "ropeFamily3", it is 
 
 **Parameters:**
 
-- `Any) void LOAD_ROPE_DATA(int ropeId`
+- `int ropeId`
 - `char* rope_preset`
 
 ---
@@ -81024,7 +80727,7 @@ Forces a rope to a certain length.
 
 **Parameters:**
 
-- `Any) void ROPE_FORCE_LENGTH(int ropeId`
+- `int ropeId`
 - `float length`
 
 ---
@@ -81176,7 +80879,7 @@ cs_type(Any) void SET_DISABLE_BREAKING(Object object, BOOL toggle);
 
 **Parameters:**
 
-- `Any) void SET_DISABLE_BREAKING(Object object`
+- `Object object`
 - `BOOL toggle`
 
 ---
@@ -81262,7 +80965,7 @@ cs_type(Any) void UNPIN_ROPE_VERTEX(int ropeId, int vertex);
 
 **Parameters:**
 
-- `Any) void UNPIN_ROPE_VERTEX(int ropeId`
+- `int ropeId`
 - `int vertex`
 
 ---
@@ -81296,7 +80999,7 @@ BOOL _0x84DE3B5FB3E666F0(cs_type(AnyPtr) int* ropeId);
 
 **Parameters:**
 
-- `cs_type(AnyPtr) int* ropeId`
+- `int* ropeId`
 
 ---
 
@@ -81844,7 +81547,7 @@ void FORCE_CLEANUP_FOR_THREAD_WITH_THIS_ID(int id, int cleanupFlags);
 BOOL GET_ARE_CAMERA_CONTROLS_DISABLED();
 ```
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the main player's camera controls are disabled. Also returns `true` if the there is no main player info.
 
@@ -81892,11 +81595,9 @@ BOOL GET_IS_PLAYER_DRIVING_ON_HIGHWAY(Player playerId);
 
 - `Player playerId` — The local index of the player to check (see [PLAYER_ID](#_0x4F8644AF03D0E0D6))
 
-**Returns:**
+**Return value:**
 
 Returns a boolean value representing if the player is driving on a highway.
-
-**Examples:**
 
 ```lua
 -- Get and store the local player index
@@ -81957,7 +81658,7 @@ This native will return `0` if the last vehicle the player was in was destroyed.
 
 You can use [GET_VEHICLE_PED_IS_IN](#_0x9A9112A0FE9A4713), which will actually get the last vehicle, even if it was destroyed.
 
-**Returns:**
+**Return value:**
 
 A vehicle handle containing the last player's vehicle.
 
@@ -82053,7 +81754,7 @@ You should use [`GET_PLAYER_INVINCIBLE_2`](#_0xF2E3912B) to get both [`SET_PLAYE
 
 - `Player player` — The player index
 
-**Returns:**
+**Return value:**
 
 A boolean to tell if the player is invincible.
 
@@ -82087,7 +81788,7 @@ Returns the players name from a specified player index
 
 - `Player player` — The player index, or -1 to get the local player ped.
 
-**Returns:**
+**Return value:**
 
 The name of the queried player. "**Invalid**" if the player does not exist.
 
@@ -82175,11 +81876,9 @@ Note: For performance reasons, usage of [`PLAYER_PED_ID`](#_0xD80958FC74E988A6) 
 
 - `Player playerId` — The player index, or -1 to get the local player ped.
 
-**Returns:**
+**Return value:**
 
 The specified player's ped, or 0 if invalid.
-
-**Examples:**
 
 ```lua
 local playerIdx = GetPlayerFromServerId(source)
@@ -82462,7 +82161,7 @@ int GET_TIME_SINCE_PLAYER_HIT_VEHICLE(Player player);
 
 ### `GET_WANTED_LEVEL_RADIUS`
 
-`0x085DEB493BE80812` · `0x1CF7D7DA` · returns `void`
+`0x085DEB493BE80812` · `0x1CF7D7DA` · returns `float`
 
 ```c
 cs_type(Any) float GET_WANTED_LEVEL_RADIUS(Player player);
@@ -82474,7 +82173,7 @@ Remnant from GTA IV. Does nothing in GTA V.
 
 **Parameters:**
 
-- `Any) float GET_WANTED_LEVEL_RADIUS(Player player`
+- `Player player`
 
 ---
 
@@ -82498,7 +82197,7 @@ Drft
 
 ### `GIVE_ACHIEVEMENT_TO_PLAYER`
 
-`0xBEC7076D64130195` · `0x822BC992` · returns `void`
+`0xBEC7076D64130195` · `0x822BC992` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL GIVE_ACHIEVEMENT_TO_PLAYER(int achievement);
@@ -82511,7 +82210,7 @@ more achievements came with update 1.29 (freemode events update), I'd say that t
 
 **Parameters:**
 
-- `Any) BOOL GIVE_ACHIEVEMENT_TO_PLAYER(int achievement`
+- `int achievement`
 
 ---
 
@@ -82832,7 +82531,7 @@ BOOL IS_PLAYER_ONLINE();
 
 It returns true if the player is online, suggesting they are also logged in locally. Note that this is an alias for `NETWORK_IS_SIGNED_ONLINE`.
 
-**Returns:**
+**Return value:**
 
 It provides a true value if the game is in online mode and false if it's in offline mode.
 
@@ -83112,7 +82811,7 @@ Player PLAYER_ID();
 
 Returns the player index for the local player.
 
-**Returns:**
+**Return value:**
 
 The local player's player index.
 
@@ -83128,7 +82827,7 @@ Ped PLAYER_PED_ID();
 
 Returns the entity handle for the local player ped. Note that this entity handle will change after using commands such as SET\_PLAYER\_MODEL.
 
-**Returns:**
+**Return value:**
 
 The local player ped's entity handle.
 
@@ -83144,7 +82843,7 @@ cs_type(Any) void REMOVE_PLAYER_HELMET(Player player, BOOL p2);
 
 **Parameters:**
 
-- `Any) void REMOVE_PLAYER_HELMET(Player player`
+- `Player player`
 - `BOOL p2`
 
 ---
@@ -83319,8 +83018,6 @@ Adds a percentage to a players stamina
 
 - `Player player` — player to restore the stamina for
 - `float percentage` — seems to be a percentage that ranges from 0.0 to 1.0 (1.0 being 100%)
-
-**Examples:**
 
 ```lua
 Citizen.CreateThread(function()
@@ -83499,8 +83196,8 @@ void SET_PLAYER_BLUETOOTH_STATE(cs_type(BOOL) Player player, cs_type(ScrHandle) 
 
 **Parameters:**
 
-- `cs_type(BOOL) Player player`
-- `cs_type(ScrHandle) BOOL state`
+- `Player player`
+- `BOOL state`
 
 ---
 
@@ -83540,8 +83237,6 @@ This is a toggle, it does not have to be ran every frame.
 - `Player player` — The player to target.
 - `BOOL toggle` — If set to false, disables the players ability to do drive bys.
 
-**Examples:**
-
 ```lua
 SetPlayerCanDoDriveBy(PlayerId(), false)
 ```
@@ -83577,7 +83272,7 @@ Sets whether this player can take cover.
 
 **Parameters:**
 
-- `Any) void SET_PLAYER_CAN_USE_COVER(Player player`
+- `Player player`
 - `BOOL toggle`
 
 ---
@@ -83629,7 +83324,7 @@ void SET_PLAYER_CLOTH_PIN_FRAMES(Player player, cs_type(BOOL) int p1);
 **Parameters:**
 
 - `Player player`
-- `cs_type(BOOL) int p1`
+- `int p1`
 
 ---
 
@@ -83740,8 +83435,6 @@ This multiplier is reset to `1.0` every time the player ped is changed, often ti
 - `Player player` — The local player ID, see [PLAYER_ID](#_0x4F8644AF03D0E0D6).
 - `float regenRate` — The recharge multiplier, this value needs to be a positive float value to work.
 
-**Examples:**
-
 ```lua
 -- To disable the health recharge completely:
 SetPlayerHealthRechargeMultiplier(PlayerId(), 0.0)
@@ -83800,8 +83493,6 @@ Used to toggle the square up aim.
 
 - `Player player` — The player ID to toggle the lock on for.
 - `BOOL toggle` — Set to false to prevent lock on, set to true to allow for lock on.
-
-**Examples:**
 
 ```lua
 local plyId = PlayerId()
@@ -83935,8 +83626,6 @@ As per usual, make sure to request the model first and wait until it has loaded.
 
 - `Player player` — The player to set the model for
 - `Hash model` — The model to use
-
-**Examples:**
 
 ```lua
 local model = `a_f_m_beach_01`
@@ -84331,9 +84020,9 @@ P2: Not set by any call
 **Parameters:**
 
 - `Player player`
-- `cs_type(float) Vector3* position`
-- `cs_type(float) BOOL p2`
-- `cs_type(float) BOOL p3`
+- `Vector3* position`
+- `BOOL p2`
+- `BOOL p3`
 
 ---
 
@@ -84350,8 +84039,6 @@ void SET_PLAYER_WANTED_LEVEL(Player player, int wantedLevel, BOOL delayedRespons
 - `Player player` — the target player
 - `int wantedLevel` — the wanted level 1-5
 - `BOOL delayedResponse` — false = 0-10sec police spawn response time, true = 10-20sec police spawn response time
-
-**Examples:**
 
 ```lua
 local player = PlayerId()
@@ -84394,8 +84081,6 @@ void SET_PLAYER_WANTED_LEVEL_NO_DROP(Player player, int wantedLevel, BOOL delaye
 - `Player player` — the target player
 - `int wantedLevel` — the wanted level 1-5
 - `BOOL delayedResponse` — false = 0-10sec police spawn response time, true = 10-20sec police spawn response time
-
-**Examples:**
 
 ```lua
 local player = PlayerId()
@@ -84587,8 +84272,6 @@ Call this native every frame so you can control the direction of your ped.
 - `float rotationSpeed` — Determines the counterclockwise rotation angle when walking.
 - `BOOL p4` — Always true
 - `BOOL p5` — Always false
-
-**Examples:**
 
 ```cs
 SimulatePlayerInputGait(Game.Player.Handle, 1f, 100, 1f, 1, 0); //Player will go forward for 100ms
@@ -84935,8 +84618,6 @@ Also if you're in a vehicle and teleportWithVehicle is true it will not find the
 - `BOOL teleportWithVehicle` — Teleports the player along with the vehicle they are in.
 - `BOOL findCollisionLand` — Attempt to find a ground coordinate at the given XY location; overriding the Z value.
 - `BOOL p7`
-
-**Examples:**
 
 ```lua
 local coords = vector3(100.0, 100.0, 50.0)
@@ -85641,9 +85322,9 @@ Always returns 0 in retail version of the game.
 
 - `int achievement`
 
-**Returns:**
+**Return value:**
 
-Returns the progression of an achievement; 0 if the achievement cannot be progressed.
+Returns the progression of an achievement; 0 if the achievement cannot be progressed.  
 
 ---
 
@@ -85772,7 +85453,7 @@ Used solely in "Al Di Napoli" with type 2 for a voiceline.
 - `Player player` — Player ID
 - `int type` — Refer to `eViolationType`.
 
-**Returns:**
+**Return value:**
 
 Returns true if the player is performing the `type` traffic violation.
 
@@ -86164,7 +85845,7 @@ BOOL _IS_RECORDING();
 
 Checks if you're recording.
 
-**Returns:**
+**Return value:**
 
 Whether recording is currently running, true when you start recording (F1) or turn on action replay (F2)
 
@@ -86592,11 +86273,9 @@ int GET_ID_OF_THIS_THREAD();
 BOOL GET_NO_LOADING_SCREEN();
 ```
 
-**Returns:**
+**Return value:**
 
 The value that was set by [SET_NO_LOADING_SCREEN](#_0x5262CC1995D07E09)
-
-**Examples:**
 
 ```lua
 SetNoLoadingScreen(true)
@@ -86750,8 +86429,6 @@ Doesn't seem to do anything. Set value can be retrieved using [`GET_NO_LOADING_S
 
 - `BOOL toggle` — Enabled/Disable
 
-**Examples:**
-
 ```lua
 SetNoLoadingScreen(true)
 print(GetNoLoadingScreen()) -- will return true
@@ -86798,8 +86475,6 @@ void SHUTDOWN_LOADING_SCREEN();
 Shuts down the loading screen and switches to normal game view. Should only be used by [spawnmanager](https://docs.fivem.net/docs/resources/spawnmanager/) or similar resources after loading and spawning the player ped. If no script does this, the game is stuck in the infamous bridge screen with the "Awaiting scripts" text and loading circle at the bottom right corner.
 
 ![](https://i.imgur.com/WULopNH.jpeg)
-
-**Examples:**
 
 ```lua
 ShutdownLoadingScreen()
@@ -87014,7 +86689,7 @@ See TRIGGER_SCRIPT_EVENT
 
 **Parameters:**
 
-- `cs_type(BOOL) int eventGroup`
+- `int eventGroup`
 - `int* eventData`
 - `int eventDataSize`
 - `int playerBits`
@@ -87048,7 +86723,7 @@ Unless the return value is 2, the other return values are undefined.
 - `Vector3* surfaceNormal` — The surface normal of the hit position.
 - `Entity* entityHit` — Any dynamic entity hit by the shape test.
 
-**Returns:**
+**Return value:**
 
 `0` if the handle is invalid, `1` if the shape test is still pending, or `2` if the shape test has completed, and the handle should be invalidated.
 
@@ -87077,7 +86752,7 @@ Unless the return value is 2, the other return values are undefined.
 - `Hash* materialHash` — hash of the hit material or surface type, see materialFX.dat
 - `Entity* entityHit` — Any dynamic entity hit by the shape test.
 
-**Returns:**
+**Return value:**
 
 `0` if the handle is invalid, `1` if the shape test is still pending, or `2` if the shape test has completed, and the handle should be invalidated.
 
@@ -87124,7 +86799,7 @@ Use [START_SHAPE_TEST_LOS_PROBE](#_0x7EE9F5D83DD4F90E) instead. Literally. Rocks
 - `Entity entity` — An entity to ignore, or 0.
 - `int p8` — A bit mask with bits 1, 2 and/or 4, relating to collider types. 4 should usually be used.
 
-**Returns:**
+**Return value:**
 
 A shape test handle.
 
@@ -87259,7 +86934,7 @@ enum eTraceOptionFlags
 }
 ```
 
-NOTE: Raycasts that intersect with mission_entites (flag = 2) has limited range and will not register for far away entites. The range seems to be about 30 metres.  
+NOTE: Raycasts that intersect with mission_entities (flag = 2) has limited range and will not register for far away entities. The range seems to be about 30 metres.  
 
 Use the handle with [GET_SHAPE_TEST_RESULT](#_0x3D87450E15D98694) or [GET_SHAPE_TEST_RESULT_INCLUDING_MATERIAL](#_0x65287525D951F6BE) until it returns 0 or 2.
 
@@ -87275,7 +86950,7 @@ Use the handle with [GET_SHAPE_TEST_RESULT](#_0x3D87450E15D98694) or [GET_SHAPE_
 - `Entity entity` — An entity to ignore, or 0.
 - `int optionFlags` — Refer to `eTraceOptionFlags`, this defines additional options for the shape test
 
-**Returns:**
+**Return value:**
 
 A shape test handle.
 
@@ -87398,8 +87073,8 @@ NativeDB Introduced: v323
 
 **Parameters:**
 
-- `char * name`
-- `float * outValue`
+- `char name`
+- `float outValue`
 
 ---
 
@@ -87417,8 +87092,8 @@ NativeDB Introduced: v323
 
 **Parameters:**
 
-- `char * name`
-- `int * outValue`
+- `char name`
+- `int outValue`
 
 ---
 
@@ -87756,7 +87431,7 @@ See also: [`SC_PROFANITY_GET_CHECK_IS_VALID`](#_0x1753344C770358AE) and [`SC_PRO
 
 ### `SC_PROFANITY_GET_CHECK_IS_PENDING`
 
-`0x82E4A58BABC15AE7` · `0xA796D7A7` · returns `void`
+`0x82E4A58BABC15AE7` · `0xA796D7A7` · returns `BOOL`
 
 ```c
 cs_type(int) BOOL SC_PROFANITY_GET_CHECK_IS_PENDING(int token);
@@ -87764,7 +87439,7 @@ cs_type(int) BOOL SC_PROFANITY_GET_CHECK_IS_PENDING(int token);
 
 **Parameters:**
 
-- `int) BOOL SC_PROFANITY_GET_CHECK_IS_PENDING(int token`
+- `int token`
 
 ---
 
@@ -87865,7 +87540,7 @@ BOOL _0x19853B5B17D77BCA(Any p0, Any* p1);
 
 ### `_0x1D12A56FC95BE92E`
 
-`0x1D12A56FC95BE92E` · `0x92452C0E` · returns `void`
+`0x1D12A56FC95BE92E` · `0x92452C0E` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL _0x1D12A56FC95BE92E();
@@ -87896,7 +87571,7 @@ BOOL _0x225798743970412B(int* p0);
 
 ### `_0x2570E26BE63964E3`
 
-`0x2570E26BE63964E3` · `0x59394583` · returns `void`
+`0x2570E26BE63964E3` · `0x59394583` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL _0x2570E26BE63964E3();
@@ -87937,7 +87612,7 @@ BOOL _0x3001BEF2FECA3680();
 
 ### `_0x33DF47CC0642061B`
 
-`0x33DF47CC0642061B` · `0xBBA8D34D` · returns `void`
+`0x33DF47CC0642061B` · `0xBBA8D34D` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL _0x33DF47CC0642061B();
@@ -87968,7 +87643,7 @@ void _0x44ACA259D67651DB(Any* p0, Any p1);
 
 ### `_0x450819D8CF90C416`
 
-`0x450819D8CF90C416` · `0x0572EB5E` · returns `void`
+`0x450819D8CF90C416` · `0x0572EB5E` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL _0x450819D8CF90C416();
@@ -88041,7 +87716,7 @@ NativeDB Introduced: v323
 
 ### `_0x50A8A36201DBF83E`
 
-`0x50A8A36201DBF83E` · `0x8DA93C3D` · returns `void`
+`0x50A8A36201DBF83E` · `0x8DA93C3D` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL _0x50A8A36201DBF83E();
@@ -88097,7 +87772,7 @@ BOOL _0x6BFB12CE158E3DD4(Any p0);
 
 ### `_0x710BCDA8071EDED1`
 
-`0x710BCDA8071EDED1` · `0x04EE74A3` · returns `void`
+`0x710BCDA8071EDED1` · `0x04EE74A3` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL _0x710BCDA8071EDED1();
@@ -88137,7 +87812,7 @@ NativeDB Introduced: v323
 
 ### `_0x8A4416C0DB05FA66`
 
-`0x8A4416C0DB05FA66` · returns `void`
+`0x8A4416C0DB05FA66` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL _0x8A4416C0DB05FA66(Any* newsStoryData);
@@ -88149,7 +87824,7 @@ NativeDB Introduced: v1290
 
 **Parameters:**
 
-- `Any) BOOL _0x8A4416C0DB05FA66(Any* newsStoryData`
+- `Any* newsStoryData`
 
 ---
 
@@ -88200,7 +87875,7 @@ BOOL _0x92DA6E70EF249BD1(char* p0, int* p1);
 
 ### `_0x9DE5D2F723575ED0`
 
-`0x9DE5D2F723575ED0` · `0x37DD48B5` · returns `void`
+`0x9DE5D2F723575ED0` · `0x37DD48B5` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL _0x9DE5D2F723575ED0();
@@ -88216,7 +87891,7 @@ NativeDB Introduced: v323
 
 ### `_0xA468E0BE12B12C70`
 
-`0xA468E0BE12B12C70` · `0xB21288FA` · returns `void`
+`0xA468E0BE12B12C70` · `0xB21288FA` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL _0xA468E0BE12B12C70();
@@ -88231,7 +87906,7 @@ NativeDB Introduced: v323
 
 ### `_0xC2C97EA97711D1AE`
 
-`0xC2C97EA97711D1AE` · `0xF929F61D` · returns `void`
+`0xC2C97EA97711D1AE` · `0xF929F61D` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL _0xC2C97EA97711D1AE();
@@ -88246,7 +87921,7 @@ NativeDB Introduced: v323
 
 ### `_0xC5A35C73B68F3C49`
 
-`0xC5A35C73B68F3C49` · `0x7E24BD6E` · returns `void`
+`0xC5A35C73B68F3C49` · `0x7E24BD6E` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL _0xC5A35C73B68F3C49();
@@ -88291,7 +87966,7 @@ NativeDB Introduced: v1290
 
 ### `_0xE75A4A2E5E316D86`
 
-`0xE75A4A2E5E316D86` · `0x28C57FA0` · returns `void`
+`0xE75A4A2E5E316D86` · `0x28C57FA0` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL _0xE75A4A2E5E316D86();
@@ -88414,7 +88089,7 @@ Same as HAS_ACHIEVEMENT_BEEN_PASSED
 
 ### `_SC_GET_NICKNAME`
 
-`0x198D161F458ECC7F` · returns `void`
+`0x198D161F458ECC7F` · returns `char*`
 
 ```c
 cs_type(Entity) char* _SC_GET_NICKNAME();
@@ -89075,8 +88750,8 @@ void PLAYSTATS_AWARD_XP(int amount, cs_type(Any) Hash type, cs_type(Any) Hash ca
 **Parameters:**
 
 - `int amount`
-- `cs_type(Any) Hash type`
-- `cs_type(Any) Hash category`
+- `Hash type`
+- `Hash category`
 
 ---
 
@@ -89192,7 +88867,7 @@ void PLAYSTATS_HEIST_SAVE_CHEAT(cs_type(Any) Hash hash, int p1);
 
 **Parameters:**
 
-- `cs_type(Any) Hash hash`
+- `Hash hash`
 - `int p1`
 
 ---
@@ -89610,9 +89285,9 @@ void PLAYSTATS_WEAPON_MODE_CHANGE(cs_type(Any) Hash weaponHash, cs_type(Any) Has
 
 **Parameters:**
 
-- `cs_type(Any) Hash weaponHash`
-- `cs_type(Any) Hash componentHashTo`
-- `cs_type(Any) Hash componentHashFrom`
+- `Hash weaponHash`
+- `Hash componentHashTo`
+- `Hash componentHashFrom`
 
 ---
 
@@ -89641,7 +89316,7 @@ void PRESENCE_EVENT_UPDATESTAT_FLOAT(cs_type(Any) Hash statHash, float value, in
 
 **Parameters:**
 
-- `cs_type(Any) Hash statHash`
+- `Hash statHash`
 - `float value`
 - `int p2`
 
@@ -89657,7 +89332,7 @@ void PRESENCE_EVENT_UPDATESTAT_INT(cs_type(charPtr) Hash statHash, int value, in
 
 **Parameters:**
 
-- `cs_type(charPtr) Hash statHash`
+- `Hash statHash`
 - `int value`
 - `int p2`
 
@@ -90029,7 +89704,7 @@ BOOL STAT_SAVE_MIGRATION_STATUS_START();
 
 ### `STAT_SAVE_PENDING`
 
-`0x7D3A583856F2C5AC` · `0xC3FD3822` · returns `void`
+`0x7D3A583856F2C5AC` · `0xC3FD3822` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL STAT_SAVE_PENDING();
@@ -90039,7 +89714,7 @@ cs_type(Any) BOOL STAT_SAVE_PENDING();
 
 ### `STAT_SAVE_PENDING_OR_REQUESTED`
 
-`0xBBB6AD006F1BBEA3` · `0xA3407CA3` · returns `void`
+`0xBBB6AD006F1BBEA3` · `0xA3407CA3` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL STAT_SAVE_PENDING_OR_REQUESTED();
@@ -90275,8 +89950,6 @@ BOOL STAT_SET_INT(Hash statName, int value, BOOL save);
 - `Hash statName`
 - `int value`
 - `BOOL save`
-
-**Examples:**
 
 ```lua
 StatSetInt(`MPPLY_KILLS_PLAYERS`, 1337, true)
@@ -91308,8 +90981,8 @@ BOOL _0x6DEE77AFF8C21BD1(cs_type(AnyPtr) int* playerAccountId, cs_type(AnyPtr) i
 
 **Parameters:**
 
-- `cs_type(AnyPtr) int* playerAccountId`
-- `cs_type(AnyPtr) int* posixTime`
+- `int* playerAccountId`
+- `int* posixTime`
 
 ---
 
@@ -92643,7 +92316,7 @@ void _ORDERED_BOSS_VEHICLE(Any p0, Any p1, cs_type(Any) Hash vehicleHash);
 
 - `Any p0`
 - `Any p1`
-- `cs_type(Any) Hash vehicleHash`
+- `Hash vehicleHash`
 
 ---
 
@@ -93629,7 +93302,7 @@ int _STAT_GET_SAVE_MIGRATION_CONSUME_CONTENT_UNLOCK_STATUS(cs_type(AnyPtr) int* 
 
 **Parameters:**
 
-- `cs_type(AnyPtr) int* p0`
+- `int* p0`
 
 ---
 
@@ -93671,7 +93344,7 @@ BOOL _STAT_SAVE_MIGRATION_CONSUME_CONTENT_UNLOCK(cs_type(Any) Hash contentId, ch
 
 **Parameters:**
 
-- `cs_type(Any) Hash contentId`
+- `Hash contentId`
 - `char* srcPlatform`
 - `char* srcGamerHandle`
 
@@ -93904,12 +93577,10 @@ int GET_PLAYER_SWITCH_JUMP_CUT_INDEX();
 int GET_PLAYER_SWITCH_STATE();
 ```
 
-**Returns:**
+**Return value:**
 
 - Returns 5 if the player is in the air (in a state of switch).
 - Returns 12 if the player is either not in the air or if the switch is completed.
-
-**Examples:**
 
 ```lua
 local stateSwitch = GetPlayerSwitchState()
@@ -94032,7 +93703,7 @@ Note that this will return 'true' even if the model has been requested and loade
 
 - `Hash model` — The model hash to check for.
 
-**Returns:**
+**Return value:**
 
 A boolean indicating whether the archetype is loaded (true) or not (false).
 
@@ -94209,9 +93880,9 @@ BOOL IS_SRL_LOADED();
 
 Returns true when the srl from BEGIN_SRL is loaded.
 
-**Returns:**
+**Return value:**
 
-* A boolean once BeginSrl srl is loaded.
+* A boolean once BeginSrl srl is loaded. 
 
 ---
 
@@ -94237,7 +93908,7 @@ BOOL IS_SWITCH_READY_FOR_DESCENT();
 
 ### `IS_SWITCH_SKIPPING_DESCENT`
 
-`0x5B74EA8CFD5E3E7E` · `0x90F64284` · returns `void`
+`0x5B74EA8CFD5E3E7E` · `0x90F64284` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL IS_SWITCH_SKIPPING_DESCENT();
@@ -94283,7 +93954,7 @@ void NETWORK_STOP_LOAD_SCENE();
 
 ### `NETWORK_UPDATE_LOAD_SCENE`
 
-`0xC4582015556D1C46` · `0xC76E023C` · returns `void`
+`0xC4582015556D1C46` · `0xC76E023C` · returns `BOOL`
 
 ```c
 cs_type(void) BOOL NETWORK_UPDATE_LOAD_SCENE();
@@ -94316,11 +93987,13 @@ Returns True if success, used only 7 times in decompiled scripts of 1868
 - `float radius` — Action radius, value is usually between `3f` and `7000f` in original 1868 scripts.
 - `int p7` — 0, 1, 2, 3 or 4 used in decompiled scripts, 0 is by far the most common.
 
-**Returns:**
+**Return value:**
 
 True if success, used only 7 times in decompiled scripts of 1868 (https://github.com/root-cause/v-decompiled-scripts).
 
 **Examples:**
+
+Part of the `stunt_plane_races.c` script, adapted in Lua:
 
 ```lua
 function func_8(vParam0)
@@ -94423,8 +94096,6 @@ https://pastebin.com/zd9XYUWY : here is the content of a SRL file opened with co
 
 - `char* srl` — A SRL name.
 
-**Examples:**
-
 ```lua
 PrefetchSrl('GTAO_INTRO_MALE')
 while not IsSrlLoaded() do
@@ -94511,7 +94182,7 @@ void REMOVE_MODEL_FROM_CREATOR_BUDGET(cs_type(Any) Hash modelHash);
 
 **Parameters:**
 
-- `cs_type(Any) Hash modelHash`
+- `Hash modelHash`
 
 ---
 
@@ -94609,7 +94280,7 @@ cs_type(Any) void REQUEST_COLLISION_AT_COORD(float x, float y, float z);
 
 **Parameters:**
 
-- `Any) void REQUEST_COLLISION_AT_COORD(float x`
+- `float x`
 - `float y`
 - `float z`
 
@@ -94676,8 +94347,6 @@ Request a model (archetype) to be loaded for use by the current script. Use SET\
 **Parameters:**
 
 - `Hash model` — The model to request.
-
-**Examples:**
 
 ```lua
 local modelHash = `adder`
@@ -95109,7 +94778,6 @@ enum ePlayerSwitchType
 };  
 ```
 
-
 ```c
 enum eSwitchFlags {
 	SKIP_INTRO = 1,
@@ -95283,8 +94951,6 @@ _**Note:** Doesn't act normally when used on Mount Chiliad._
 - `int flags` — Flags control various functionalities: 0 for normal behavior, 1 for no transition, and 255 for Switch IN.
 - `int switchType` — Specifies the type of switch (0 - 3): 0 for 1 step towards ped, 1 for 3 steps out from ped, 2 for 1 step out from ped, and 3 for 1 step towards ped.
 
-**Examples:**
-
 ```lua
 -- Check if the player is in a Switch "state"
 if not IsPlayerSwitchInProgress() then
@@ -95329,8 +94995,6 @@ After using [`SWITCH_TO_MULTI_FIRSTPART`](#_0xAAB3200ED59016BC) , use this nativ
 **Parameters:**
 
 - `Ped ped`
-
-**Examples:**
 
 ```lua
 RegisterCommand("switchPlayer", function()
@@ -95691,11 +95355,9 @@ Returns the cosine of the given number.
 
 - `float value` — The number of degrees (in degrees, not radians)
 
-**Returns:**
+**Return value:**
 
 The cosine of the given number
-
-**Examples:**
 
 ```lua
 -- Get the heading
@@ -95833,11 +95495,9 @@ Returns the sine of the given number.
 
 - `float value` — The number of degrees (in degrees, not radians)
 
-**Returns:**
+**Return value:**
 
 The sine of the given number
-
-**Examples:**
 
 ```lua
 -- Get the heading
@@ -96041,12 +95701,6 @@ NativeDB Introduced: v323
 - `float y2` — Y coordinate of the second point.
 - `float z2` — Z coordinate of the second point. Represents the height or elevation at the second point.
 
-**Returns:**
-
-Returns the distance as a float between the two points (`x1`, `y1`, `z1`) and (`x2`, `y2`, `z2`) in the game world.
-
-**Examples:**
-
 ```lua
 -- Define a set of coordinates
 local coords = vector3(145.0, 200.0, 1000.0)
@@ -96112,6 +95766,10 @@ else
 }
 ```
 
+**Return value:**
+
+Returns the distance as a float between the two points (`x1`, `y1`, `z1`) and (`x2`, `y2`, `z2`) in the game world.
+
 ---
 
 ### `VDIST2`
@@ -96137,7 +95795,7 @@ NativeDB Introduced: v323
 - `float y2` — Y coordinate of the second point.
 - `float z2` — Z coordinate of the second point. Represents the height or elevation at the second point.
 
-**Returns:**
+**Return value:**
 
 Returns the distance as a float between the two points (`x1`, `y1`, `z1`) and (`x2`, `y2`, `z2`) in the game world.
 
@@ -96305,8 +95963,6 @@ image representing the cyclic example below:
 - `int id1` — the id representing the first route node
 - `int id2` — the id representing the second route node
 
-**Examples:**
-
 ```lua
 -- these lines connect 1,2,3,4,5,6 in a cyclic manner (1 > 2 > 3 > 4 > 5 > 6 > 1)
 
@@ -96342,8 +95998,6 @@ x2,y2 and z2 are the coordinates to which the ped should look at
 - `float y2` — coordinates to which the ped should look
 - `float z2` — coordinates to which the ped should look
 - `int waitTime` — written in ms
-
-**Examples:**
 
 ```lua
 -- the guard will go toward vector3(1.0, 1.0, 1.0) coordinates looking toward vector3(0.0, 0.0, 0.0) coordinates waiting 1000ms with the WORLD_HUMAN_GUARD_STAND animation
@@ -96551,12 +96205,13 @@ cs_type(Any) void CLEAR_SEQUENCE_TASK(int* taskSequenceId);
 
 For an example on how to use this please refer to [OPEN_SEQUENCE_TASK](#_0xE8854A4326B9E12B)
 
-#### NOTE
+**NOTE:**
+
 If you fail to call [`CLOSE_SEQUENCE_TASK`](#_0x39E72BC99E6360CB) and `CLEAR_SEQUENCE_TASK` the sequence system can get stuck in a broken state until you restart your client.
 
 **Parameters:**
 
-- `Any) void CLEAR_SEQUENCE_TASK(int* taskSequenceId` — The task sequence to clear
+- `int* taskSequenceId` — The task sequence to clear
 
 ---
 
@@ -96580,12 +96235,13 @@ cs_type(Any) void CLOSE_SEQUENCE_TASK(int taskSequenceId);
 
 For an example on how to use this please refer to [OPEN_SEQUENCE_TASK](#_0xE8854A4326B9E12B)
 
-#### NOTE
+**NOTE:**
+
 If you fail to call `CLOSE_SEQUENCE_TASK` and [`CLEAR_SEQUENCE_TASK`](#_0x3841422E9C488D8C) this can get stuck in a broken state until you restart your client.
 
 **Parameters:**
 
-- `Any) void CLOSE_SEQUENCE_TASK(int taskSequenceId` — The task sequence to close
+- `int taskSequenceId` — The task sequence to close
 
 ---
 
@@ -96952,6 +96608,7 @@ You can set taskHash to `SCRIPT_TASK_ANY` to check if any task is active, it wil
 taskHash list: https://alloc8or.re/gta5/doc/enums/eScriptTaskHash.txt  
 
 Returns:  
+
 ```
 0 = WAITING_TO_START_TASK
 1 = PERFORMING_TASK
@@ -96965,11 +96622,9 @@ Returns:
 - `Ped ped` — The ped the task is running on
 - `Hash taskHash` — The hash of the task
 
-**Returns:**
+**Return value:**
 
-The status of the script-assigned task.
-
-**Examples:**
+The status of the script-assigned task.  
 
 ```lua
 local playerPed = PlayerPedId()
@@ -97193,7 +96848,7 @@ This is a stricter version of [`IS_PED_USING_ANY_SCENARIO`](#_0x57AB4A3080F85143
 
 - `Ped ped` — The ped handle.
 
-**Returns:**
+**Return value:**
 
 Returns true if the ped is in a using a scenario and is doing the ambient animations.
 
@@ -97259,7 +96914,7 @@ This native checks if a ped is on the ground, in pain from a (gunshot) wound.
 
 - `Ped ped`
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the ped is in [writhe](https://dictionary.cambridge.org/dictionary/english/writhe), `false` otherwise.
 
@@ -97581,9 +97236,7 @@ If you fail to call [`CLOSE_SEQUENCE_TASK`](#_0x39E72BC99E6360CB) and [`CLEAR_SE
 
 **Parameters:**
 
-- `Any) void OPEN_SEQUENCE_TASK(int* taskSequenceId` — The reference to bind to, in Lua/JS this will be returned as a value
-
-**Examples:**
+- `int* taskSequenceId` — The reference to bind to, in Lua/JS this will be returned as a value
 
 ```lua
 Citizen.CreateThread(function()
@@ -97789,7 +97442,7 @@ BOOL REQUEST_TASK_MOVE_NETWORK_STATE_TRANSITION(Ped ped, char* name);
 - `Ped ped` — A ped handle.
 - `char* name` — The name of the target request state in the move network file.
 
-**Returns:**
+**Return value:**
 
 Technically a `void`. Scripts treat this as a boolean, but the game never sets the result, so it will return the ped handle instead.
 
@@ -98017,8 +97670,6 @@ enum eVehicleDrivingFlags
 
 - `Ped ped` — The ped to have their driving style set.
 - `int drivingStyle` — The driving style (see `eVehicleDrivingFlags`).
-
-**Examples:**
 
 ```lua
 local vehicle_model = `adder`
@@ -98272,7 +97923,7 @@ cs_type(Any) void SET_PED_PATH_CAN_USE_CLIMBOVERS(Ped ped, BOOL Toggle);
 
 **Parameters:**
 
-- `Any) void SET_PED_PATH_CAN_USE_CLIMBOVERS(Ped ped`
+- `Ped ped`
 - `BOOL Toggle`
 
 ---
@@ -98287,7 +97938,7 @@ cs_type(Any) void SET_PED_PATH_CAN_USE_LADDERS(Ped ped, BOOL Toggle);
 
 **Parameters:**
 
-- `Any) void SET_PED_PATH_CAN_USE_LADDERS(Ped ped`
+- `Ped ped`
 - `BOOL Toggle`
 
 ---
@@ -98655,7 +98306,7 @@ void TASK_AIM_GUN_SCRIPTED_WITH_TARGET(Ped ped, Ped targetPed, float x, float y,
 - `float x`
 - `float y`
 - `float z`
-- `cs_type(Any) Hash iGunTaskType`
+- `Hash iGunTaskType`
 - `BOOL bDisableBlockingClip`
 - `BOOL bForceAim`
 
@@ -98737,8 +98388,6 @@ enum eBoatMissionFlags
 - `int drivingStyle` — The driving style (default is 0) (see [SetDriveTaskDrivingStyle](#_0xDACE1BE37D88AF67)).
 - `float radius` — The radius of when the task will be completed (default is -1.0f).
 - `int missionFlags` — The mission flags (default is 0) (see `eBoatMissionFlags`).
-
-**Examples:**
 
 ```lua
 local boat_model = `tropic`
@@ -99180,7 +98829,7 @@ enum eNavScriptFlags {
 - `float moveBlendRatio` — Ratio for ped movement (0 to 3.0 in the following order: still, walk, run and sprint)
 - `int time` — INT value in milliseconds.
 - `float radius` — distance from the final coordinates that the pedestrian should be to consider itself at the target.
-- `cs_type(BOOL) int flags` — Navigation Flags for the ped (see `eNavScriptFlags`).
+- `int flags` — Navigation Flags for the ped (see `eNavScriptFlags`).
 - `float finalHeading` — Peds heading when finished.
 
 ---
@@ -99236,8 +98885,6 @@ This native is often times used with [`TASK_FLUSH_ROUTE`](#_0x841142A1376E9006) 
 - `Ped ped` — The ped to give the task to.
 - `float speed` — The speed to move at in m/s.
 - `int routeMode` — The route mode to use, refer to `eFollowPointRouteMode`
-
-**Examples:**
 
 ```lua
 TaskFlushRoute()
@@ -99402,7 +99049,7 @@ Instructs the ped to go to the entity with the given offset.
 - `float offsetX` — The X offset
 - `float offsetY` — The Y offset
 - `float moveBlendRatio` — The move blend ratio (speed)
-- `cs_type(BOOL) int gotoEntityOffsetFlags` — The goto entity offset flags (see [`TASK_GOTO_ENTITY_OFFSET`](#_0xE39B4FF4FDEBDE27))
+- `int gotoEntityOffsetFlags` — The goto entity offset flags (see [`TASK_GOTO_ENTITY_OFFSET`](#_0xE39B4FF4FDEBDE27))
 
 ---
 
@@ -99583,7 +99230,7 @@ enum eDrivingMode {
 - `float y` — The goto target coordinate.
 - `float z` — The goto target coordinate.
 - `float fMoveBlendRatio` — 0.0 = still, 1.0 = walk, 2.0 = run, 3.0 = sprint.
-- `cs_type(Any) Vehicle vehicle` — If defined, the pedestrian will only move if said vehicle exists. If you don't want any sort of association, just set it to `0`.
+- `Vehicle vehicle` — If defined, the pedestrian will only move if said vehicle exists. If you don't want any sort of association, just set it to `0`.
 - `BOOL bUseLongRangeVehiclePathing` — Setting to `true` tells the vehicle to use longrange vehicle pathing.
 - `int drivingFlags` — See `eDrivingMode` enum.
 - `float fMaxRangeToShootTargets` — Determines the maximum distance at which the `Ped` will engage in combat with threatening targets.
@@ -99719,7 +99366,7 @@ enum eFiringPatternHashes {
 - `BOOL useNavMesh`
 - `int navFlags` — Usually 0 or 64
 - `BOOL instantBlendAtAim`
-- `cs_type(Any) Hash firingPattern` — The firing pattern to use, refer to `eFiringPatternHashes`
+- `Hash firingPattern` — The firing pattern to use, refer to `eFiringPatternHashes`
 - `int time` — Usually 20000 (ms)
 
 ---
@@ -99979,12 +99626,10 @@ enum eHeliMissionFlags
 - `float speed` — The speed in m/s.
 - `float radius` — The radius of when the task will be completed (default is -1.0f).
 - `float heading` — The heading the helicopter will face at task completion (default is -1.0f).
-- `cs_type(int) float height` — The height the helicopter will fly at (default is -1.0f).
+- `float height` — The height the helicopter will fly at (default is -1.0f).
 - `float minHeight` — The height the helicopter will not fly below (default is -1.0f).
-- `cs_type(Hash) float slowDist` — The distance to the target at which the helicopter will slow down (default is -1.0f).
+- `float slowDist` — The distance to the target at which the helicopter will slow down (default is -1.0f).
 - `int missionFlags` — The mission flags (default is 0) (see `eHeliMissionFlags`).
-
-**Examples:**
 
 ```lua
 local heli_model = `akula`
@@ -100101,7 +99746,7 @@ void TASK_LOOK_AT_COORD(Entity entity, float x, float y, float z, cs_type(float)
 - `float x`
 - `float y`
 - `float z`
-- `cs_type(float) int duration`
+- `int duration`
 - `Any p5`
 - `Any p6`
 
@@ -100360,7 +100005,7 @@ For an example on how to use this please refer to [OPEN_SEQUENCE_TASK](#_0xE8854
 
 **Parameters:**
 
-- `Any) void TASK_PERFORM_SEQUENCE(Ped ped` — The ped to perform the sequence on
+- `Ped ped` — The ped to perform the sequence on
 - `int taskSequenceId` — The sequenceId to perform
 
 ---
@@ -100379,8 +100024,6 @@ void TASK_PERFORM_SEQUENCE_FROM_PROGRESS(Ped ped, int taskIndex, int progress1, 
 - `int taskIndex`
 - `int progress1` — The progress to start from
 - `int progress2` — Unknown what it does, it has to be set higher than 0 to not break the sequence
-
-**Examples:**
 
 ```lua
 Citizen.CreateThread(function()
@@ -100593,8 +100236,8 @@ enum eVehicleMission {
 - `float fCruiseSpeed` — The cruise speed (in m/s).
 - `float fTargetReachedDist` — Distance (in meters) (at which the plane thinks it has arrived), this is also used as the hover distance for `MISSION_ATTACK` and `MISSION_CIRCLE`.
 - `float fOrientation` — Used to specify the desired orientation of the plane in degrees (`0` to `360`). Use `-1` if no specific orientation is required.
-- `cs_type(float) int iFlightHeight` — The height above sea level the plane tries to maintain, i.e. `50` meters.
-- `cs_type(float) int iMinHeightAboveTerrain` — The minimum height above terrain, i.e. `30` meters.
+- `int iFlightHeight` — The height above sea level the plane tries to maintain, i.e. `50` meters.
+- `int iMinHeightAboveTerrain` — The minimum height above terrain, i.e. `30` meters.
 - `cs_split BOOL bPrecise` — A boolean value, defaults to `true`.
 
 ---
@@ -100613,11 +100256,11 @@ The given ped will try to drive the plane to the given coordinates and will then
 
 - `Ped pilot` — The ped driving the plane.
 - `Vehicle aircraft` — The plane used.
-- `cs_type(Any) float xPos` — The X coordinate.
-- `cs_type(Any) float yPos` — The Y coordinate.
-- `cs_type(Any) float zPos` — The Z coordinate.
-- `cs_type(Any) float fCruiseSpeed` — The speed of the plane (in m/s).
-- `cs_type(Any) float fTargetReachedDist` — Distance (in meters) at which the plane thinks it has arrived to the given coordinates.
+- `float xPos` — The X coordinate.
+- `float yPos` — The Y coordinate.
+- `float zPos` — The Z coordinate.
+- `float fCruiseSpeed` — The speed of the plane (in m/s).
+- `float fTargetReachedDist` — Distance (in meters) at which the plane thinks it has arrived to the given coordinates.
 
 ---
 
@@ -100840,7 +100483,7 @@ TASK::TASK_RAPPEL_FROM_HELI(a_0, 0x41200000);
 **Parameters:**
 
 - `Ped ped`
-- `cs_type(int) float unused`
+- `float unused`
 
 ---
 
@@ -101105,8 +100748,6 @@ NativeDB Introduced: v3407
 - `float z` — Z coordinate to circle around
 - `float moveBlendRatio` — Animation blend ratio from 0.0 to 1.0
 - `float radius` — Radius of the circular path in meters
-
-**Examples:**
 
 ```lua
 CreateThread(function()
@@ -101895,8 +101536,6 @@ enum eDriveBehaviorFlags {
 - `int drivingStyle` — The driving style (default is 0) (see [SetDriveTaskDrivingStyle](#_0xDACE1BE37D88AF67)).
 - `float stopRange` — Stops in the specific range near the destination. 20.0 works fine.
 
-**Examples:**
-
 ```cs
 // A short example showcasing how this native works with map marks.
 
@@ -101930,8 +101569,6 @@ Drive randomly with no destination set.
 - `Vehicle vehicle` — Vehicle entity id for the task.
 - `float speed` — Speed of driving.
 - `int drivingStyle` — The driving style (default is 0) (see [SetDriveTaskDrivingStyle](#_0xDACE1BE37D88AF67)).
-
-**Examples:**
 
 ```cs
 TaskVehicleDriveWander(Game.PlayerPed.Handle, Game.PlayerPed.CurrentVehicle.Handle, 60f, 447);
@@ -102149,8 +101786,6 @@ enum eVehicleMissionType
 - `float straightLineDist` — The distance before the vehicle will drive straight to the target (default is -1.0f).
 - `BOOL DriveAgainstTraffic` — Whether the vehicle should drive against traffic (default is false).
 
-**Examples:**
-
 ```lua
 local vehicle_model = `adder`
 RequestModel(vehicle_model)
@@ -102204,8 +101839,6 @@ If you don't want to use a parameter; pass `0` for int parameters, and `-1.0f` f
 - `float straightLineDist` — The distance before the vehicle will drive straight to the target (default is -1.0f).
 - `BOOL DriveAgainstTraffic` — Whether the vehicle should drive against traffic (default is false).
 
-**Examples:**
-
 ```lua
 local vehicle_model = `adder`
 RequestModel(vehicle_model)
@@ -102257,8 +101890,6 @@ If you don't want to use a parameter; pass `0` for int parameters, and `-1.0f` f
 - `float radius` — The radius of when the task will be completed (default is -1.0f).
 - `float straightLineDist` — The distance before the vehicle will drive straight to the target (default is -1.0f).
 - `BOOL DriveAgainstTraffic` — Whether the vehicle should drive against traffic (default is false).
-
-**Examples:**
 
 ```lua
 local vehicle_model = `adder`
@@ -102456,10 +102087,8 @@ Use `GetIsTaskActive(ped, 222)` to check if the ped is still wandering the area.
 - `float y` — The Y coordinate
 - `float z` — The Z coordinate
 - `float radius` — The radius of the area to wander around in
-- `cs_type(float) int minimalLength` — The minimal length it will wander before waiting timeBetweenWalks seconds before continuing
+- `int minimalLength` — The minimal length it will wander before waiting timeBetweenWalks seconds before continuing
 - `float timeBetweenWalks` — The length of time the ped will stand still/rest between walks
-
-**Examples:**
 
 ```lua
 -- Load model for panther
@@ -102554,8 +102183,6 @@ Warp a ped into a vehicle.
 - `Ped ped` — The Ped to be warped into the vehicle.
 - `Vehicle vehicle` — The target vehicle into which the ped will be warped.
 - `int seatIndex` — See eSeatPosition declared in [`IS_VEHICLE_SEAT_FREE`](#_0x22AC59A870E6A669).
-
-**Examples:**
 
 ```lua
 -- This example creates a vehicle and warps the player into the driver's seat
@@ -103498,8 +103125,6 @@ NativeDB Introduced: v1868
 - `char* clipset` — Clipset to use for the task
 - `Any p10` — Usually 1 in the scripts
 
-**Examples:**
-
 ```lua
 local coords = vector3(258.68, -3311.5, 45.72)
 RopeLoadTextures()
@@ -103704,11 +103329,9 @@ For per-seat queries use [IS_VEHICLE_SEAT_FREE](#_0x22AC59A870E6A669), to find w
 
 - `Vehicle vehicle` — The vehicle handle to check.
 
-**Returns:**
+**Return value:**
 
 Returns `true` when the vehicle has at least one seat with no ped assigned to it. Vehicles with no seats in their model (trailers, prop carriages) or an invalid entity will return `false`.
-
-**Examples:**
 
 ```lua
 -- Print whether the vehicle the player is in has a free seat
@@ -103772,11 +103395,9 @@ Queries whether the control panels of a plane are intact. This native is used to
 - `Vehicle vehicle` — The vehicle to check. This should be a plane.
 - `BOOL checkForZeroHealth` — If set to `true`, the native also checks if the plane's health is zero, indicating it is completely destroyed. If `false`, only the state of the control panels is considered.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the plane's control panels are intact, and, depending on the `checkForZeroHealth` parameter, the plane is not completely destroyed. Returns `false` if the control panels are damaged or the plane is destroyed (when `checkForZeroHealth` is `true`).
-
-**Examples:**
 
 ```lua
 -- Retrieve the player ped
@@ -103896,9 +103517,9 @@ void ATTACH_VEHICLE_ON_TO_TRAILER(Vehicle vehicle, Vehicle trailer, float offset
 - `float rotationX` — The x rotation of where you want the vehicle placed
 - `float rotationY` — The y rotation of where you want the vehicle placed
 - `float rotationZ` — The z rotation of where you want the vehicle placed
-- `float disableColls` — Should actually be a boolean, this will disable the collision between the vehicle you're attaching and the trailer This is the proper way of attaching vehicles to the car carrier, it's what Rockstar uses. [Video Demo](https://www.youtube.com/watch?v=2lVEIzf7bgo)
+- `float disableColls` — Should actually be a boolean, this will disable the collision between the vehicle you're attaching and the trailer
 
-**Examples:**
+This is the proper way of attaching vehicles to the car carrier, it's what Rockstar uses. [Video Demo](https://www.youtube.com/watch?v=2lVEIzf7bgo)
 
 ```lua
 -- Request the model before creating it
@@ -103937,8 +103558,6 @@ void ATTACH_VEHICLE_TO_CARGOBOB(Vehicle cargobob, Vehicle vehicle, int vehicleBo
 - `float x` — x hook/magnet Offset
 - `float y` — y hook/magnet Offset
 - `float z` — z hook/magnet Offset
-
-**Examples:**
 
 ```lua
 function RequestVehicleModel(modelHash)
@@ -104049,11 +103668,9 @@ NativeDB Introduced: v323
 
 - `Vehicle boat` — The boat to check.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the boat can be safely anchored at its current position, `false` otherwise.
-
-**Examples:**
 
 ```lua
 local boat = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -104113,11 +103730,9 @@ NativeDB Introduced: v678
 
 - `Vehicle boat` — The boat to check.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the boat can be safely anchored at its current position (ignoring players on the boat), `false` otherwise.
-
-**Examples:**
 
 ```lua
 local boat = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -104161,7 +103776,7 @@ else
 
 ### `CAN_CARGOBOB_PICK_UP_ENTITY`
 
-`0x2C1D8B3B19E517CC` · returns `void`
+`0x2C1D8B3B19E517CC` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL CAN_CARGOBOB_PICK_UP_ENTITY(Vehicle cargobob, Entity entity);
@@ -104171,14 +103786,12 @@ Determines whether the specified Cargobob can pick up a given entity.
 
 **Parameters:**
 
-- `Any) BOOL CAN_CARGOBOB_PICK_UP_ENTITY(Vehicle cargobob` — The Cargobob helicopter to be checked.
+- `Vehicle cargobob` — The Cargobob helicopter to be checked.
 - `Entity entity` — The entity to be checked for pick-up.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the Cargobob can pick up the specified entity, `false` otherwise.
-
-**Examples:**
 
 ```lua
 
@@ -104323,8 +103936,6 @@ Resets or clears the nitrous system for a specified vehicle. You can check if a 
 
 - `Vehicle vehicle` — The vehicle whose nitrous system needs to be cleared.
 
-**Examples:**
-
 ```lua
 -- Retrieve the player ped
 local playerPed = PlayerPedId()
@@ -104390,7 +104001,7 @@ cs_type(Any) void CLEAR_VEHICLE_CUSTOM_PRIMARY_COLOUR(Vehicle vehicle);
 
 **Parameters:**
 
-- `Any) void CLEAR_VEHICLE_CUSTOM_PRIMARY_COLOUR(Vehicle vehicle`
+- `Vehicle vehicle`
 
 ---
 
@@ -104404,7 +104015,7 @@ cs_type(Any) void CLEAR_VEHICLE_CUSTOM_SECONDARY_COLOUR(Vehicle vehicle);
 
 **Parameters:**
 
-- `Any) void CLEAR_VEHICLE_CUSTOM_SECONDARY_COLOUR(Vehicle vehicle`
+- `Vehicle vehicle`
 
 ---
 
@@ -104419,8 +104030,6 @@ void CLEAR_VEHICLE_GENERATOR_AREA_OF_INTEREST();
 Removes the cargen area of interest and resumes normal cargen spawning.
 
 You can set the area of interest with [`SET_VEHICLE_GENERATOR_AREA_OF_INTEREST`](#_0x9A75585FB2E54FAD)
-
-**Examples:**
 
 ```lua
 -- This example clears the area of interest (cargen) and resumes normal spawning
@@ -104524,11 +104133,19 @@ Model names to request can be found by searching `model_name` in the file.
 
 The `Lua` usage example provided down below has been provided in such way so users can test each and every train variation.
 
-**Train Models:**
+```
+NativeDB Added Parameter 6: BOOL isNetwork
+NativeDB Added Parameter 7: BOOL netMissionEntity
+```
+
+- `isNetwork` — Whether to create a network object for the train. If false, the train exists only locally.
+- `netMissionEntity` — Whether to register the train as pinned to the script host in the R* network model.
+
+**Train Models::**
 
 * freight
 
-**Carriage Models:**
+**Carriage Models::**
 
 * freightcar
 * freightcar2 (Added v2372)
@@ -104552,16 +104169,9 @@ The `Lua` usage example provided down below has been provided in such way so use
 - `float z` — Spawn coordinate Z component.
 - `BOOL direction` — The direction in which the train will go (true or false)
 
-**Added parameters:**
-
-- `isNetwork` — Whether to create a network object for the train. If false, the train exists only locally.
-- `netMissionEntity` — Whether to register the train as pinned to the script host in the R* network model.
-
-**Returns:**
+**Return value:**
 
 A script handle (fwScriptGuid index) for the train, or 0 if the train failed to be created.
-
-**Examples:**
 
 ```lua
 --[[ 
@@ -104709,11 +104319,9 @@ NativeDB Added Parameter 8: BOOL p7
 - `BOOL isNetwork` — Whether to create a network object for the vehicle. If false, the vehicle exists only locally.
 - `BOOL netMissionEntity` — Whether to register the vehicle as pinned to the script host in the R* network model.
 
-**Returns:**
+**Return value:**
 
 A script handle (fwScriptGuid index) for the vehicle, or `0` if the vehicle failed to be created.
-
-**Examples:**
 
 ```lua
 local ModelHash = `adder` -- Use Compile-time hashes to get the hash of this model
@@ -104752,8 +104360,6 @@ Used to delete mission trains created with [`CREATE_MISSION_TRAIN`](#_0x63C6CCA8
 **Parameters:**
 
 - `Vehicle* train`
-
-**Examples:**
 
 ```lua
 local train = CreateMissionTrain(21, 40.2, -1201.3, 31.0, false)
@@ -104829,8 +104435,6 @@ Detaches the specified entity currently being carried by a Cargobob.
 
 - `Vehicle vehicle` — The Cargobob helicopter.
 - `Entity entity` — The entity to be detached.
-
-**Examples:**
 
 ```lua
 -- This example detaches a specific entity from a Cargobob.
@@ -105057,8 +104661,6 @@ Disables or enables a specific weapon on a vehicle for a designated ped.
 - `Vehicle vehicle` — The vehicle entity handle.
 - `Ped owner` — The ped entity for whom the weapon is disabled. This acts as a ped-specific lock; the ped does not need to be inside the vehicle or in a specific seat when this native is called.
 
-**Examples:**
-
 ```lua
 -- Disables the Rhino's Tank gun for the local player
 local ped = PlayerPedId()
@@ -105198,11 +104800,9 @@ NativeDB Introduced: v323
 
 - `Vehicle vehicle` — The vehicle to check for a roof presence.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the vehicle has a roof, `false` otherwise.
-
-**Examples:**
 
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -105253,7 +104853,7 @@ NativeDB Introduced: v2189
 
 - `Vehicle vehicle` — The vehicle to check for the presence of a searchlight.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the vehicle has a searchlight, `false` otherwise.
 
@@ -105284,6 +104884,10 @@ Maximum amount of vehicles with vehicle stuck check appears to be 16.
 ```c
 BOOL DOES_VEHICLE_HAVE_WEAPONS(Vehicle vehicle);
 ```
+
+For any vehicle with the flags `FLAG_IS_TANK`, `FLAG_CREATE_WEAPON_MANAGER_ON_SPAWN`, `FLAG_HAS_TURRET_SEAT_ON_VEHICLE`, `FLAG_TURRET_MODS_ON_ROOF`, the native will return `1` regardless of whether the player is inside of the vehicle or not.
+
+For any vehicles without the above flags, the native seems to only return `1` if the vehicle has weapons and the player is inside of the vehicle. Calling [`DOES_VEHICLE_HAVE_SEARCHLIGHT`](#_0x99015ED7DBEA5113) beforehand seems to solve this problem, if you wish to use this native to check on a vehicle in which the player is absent from.
 
 **Parameters:**
 
@@ -105344,7 +104948,7 @@ This function is coded to not work on vehicles of type: `CBike`, `Bmx`, `CBoat`,
 
 **Parameters:**
 
-- `Any) void FIX_VEHICLE_WINDOW(Vehicle vehicle`
+- `Vehicle vehicle`
 - `int windowIndex`
 
 ---
@@ -105422,8 +105026,6 @@ Recharges the nitrous system of the specified vehicle to its maximum capacity. T
 
 - `Vehicle vehicle` — The vehicle whose nitrous system is to be fully recharged.
 
-**Examples:**
-
 ```lua
 -- Retrieve the player ped
 local playerPed = PlayerPedId()
@@ -105491,9 +105093,9 @@ For FiveM, use [`GET_GAME_POOL`](#_0x2B9D4F50).
 
 **Parameters:**
 
-- `cs_type(AnyPtr) int* vehArray`
+- `int* vehArray`
 
-**Returns:**
+**Return value:**
 
 Returns all vehicles in the vehicle game pool.
 
@@ -105531,11 +105133,9 @@ NativeDB Introduced: v323
 
 - `Hash modelHash` — The model hash of the boat.
 
-**Returns:**
+**Return value:**
 
 Returns the agility value of the specified boat as a float number.
-
-**Examples:**
 
 ```lua
 -- This example prints the agility of the player's current boat.
@@ -105661,8 +105261,6 @@ int GET_CONVERTIBLE_ROOF_STATE(Vehicle vehicle);
 
 Returns the convertible state of the specified vehicle.
 
-
-
 ```c
 enum eRoofState {
     RAISED = 0,
@@ -105679,11 +105277,9 @@ enum eRoofState {
 
 - `Vehicle vehicle` — Vehicle to get the state of
 
-**Returns:**
+**Return value:**
 
 Returns the current roof state, refer to `eRoofState`
-
-**Examples:**
 
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId())
@@ -105720,7 +105316,7 @@ Returns the display name/text label (`gameName` in `vehicles.meta`) for the spec
 
 - `Hash modelHash` — A vehicle model to check.
 
-**Returns:**
+**Return value:**
 
 The display name for the vehicle, or `'CARNOTFOUND'` if invalid.
 
@@ -105794,7 +105390,7 @@ NativeDB Introduced: v323
 
 - `Vehicle heli` — Helicopter for which you want to get the rotor health.
 
-**Returns:**
+**Return value:**
 
 Returns the health of the rear rotor of the helicopter, not the tail rotor as the name suggests. The maximum value is 1000. At 0, the tail rotor will stall.
 
@@ -105814,11 +105410,9 @@ Checks whether the specified boat vehicle is capsized, meaning it has overturned
 
 - `Vehicle vehicle` — The vehicle to check. This should be a boat-type vehicle.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the specified boat is capsized, `false` otherwise.
-
-**Examples:**
 
 ```lua
 -- This example checks if the player is in a boat and if the boat is capsized.
@@ -106033,7 +105627,7 @@ Landing gear state 2 is never used.
 
 - `Vehicle vehicle` — The vehicle to check.
 
-**Returns:**
+**Return value:**
 
 The current state of the vehicles landing gear.
 
@@ -106117,11 +105711,9 @@ NativeDB Introduced: v1868
 
 - `Hash modelHash` — The model hash of the vehicle.
 
-**Returns:**
+**Return value:**
 
 Returns the display label of the manufacturer if the vehicle model is recognized, or "CARNOTFOUND" if the hash does not correspond to any known vehicle model.
-
-**Examples:**
 
 ```lua
 -- This example prints the manufacturer of the player's current vehicle.
@@ -106353,11 +105945,9 @@ If there is no ped in the seat, and the game considers the vehicle as ambient po
 - `Vehicle vehicle` — The vehicle to get the ped for.
 - `int seatIndex` — See eSeatPosition declared in [`IS_VEHICLE_SEAT_FREE`](#_0x22AC59A870E6A669).
 
-**Returns:**
+**Return value:**
 
 A handle to a ped in the specified vehicle seat, or 0 if no such ped existed.
-
-**Examples:**
 
 ```lua
 -- Checks if the player ped is in the drivers seat of the vehicle they are in.
@@ -106427,7 +106017,7 @@ See [`REQUEST_VEHICLE_RECORDING`](#_0xAF514CABE74CBF15).
 
 ### `GET_POSITION_OF_VEHICLE_RECORDING_ID_AT_TIME`
 
-`0x92523B76657A517D` · `0xF31973BB` · returns `void`
+`0x92523B76657A517D` · `0xF31973BB` · returns `Vector3`
 
 ```c
 cs_type(int) Vector3 GET_POSITION_OF_VEHICLE_RECORDING_ID_AT_TIME(int id, float time);
@@ -106435,7 +106025,7 @@ cs_type(int) Vector3 GET_POSITION_OF_VEHICLE_RECORDING_ID_AT_TIME(int id, float 
 
 **Parameters:**
 
-- `int) Vector3 GET_POSITION_OF_VEHICLE_RECORDING_ID_AT_TIME(int id`
+- `int id`
 - `float time`
 
 ---
@@ -106534,7 +106124,7 @@ successIndicator: 0 if success, -1 if failed
 
 ### `GET_ROTATION_OF_VEHICLE_RECORDING_AT_TIME`
 
-`0x2058206FBE79A8AD` · `0xD96DEC68` · returns `void`
+`0x2058206FBE79A8AD` · `0xD96DEC68` · returns `Vector3`
 
 ```c
 cs_type(int) Vector3 GET_ROTATION_OF_VEHICLE_RECORDING_AT_TIME(int recording, float time, cs_type(AnyPtr) char* script);
@@ -106542,9 +106132,9 @@ cs_type(int) Vector3 GET_ROTATION_OF_VEHICLE_RECORDING_AT_TIME(int recording, fl
 
 **Parameters:**
 
-- `int) Vector3 GET_ROTATION_OF_VEHICLE_RECORDING_AT_TIME(int recording`
+- `int recording`
 - `float time`
-- `cs_type(AnyPtr) char* script`
+- `char* script`
 
 ---
 
@@ -106581,7 +106171,7 @@ NativeDB Introduced: v2189
 
 - `Vehicle submarine` — The submarine vehicle to be evaluated for being under its crush depth threshold.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the submarine is below its designated crush depth, `false` otherwise.
 
@@ -106605,7 +106195,7 @@ NativeDB Introduced: v2189
 
 - `Vehicle submarine` — The submarine vehicle to check for air leaks.
 
-**Returns:**
+**Return value:**
 
 Returns the number of air leaks on the submarine.
 
@@ -106631,7 +106221,7 @@ Can be used with GET_TOTAL_DURATION_OF_VEHICLE_RECORDING{_ID} to compute a perce
 
 ### `GET_TOTAL_DURATION_OF_VEHICLE_RECORDING`
 
-`0x0E48D1C262390950` · `0x5B35EEB7` · returns `void`
+`0x0E48D1C262390950` · `0x5B35EEB7` · returns `float`
 
 ```c
 cs_type(Any) float GET_TOTAL_DURATION_OF_VEHICLE_RECORDING(int recording, cs_type(Any) char* script);
@@ -106639,8 +106229,8 @@ cs_type(Any) float GET_TOTAL_DURATION_OF_VEHICLE_RECORDING(int recording, cs_typ
 
 **Parameters:**
 
-- `Any) float GET_TOTAL_DURATION_OF_VEHICLE_RECORDING(int recording`
-- `cs_type(Any) char* script`
+- `int recording`
+- `char* script`
 
 ---
 
@@ -106695,11 +106285,9 @@ NativeDB Introduced: v323
 
 - `Vehicle vehicle` — The vehicle for which to obtain the acceleration.
 
-**Returns:**
+**Return value:**
 
 Returns the acceleration value of the specified vehicle as a float number.
-
-**Examples:**
 
 ```lua
 -- This example prints the acceleration of the player's current vehicle.
@@ -106817,11 +106405,9 @@ Hash GET_VEHICLE_CAUSE_OF_DESTRUCTION(Vehicle vehicle);
 
 - `Vehicle vehicle` — The vehicle to get the cause of destruction of.
 
-**Returns:**
+**Return value:**
 
 A hash representing the destruction cause. These can be weapon hashes.
-
-**Examples:**
 
 ```lua
 local destructionCauseHash = GetVehicleCauseOfDestruction(GetVehiclePedIsIn(PlayerPedId(), true))
@@ -107029,7 +106615,7 @@ enum eColourBitField {
 
 - `Vehicle vehicle` — The vehicle handle
 
-**Returns:**
+**Return value:**
 
 Returns a bitfield of the colours supported by the vehicle's shader.
 
@@ -107122,11 +106708,9 @@ A getter for [`SET_VEHICLE_DIRT_LEVEL`](#_0x79D3B596FE44EE8B).
 
 - `Vehicle vehicle` — The vehicle to check.
 
-**Returns:**
+**Return value:**
 
 A number between 0.0 and 15.0 representing the vehicles dirt level.
-
-**Examples:**
 
 ```lua
 local Vehicle = GetVehiclePedIsUsing(PlayerPedId())
@@ -107169,11 +106753,9 @@ See eDoorId declared in [`SET_VEHICLE_DOOR_SHUT`](#_0x93D9BD300D7789E5)
 - `Vehicle vehicle` — Vehicle
 - `int doorIndex` — Index of door to check
 
-**Returns:**
+**Return value:**
 
 A float representing angle of door mapped from 0.0 to 1.0
-
-**Examples:**
 
 ```lua
 local veh = GetVehiclePedIsIn(PlayerPedId()
@@ -107197,7 +106779,7 @@ int GET_VEHICLE_DOOR_LOCK_STATUS(Vehicle vehicle);
 
 - `Vehicle vehicle`
 
-**Returns:**
+**Return value:**
 
 Returns the current lock status, refer to [SET_VEHICLE_DOORS_LOCKED](#_0xB664292EAECF7FA6)
 
@@ -107264,11 +106846,9 @@ NativeDB Introduced: v323
 
 - `Vehicle vehicle` — The vehicle for which to obtain the estimated max speed.
 
-**Returns:**
+**Return value:**
 
 Returns the estimated maximum speed of the specified vehicle as a float number.
-
-**Examples:**
 
 ```lua
 -- This example prints the estimated max speed of the player's current vehicle.
@@ -107364,11 +106944,9 @@ float GET_VEHICLE_FLIGHT_NOZZLE_POSITION(Vehicle aircraft);
 
 - `Vehicle aircraft` — The vehicle to check the hover mode on.
 
-**Returns:**
+**Return value:**
 
 A float indicating the percentage of the hover mode. 1.0 = in VTOL mode, 0.0 = in normal flying mode.
-
-**Examples:**
 
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -107380,6 +106958,7 @@ elseif GetVehicleFlightNozzlePosition(vehicle) == 1.0 then
 else
     print("Currently switching hover mode!")
 end
+
 ```
 
 ```js
@@ -107427,7 +107006,7 @@ BOOL GET_VEHICLE_HAS_KERS(Vehicle vehicle);
 
 - `Vehicle vehicle` — The vehicle handle.
 
-**Returns:**
+**Return value:**
 
 Returns true if the vehicle has a kers boost (for instance the lectro or the vindicator)
 
@@ -107492,7 +107071,7 @@ See eDoorId declared in [`SET_VEHICLE_DOOR_SHUT`](#_0x93D9BD300D7789E5)
 - `Vehicle vehicle`
 - `int doorIndex`
 
-**Returns:**
+**Return value:**
 
 Returns vehicle door lock state previously set with [`SET_VEHICLE_INDIVIDUAL_DOORS_LOCKED`](#_0xBE70724027F85BCD)
 
@@ -107512,7 +107091,7 @@ Returns whether the specified vehicle is designated as a mercenary vehicle
 
 - `Vehicle vehicle` — The vehicle to check for mercenary status.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the vehicle is a mercenary vehicle, `false` otherwise.
 
@@ -107654,7 +107233,7 @@ int GET_VEHICLE_MOD(Vehicle vehicle, int modType);
 - `Vehicle vehicle` — The vehicle to get the mod of.
 - `int modType` — Refer to eVehicleModType in [`SET_VEHICLE_MOD`](#_0x6AF0636DDEDCB6DD).
 
-**Returns:**
+**Return value:**
 
 Returns the current modIndex, or `-1` if the mod is stock.
 
@@ -107776,7 +107355,7 @@ Returns `nMonetaryValue` from handling.meta for specific model, which is the veh
 
 **Parameters:**
 
-- `cs_type(Any) Hash vehicleModel`
+- `Hash vehicleModel`
 
 ---
 
@@ -107853,7 +107432,7 @@ returns a string which is the codename of the vehicle's currently selected secon
 
 ### `GET_VEHICLE_MOD_IDENTIFIER_HASH`
 
-`0x4593CF82AA179706` · `0x94850968` · returns `void`
+`0x4593CF82AA179706` · `0x94850968` · returns `Hash`
 
 ```c
 cs_type(Any) Hash GET_VEHICLE_MOD_IDENTIFIER_HASH(Vehicle vehicle, int modType, int modIndex);
@@ -107865,7 +107444,7 @@ Can be used for IS_DLC_VEHICLE_MOD and _0xC098810437312FFF
 
 **Parameters:**
 
-- `Any) Hash GET_VEHICLE_MOD_IDENTIFIER_HASH(Vehicle vehicle`
+- `Vehicle vehicle`
 - `int modType` — Refer to eVehicleModType in [`SET_VEHICLE_MOD`](#_0x6AF0636DDEDCB6DD).
 - `int modIndex`
 
@@ -107901,7 +107480,7 @@ int GET_VEHICLE_MOD_KIT_TYPE(Vehicle vehicle);
 
 ### `GET_VEHICLE_MOD_MODIFIER_VALUE`
 
-`0x90A38E9838E0A8C1` · `0x73AE5505` · returns `void`
+`0x90A38E9838E0A8C1` · `0x73AE5505` · returns `int`
 
 ```c
 cs_type(float) int GET_VEHICLE_MOD_MODIFIER_VALUE(Vehicle vehicle, int modType, int modIndex);
@@ -107909,7 +107488,7 @@ cs_type(float) int GET_VEHICLE_MOD_MODIFIER_VALUE(Vehicle vehicle, int modType, 
 
 **Parameters:**
 
-- `float) int GET_VEHICLE_MOD_MODIFIER_VALUE(Vehicle vehicle`
+- `Vehicle vehicle`
 - `int modType` — Refer to eVehicleModType in [`SET_VEHICLE_MOD`](#_0x6AF0636DDEDCB6DD).
 - `int modIndex`
 
@@ -108001,7 +107580,7 @@ enum eVehiclePlateIndicies {
 
 - `Vehicle vehicle` — The vehicle to get the plate index of
 
-**Returns:**
+**Return value:**
 
 Returns the plate index, reference `eVehiclePlateIndicies`
 
@@ -108052,7 +107631,7 @@ Motorcycles with no visible plates will sometimes return a 2 for unknown reasons
 
 - `Vehicle vehicle`
 
-**Returns:**
+**Return value:**
 
 Returns the vehicle plate type, refer to `eVehiclePlateType`
 
@@ -108138,7 +107717,7 @@ int GET_VEHICLE_WEAPON_RESTRICTED_AMMO(Vehicle vehicle, int weaponIndex);
 - `Vehicle vehicle` — The vehicle handle
 - `int weaponIndex` — The weapon index we're getting ammo for (see [SET_VEHICLE_WEAPON_RESTRICTED_AMMO](#_0x44CD1F493DB2A0A6) for information on how to access these slots).
 
-**Returns:**
+**Return value:**
 
 Gets the current restricted ammo count for a particular vehicle weapon index on a vehicle.
 
@@ -108180,7 +107759,7 @@ enum eVehicleWheelType
 
 - `Vehicle vehicle`
 
-**Returns:**
+**Return value:**
 
 Returns an eVehicleWheelType integer value.
 
@@ -108249,7 +107828,7 @@ BOOL HAS_VEHICLE_RECORDING_BEEN_LOADED(int recording, cs_type(AnyPtr) char* scri
 **Parameters:**
 
 - `int recording`
-- `cs_type(AnyPtr) char* script`
+- `char* script`
 
 ---
 
@@ -108348,7 +107927,6 @@ Checks if a boat is currently anchored.
 
 This native is a getter for [SET_BOAT_ANCHOR](#_0x75DBEC174AEEAD10).
 
-
 ```
 NativeDB Introduced: v573
 ```
@@ -108357,7 +107935,7 @@ NativeDB Introduced: v573
 
 - `Vehicle boat` — The boat to check.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the boat is currently anchored, `false` otherwise.
 
@@ -108422,11 +108000,11 @@ Keep in mind, with checkSide set to true, that only certain vehicles have entry 
 
 - `Ped ped` — The ped to check.
 - `Vehicle vehicle` — The vehicle to check.
-- `cs_type(BOOL) int seatIndex` — See eSeatPosition declared in [`IS_VEHICLE_SEAT_FREE`](#_0x22AC59A870E6A669).
+- `int seatIndex` — See eSeatPosition declared in [`IS_VEHICLE_SEAT_FREE`](#_0x22AC59A870E6A669).
 - `BOOL checkSide` — True to check the side of the entry point relative to the vehicle
 - `BOOL leftSide` — When checkSide is true together with this it only checks if entrypoints on the left side of the vehicle are clear, and for the right side when given false
 
-**Returns:**
+**Return value:**
 
 True if the entry point is accesible and the area is clear for the given ped.
 
@@ -108481,11 +108059,9 @@ Determines if the nitrous is currently activated in the specified vehicle.
 
 - `Vehicle vehicle` — The vehicle to check.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if nitrous is active, otherwise `false`.
-
-**Examples:**
 
 ```lua
 -- Retrieve the player ped
@@ -108586,7 +108162,7 @@ BOOL IS_SEAT_WARP_ONLY(Vehicle vehicle, cs_type(BOOL) int seatIndex);
 **Parameters:**
 
 - `Vehicle vehicle` — The vehicle to check.
-- `cs_type(BOOL) int seatIndex` — See eSeatPosition declared in [`IS_VEHICLE_SEAT_FREE`](#_0x22AC59A870E6A669).
+- `int seatIndex` — See eSeatPosition declared in [`IS_VEHICLE_SEAT_FREE`](#_0x22AC59A870E6A669).
 
 ---
 
@@ -108831,11 +108407,9 @@ NativeDB Introduced: v323
 - `Vehicle vehicle` — The vehicle to check.
 - `BOOL checkRoofExtras` — When set to `false`, the native checks only for vehicles with an animatable convertible roof. Set to `true` to include additional checks for vehicles that might have a non-animatable roof (i.e., using vehicle extras)
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the vehicle is a convertible with an animatable roof or if `checkRoofExtras` is `true` and the vehicle has a roof (animatable or not). Returns `false` if the vehicle does not meet the criteria.
-
-**Examples:**
 
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -108930,7 +108504,7 @@ See eDoorId declared in [`SET_VEHICLE_DOOR_SHUT`](#_0x93D9BD300D7789E5)
 - `Vehicle vehicle` — The vehicle to check.
 - `int doorIndex` — The index of the door to check.
 
-**Returns:**
+**Return value:**
 
 A bool indiciating if the specified door is fully open on the specified vehicle.
 
@@ -109073,7 +108647,7 @@ BOOL IS_VEHICLE_MOD_GEN9_EXCLUSIVE(Vehicle vehicle, int modType, int modIndex);
 - `int modType` — The mod type (see [`SET_VEHICLE_MOD`](#_0x6AF0636DDEDCB6DD))
 - `int modIndex` — The mod index
 
-**Returns:**
+**Return value:**
 
 Returns whether the specified mod is exclusive to gen9 or not.
 
@@ -109171,11 +108745,9 @@ This only checks the sound not the lights. A vehicle can have its siren lights a
 
 - `Vehicle vehicle` — The vehicle to check.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the siren audio is currently playing, `false` if it is silent or the vehicle does not have a siren.
-
-**Examples:**
 
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -109209,11 +108781,9 @@ Returns whether the vehicle's lights and sirens are on.
 
 - `Vehicle vehicle`
 
-**Returns:**
+**Return value:**
 
 Returns false if siren and lights are disabled or true if they are enabled.
-
-**Examples:**
 
 ```lua
 local veh = GetVehiclePedIsIn(PlayerPedId())
@@ -109271,9 +108841,9 @@ For some vehicles it returns true if the current speed is <= 0.00039999999.
 
 - `Vehicle vehicle`
 
-**Returns:**
+**Return value:**
 
-True if the vehicle's speed is equal to, or less than 0.02 meters per second, or 0.05 meters per second, if the vehicle's handbrake is engaged.
+True if the vehicle's speed is equal to, or less than 0.02 meters per second, or 0.05 meters per second, if the vehicle's handbrake is engaged. 
 
 ---
 
@@ -109291,7 +108861,7 @@ This native checks if the given vehicle is stopped at a red or amber traffic lig
 
 - `Vehicle vehicle` — The vehicle handle.
 
-**Returns:**
+**Return value:**
 
 Will return `true` if the vehicle is at an amber light junction and the vehicle driver's personality is set to not run amber lights, or if the vehicle is at a red light, regardless of the driver's personality. 
 Will return `false` if the vehicle is stopped behind another vehicle waiting at a traffic light.
@@ -109361,7 +108931,7 @@ enum eVehicleWheels
 - `int wheelID` — The wheel id to check, see `eVehicleWheels`
 - `BOOL isBurstToRim` — Whether it should only return `true` if the tire is bursted to its rims
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the vehicle tire is poped, `false` otherwise.
 
@@ -109429,8 +108999,6 @@ NativeDB Introduced: v323
 
 - `Vehicle vehicle` — The convertible vehicle whose roof you want to lower.
 - `BOOL instantlyLower` — A boolean value indicating whether the roof should be lowered instantly without transitioning through the animation. Set to `false` to lower the roof with the animation or `true` to lower it instantly.
-
-**Examples:**
 
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -109557,8 +109125,6 @@ NativeDB Introduced: v323
 
 - `Vehicle vehicle` — The convertible vehicle whose roof you wish to raise.
 - `BOOL instantlyRaise` — A boolean indicating whether the roof should be raised instantly without the animation transition. Set `false` to raise the roof with the animation, or `true` to raise it immediately.
-
-**Examples:**
 
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -109893,7 +109459,7 @@ See eWindowId declared in [`IS_VEHICLE_WINDOW_INTACT`](#_0x46E571A0E20D01F1).
 
 **Parameters:**
 
-- `Any) void ROLL_DOWN_WINDOW(Vehicle vehicle`
+- `Vehicle vehicle`
 - `int windowIndex`
 
 ---
@@ -109928,7 +109494,7 @@ See eWindowId declared in [`IS_VEHICLE_WINDOW_INTACT`](#_0x46E571A0E20D01F1).
 
 **Parameters:**
 
-- `Any) void ROLL_UP_WINDOW(Vehicle vehicle`
+- `Vehicle vehicle`
 - `int windowIndex`
 
 ---
@@ -110037,8 +109603,6 @@ NativeDB Introduced: v323
 - `Vehicle boat` — The target boat.
 - `BOOL toggle` — Set the anchor state `true` deploys the anchor, false `raises` it.
 
-**Examples:**
-
 ```lua
 local boat = GetVehiclePedIsIn(PlayerPedId(), false)
 if not boat or not IsThisModelABoat(GetEntityModel(boat)) then return end
@@ -110138,8 +109702,6 @@ NativeDB Introduced: v323
 - `Vehicle boat` — The target boat.
 - `float value` — The distance at which the LOD switch occurs. Set to `-1.0` to reset the LOD distance to the default value.
 
-**Examples:**
-
 ```lua
 local boat = GetVehiclePedIsIn(PlayerPedId(), false)
 if not boat or not IsThisModelABoat(GetEntityModel(boat)) then return end
@@ -110192,8 +109754,6 @@ NativeDB Introduced: v323
 - `Vehicle boat` — The target boat.
 - `BOOL toggle` — Set the anchoring behavior. If `true`, the boat will remain anchored even when a player is driving. If `false`, normal anchoring behavior applies (anchor is raised when a player drives).
 
-**Examples:**
-
 ```lua
 local boat = GetVehiclePedIsIn(PlayerPedId(), false)
 if not boat or not IsThisModelABoat(GetEntityModel(boat)) then return end
@@ -110233,7 +109793,7 @@ void SET_BOAT_SINKS_WHEN_WRECKED(Vehicle vehicle, cs_type(Vehicle) BOOL toggle);
 **Parameters:**
 
 - `Vehicle vehicle`
-- `cs_type(Vehicle) BOOL toggle`
+- `BOOL toggle`
 
 ---
 
@@ -110270,8 +109830,6 @@ Prevents a specified entity from being detached from a Cargobob, even in the eve
 
 - `Vehicle cargobob` — The Cargobob helicopter from which the entity is not to be detached
 - `Entity entity` — The entity to remain attached to the Cargobob.
-
-**Examples:**
 
 ```lua
 -- This example prevents a specific entity from being detached from a Cargobob, even in the event of collisions.
@@ -110515,7 +110073,7 @@ void SET_CARGOBOB_PICKUP_ROPE_DAMPING_MULTIPLIER(Vehicle cargobob, cs_type(Playe
 **Parameters:**
 
 - `Vehicle cargobob`
-- `cs_type(Player) float p1`
+- `float p1`
 
 ---
 
@@ -110566,7 +110124,7 @@ You can check if the vehicle has a roof with [`DOES_VEHICLE_HAVE_ROOF`](#_0x8AC8
 NativeDB Introduced: v323
 ```
 
-#### Vehicles with both roofed and roofless versions (others may exist; this list is compiled from decompiled scripts).
+**Vehicles with both roofed and roofless versions (others may exist; this list is compiled from decompiled scripts).:**
 
 * chino
 * voltic
@@ -110581,8 +110139,6 @@ NativeDB Introduced: v323
 
 - `Vehicle vehicle` — The vehicle to which the roof state will be applied.
 - `BOOL toggle` — Boolean value where `true` adds the roof and `false` removes it, applicable only if the vehicle has a version with and without a roof.
-
-**Examples:**
 
 ```lua
 -- In this case we are removing the roof from the vehicle.
@@ -110627,8 +110183,6 @@ NativeDB Introduced: v323
 - `Vehicle vehicle` — The vehicle whose convertible roof latch state is to be set.
 - `BOOL bLatched` — A boolean value indicating the desired latch state of the roof. Set to `true` to latch (lock) the roof, preventing it from being opened. Set to `false` to unlatch (unlock) the roof, allowing it to be opened or closed.
 
-**Examples:**
-
 ```lua
 -- To latch (lock) the convertible roof, preventing it from being opened
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -110670,9 +110224,7 @@ NativeDB Introduced: v463
 
 **Parameters:**
 
-- `cs_type(Any) BOOL disableExtraTrickForces` — Set to `true` to disable the extra forces applied for tricks on BMX bicycles, making the bike behave more like a regular bicycle without trick capabilities. Set to `false` to allow BMX bikes to perform tricks normally.
-
-**Examples:**
+- `BOOL disableExtraTrickForces` — Set to `true` to disable the extra forces applied for tricks on BMX bicycles, making the bike behave more like a regular bicycle without trick capabilities. Set to `false` to allow BMX bikes to perform tricks normally.
 
 ```lua
 -- Retrieve the player ped
@@ -110741,9 +110293,7 @@ NativeDB Introduced: v1290
 **Parameters:**
 
 - `Vehicle vehicle` — The vehicle to apply this setting to.
-- `cs_type(float) BOOL disableExplode` — `true` to disable explosion from body damage on collision; `false` to allow explosions as normal.
-
-**Examples:**
+- `BOOL disableExplode` — `true` to disable explosion from body damage on collision; `false` to allow explosions as normal.
 
 ```lua
 -- Retrieve the player ped
@@ -110801,9 +110351,7 @@ NativeDB Introduced: v1103
 **Parameters:**
 
 - `Vehicle helicopter` — The helicopter to apply this setting to.
-- `cs_type(Any) BOOL disableExplode` — `true` to disable explosion from body damage on collision; `false` to allow explosions as normal.
-
-**Examples:**
+- `BOOL disableExplode` — `true` to disable explosion from body damage on collision; `false` to allow explosions as normal.
 
 ```lua
 -- Retrieve the player ped.
@@ -110865,8 +110413,6 @@ Disables wings for `Deluxo` and `Oppressor MK II`. For the Deluxo, it retracts t
 
 - `Vehicle vehicle` — The vehicle to which the toggle will be applied.
 - `BOOL toggle` — Boolean parameter where setting `true` disables the vehicle's wings, preventing flight. Setting it to `false` allows the vehicle to fly as usual.
-
-**Examples:**
 
 ```lua
 -- In this case we are disabling the wings of the vehicle
@@ -111078,7 +110624,7 @@ cs_type(Any) void SET_GARBAGE_TRUCKS(BOOL toggle);
 
 **Parameters:**
 
-- `Any) void SET_GARBAGE_TRUCKS(BOOL toggle`
+- `BOOL toggle`
 
 ---
 
@@ -111181,10 +110727,8 @@ NativeDB Introduced: v323
 
 **Parameters:**
 
-- `BOOL) void SET_HELI_TAIL_BOOM_CAN_BREAK_OFF(Vehicle heli` — The helicopter for which the tail boom can break off.
+- `Vehicle heli` — The helicopter for which the tail boom can break off.
 - `BOOL toggle` — Determines whether the helicopter's tail boom can break off.
-
-**Examples:**
 
 ```lua
 local heli = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -111240,8 +110784,6 @@ This native allows opening or closing the wings of the Deluxo/Oppressor. For the
 
 - `Vehicle vehicle` — The vehicle to which the ratio will be applied.
 - `float ratio` — Between 0.0 and 1.0. 0.0 is wings closed, 1.0 is wings open.
-
-**Examples:**
 
 ```lua
 -- In this case we are opening the wings of the vehicle
@@ -111348,8 +110890,6 @@ You can clear the nitrous with [`CLEAR_NITROUS`](#_0xC889AE921400E1ED), if you w
 - `Vehicle vehicle` — The vehicle whose nitrous system is to be controlled.
 - `BOOL isActive` — A boolean value where `true` activates the nitrous system and `false` deactivates it.
 
-**Examples:**
-
 ```lua
 -- Retrieve the player ped
 local playerPed = PlayerPedId()
@@ -111406,7 +110946,7 @@ cs_type(Any) void SET_NUMBER_OF_PARKED_VEHICLES(int value);
 
 **Parameters:**
 
-- `Any) void SET_NUMBER_OF_PARKED_VEHICLES(int value`
+- `int value`
 
 ---
 
@@ -111425,11 +110965,9 @@ Enables or disables the opening of a vehicle's rear doors in the event of a stic
 - `Vehicle vehicle` — The vehicle to apply this setting to.
 - `BOOL toggle` — A boolean value where `true` allows the rear doors to open upon explosion, and `false` prevents them from opening.
 
-**Returns:**
+**Return value:**
 
 This native does not return any value.
-
-**Examples:**
 
 ```lua
 -- This example disables the rear doors of the vehicle from opening upon explosion.
@@ -111542,8 +111080,6 @@ Overrides the default settings of a vehicle's nitrous system, allowing custom co
 - `Vehicle vehicle` — The vehicle whose nitrous system is to be overridden.
 - `BOOL override` — A boolean toggle to enable or disable the override settings.
 
-**Examples:**
-
 ```lua
 -- Retrieve the player ped
 local playerPed = PlayerPedId()
@@ -111621,7 +111157,7 @@ min: 1.9f, max: 100.0f
 - `Vehicle cargobob`
 - `float length1`
 - `float length2`
-- `cs_type(int) BOOL state`
+- `BOOL state`
 
 ---
 
@@ -111696,9 +111232,9 @@ NativeDB Introduced: v1290
 
 - `Vehicle vehicle` — Plane to which the damage scale adjustment will be applied.
 - `int damageSection` — Specific section of the plane, as defined in the `ePlaneDamageSection` enum, where the damage scale will be adjusted.
-- `cs_type(Any) float damageScale` — A float value representing the scale of damage to be applied to the specified section.
+- `float damageScale` — A float value representing the scale of damage to be applied to the specified section.
 
-**Returns:**
+**Return value:**
 
 This native does not return any value.
 
@@ -111722,8 +111258,6 @@ Works by just calling it once, does not need to be called every tick.
 
 - `Vehicle vehicle` — The plane to set the multiplier for
 - `float multiplier` — The turbulence multiplier. Value between 0.0 and 1.0
-
-**Examples:**
 
 ```lua
 local plane = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -111798,7 +111332,7 @@ cs_type(Any) void SET_PLAYERS_LAST_VEHICLE(Vehicle vehicle);
 
 **Parameters:**
 
-- `Any) void SET_PLAYERS_LAST_VEHICLE(Vehicle vehicle`
+- `Vehicle vehicle`
 
 ---
 
@@ -111829,7 +111363,7 @@ cs_type(Any) void SET_RANDOM_BOATS(BOOL toggle);
 
 **Parameters:**
 
-- `Any) void SET_RANDOM_BOATS(BOOL toggle`
+- `BOOL toggle`
 
 ---
 
@@ -111848,8 +111382,6 @@ Requires [`SWITCH_TRAIN_TRACK`](#_0xFD813BB7DB977F20) and [`SET_TRAIN_TRACK_SPAW
 **Parameters:**
 
 - `BOOL toggle` — Whether to enable random trains.
-
-**Examples:**
 
 ```lua
 SwitchTrainTrack(0, true) -- Setting the Main train track(s) around LS and towards Sandy Shores active
@@ -111928,8 +111460,6 @@ Allows locking the hover/non-hover mode of a vehicle, such as the flying mode of
 - `Vehicle vehicle` — The vehicle to which the locking state will be applied.
 - `BOOL toggle` — Boolean parameter where setting `false` locks the current state of the vehicle, preventing transitions such as the `Deluxo` or Oppressor switching between their flying and driving modes. Setting it to `true` allows changing the vehicle state as usual.
 
-**Examples:**
-
 ```lua
 -- Checks the altitude of the Deluxo and locks its current mode when above 150 meters.
 -- If the Deluxo is in flying mode at this altitude, it will be unable to switch to driving mode, and vice versa.
@@ -111968,8 +111498,6 @@ Used alongside [`SET_SPECIAL_FLIGHT_MODE_TARGET_RATIO`](#_0x438B3D7CA026FE91), t
 
 - `Vehicle vehicle` — The vehicle to which the ratio will be applied.
 - `float ratio` — A value between 0.0 and 1.0 indicating the target state for the vehicle's hover mode transition. In decompiled scripts, a common usage is 0.75 - GetFrameTime(). Exceeding the maximum can cause the `Deluxo's` wheels to glitch, delaying their return to the initial position.
-
-**Examples:**
 
 ```lua
 -- In this case we are enabling the hover mode for the vehicle and initiates hover transformation.
@@ -112020,8 +111548,6 @@ Once this native is used then players will just be able to hit the vehicle trans
 
 - `Vehicle vehicle` — The vehicle (a deluxo or oppressor2).
 - `float state` — The transform state (value between 0.0 and 1.0).
-
-**Examples:**
 
 ```lua
 -- In this case we are enabling the hover mode for the deluxo (fyling mode)
@@ -112115,9 +111641,7 @@ Sets whether the trailer can attach to vehicles
 **Parameters:**
 
 - `Vehicle vehicle` — The trailer to set attachment state for
-- `cs_type(Any) BOOL enabled` — Enable or disable attachment
-
-**Examples:**
+- `BOOL enabled` — Enable or disable attachment
 
 ```lua
 local trailerModel = `tanker`
@@ -112183,10 +111707,8 @@ Used to control train speed, can be used to start and stop its movement as well.
 
 **Parameters:**
 
-- `Any) void SET_TRAIN_CRUISE_SPEED(Vehicle train`
+- `Vehicle train`
 - `float speed`
-
-**Examples:**
 
 ```lua
 local train = CreateMissionTrain(21, 40.2, -1201.3, 31.0, false)
@@ -112206,7 +111728,7 @@ cs_type(Any) void SET_TRAIN_SPEED(Vehicle train, float speed);
 
 **Parameters:**
 
-- `Any) void SET_TRAIN_SPEED(Vehicle train`
+- `Vehicle train`
 - `float speed`
 
 ---
@@ -112244,8 +111766,6 @@ Affects the playback speed of the submarine car conversion animations. Does not 
 
 - `Vehicle vehicle` — The vehicle for which the submarine car conversion animation speed should be adjusted.
 - `float transformRate` — The rate at which the submarine car conversion animations will be played.
-
-**Examples:**
 
 ```lua
 -- This example sets the transform rate for the submarine car conversion animations to 2.5
@@ -112335,8 +111855,6 @@ NativeDB Introduced: v1365
 
 - `Vehicle vehicle` — The vehicle for which the submarine mode should be configured.
 - `bool useAlternateInput` — A boolean switch to enable/disable the use of alternate input.
-
-**Examples:**
 
 ```lua
 -- This example sets the key for submarine mode transformation to special vehicle transform 
@@ -112486,8 +112004,6 @@ When set to `false`, players using a Homing Launcher or vehicles with homing mis
 - `Vehicle vehicle` — The target vehicle.
 - `BOOL toggle` — `true` to allow homing missile lock-on, `false` to disable it.
 - `BOOL p2` — Unknown parameter, typically `false`.
-
-**Examples:**
 
 ```lua
 -- Disable homing missile lock-on for the player's current vehicle.
@@ -112851,8 +112367,6 @@ Range of possible values for colorCombination is currently unknown, I couldn't f
 - `Vehicle vehicle` — The vehicle to modify.
 - `int colorCombination` — One of the default color values of the vehicle.
 
-**Examples:**
-
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
 local index = math.random(0, 16)
@@ -112925,8 +112439,6 @@ When `focusOnModel` set to `true`, the damage sphere will travel towards the veh
 - `float radius` — the size of the damage sphere to apply
 - `BOOL focusOnModel` — when set to `true`, the damage sphere will travel towards the vehicle from the given point, thus guaranteeing an impact
 
-**Examples:**
-
 ```lua
 -- Both of these are for an average sized car
 
@@ -112994,8 +112506,6 @@ Sets the dirt level of the passed vehicle.
 
 - `Vehicle vehicle` — The vehicle to set.
 - `float dirtLevel` — A number between 0.0 and 15.0 representing the vehicles dirt level.
-
-**Examples:**
 
 ```lua
 local Vehicle = GetVehiclePedIsUsing(PlayerPedId())
@@ -113065,8 +112575,6 @@ enum eVehicleLockState {
 
 - `Vehicle vehicle` — The vehicle whose doors are to be locked.
 - `int doorLockStatus` — The lock state to apply to the vehicle's doors, see `eVehicleLockState`.
-
-**Examples:**
 
 ```lua
 -- Command to lock the car of the player for everyone.
@@ -113281,8 +112789,6 @@ Sets the specified door index open on the passed vehicle. See [`IS_VEHICLE_DOOR_
 - `BOOL loose` — Whether the door is "loose" (if true the doors have no "spring" and can be closed easily.)
 - `BOOL openInstantly` — Whether the doors open instantly (if true this native seems to ignore loose)
 
-**Examples:**
-
 ```lua
 local Vehicle = GetVehiclePedIsUsing(PlayerPedId())
 for i = 0, 5 do
@@ -113320,8 +112826,6 @@ enum eDoorId
 - `Vehicle vehicle` — Vehicle.
 - `int doorIndex` — Index of the door you want to close.
 - `BOOL closeInstantly` — Whether the doors close instantly.
-
-**Examples:**
 
 ```lua
 local Vehicle = GetVehiclePedIsUsing(PlayerPedId())
@@ -113461,7 +112965,7 @@ NativeDB Removed Parameter 2: int index
 **Parameters:**
 
 - `Vehicle vehicle`
-- `cs_type(Ped) BOOL toggle`
+- `BOOL toggle`
 
 ---
 
@@ -113565,8 +113069,6 @@ If the vehicle's engine's broken then you cannot fix it with this native.
 **Parameters:**
 
 - `Vehicle vehicle` — The vehicle that will be fixed
-
-**Examples:**
 
 ```lua
 -- Get the player ped
@@ -113759,8 +113261,6 @@ You can clear the area of interest with [`CLEAR_VEHICLE_GENERATOR_AREA_OF_INTERE
 - `float z` — The Z coordinate of the central point of the area of interest.
 - `float radius` — The radius around the central point, defining the size of the area of interest
 
-**Examples:**
-
 ```lua
 -- This example sets the area of interest (cargen) to the player's position with a radius of 100.0
 
@@ -113916,8 +113416,6 @@ NativeDB Introduced: v323
 - `Vehicle vehicle` — The target vehicle.
 - `BOOL toggle` — Set the lights' breakability `true` makes lights unbreakable, `false` allows them to break.
 
-**Examples:**
-
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
 if not vehicle then return end
@@ -113976,8 +113474,6 @@ enum eVehicleHeadlightShadowFlags {
 
 - `Vehicle vehicle` — The target vehicle.
 - `int flag` — A value from `eVehicleHeadlightShadowFlags` representing the desired headlight shadow flag.
-
-**Examples:**
 
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -114075,8 +113571,6 @@ This is particularly useful when utilizing the wanted system from GTA, and you w
 
 - `Vehicle vehicle` — The specific vehicle to be set for influencing the wanted level.
 - `BOOL influenceWantedLevel` — A boolean value. Set to `true` to make the vehicle influence the wanted level; `false` to prevent it from doing so.
-
-**Examples:**
 
 ```lua
 -- This example will prevent the closest vehicle from influencing the wanted level.
@@ -114211,7 +113705,7 @@ cs_type(Any) void SET_VEHICLE_IS_STOLEN(Vehicle vehicle, BOOL isStolen);
 
 **Parameters:**
 
-- `Any) void SET_VEHICLE_IS_STOLEN(Vehicle vehicle`
+- `Vehicle vehicle`
 - `BOOL isStolen`
 
 ---
@@ -114303,8 +113797,6 @@ enum eVehicleLightSetting {
 
 - `Vehicle vehicle` — The target vehicle.
 - `int state` — A value from `eVehicleLightSetting` representing the desired light setting.
-
-**Examples:**
 
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -114595,8 +114087,6 @@ void SET_VEHICLE_NUMBER_PLATE_TEXT(Vehicle vehicle, char* plateText);
 
 - `Vehicle vehicle` — The vehicle to set the plate for
 - `char* plateText` — The text to set the plate to, 8 chars maximum
-
-**Examples:**
 
 ```lua
 local playerPed = PlayerPedId()
@@ -115051,8 +114541,6 @@ Bicycles accept the flag but have no engine to shut off, so the call has no mean
 - `Vehicle vehicle` — The vehicle to modify.
 - `BOOL toggle` — `true` to mark the vehicle as undriveable and immediately shut the engine off, `false` allows the vehicle to be driven again.
 
-**Examples:**
-
 ```lua
 -- /lockengine toggles the undriveable flag on the player's current vehicle
 local locked = false
@@ -115201,7 +114689,7 @@ cs_type(Any) void SET_VEHICLE_WHEELS_CAN_BREAK(Vehicle vehicle, BOOL enabled);
 
 **Parameters:**
 
-- `Any) void SET_VEHICLE_WHEELS_CAN_BREAK(Vehicle vehicle`
+- `Vehicle vehicle`
 - `BOOL enabled`
 
 ---
@@ -115311,7 +114799,7 @@ Smashes a vehicles window. See eWindowId declared in [`IS_VEHICLE_WINDOW_INTACT`
 
 **Parameters:**
 
-- `Any) void SMASH_VEHICLE_WINDOW(Vehicle vehicle` — The vehicle id.
+- `Vehicle vehicle` — The vehicle id.
 - `int windowIndex` — Windows to smash index.
 
 ---
@@ -115371,7 +114859,7 @@ AI abides by the provided driving style (e.g., stopping at red lights or waiting
 
 - `Vehicle vehicle`
 - `int recording`
-- `cs_type(AnyPtr) char* script`
+- `char* script`
 - `float speed`
 - `int drivingStyle` — The driving style (default is 0) (see [SetDriveTaskDrivingStyle](#_0xDACE1BE37D88AF67)).
 
@@ -115411,7 +114899,7 @@ cs_type(Any) void START_VEHICLE_ALARM(Vehicle vehicle);
 
 **Parameters:**
 
-- `Any) void START_VEHICLE_ALARM(Vehicle vehicle`
+- `Vehicle vehicle`
 
 ---
 
@@ -115487,10 +114975,10 @@ Tracks IDs `0` and `3` are the main tracks you find trains on during normal game
 
 **Parameters:**
 
-- `Any) void SWITCH_TRAIN_TRACK(int trackId` — The internal id of the train track to switch
+- `int trackId` — The internal id of the train track to switch
 - `BOOL state` — Whether ambient trains can spawn or not
 
-**Returns:**
+**Return value:**
 
 None. The original return type is `void`, but ABI compatibility makes this impossible.
 
@@ -116034,7 +115522,7 @@ if (!VEHICLE::_0x51F30DB60626A20E(uParam0->f_26, uParam0->f_12.f_3, uParam0->f_1
 - `int p7` — usually 2
 - `Any p8` — usually 1
 
-**Returns:**
+**Return value:**
 
 A BOOL value, purpose unknown.
 
@@ -117362,11 +116850,9 @@ Returns true when the bomb bay doors of this plane are open. False if they're cl
 
 - `Vehicle aircraft` — The vehicle to check the bomb bay doors on.
 
-**Returns:**
+**Return value:**
 
 A bool indicating the state of the doors (true = open, false = closed).
-
-**Examples:**
 
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -117376,6 +116862,7 @@ if AreBombBayDoorsOpen(vehicle) then
 else
     print("The doors are closed!")
 end
+
 ```
 
 ```cs
@@ -117432,11 +116919,9 @@ NativeDB Introduced: v1290
 
 - `Vehicle vehicle`
 
-**Returns:**
+**Return value:**
 
 The deployment state of the vehicle's outrigger legs
-
-**Examples:**
 
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -117555,7 +117040,7 @@ Returns true if the vehicle has the FLAG_ALLOWS_RAPPEL flag set.
 
 ### `_DOES_VEHICLE_HAVE_LANDING_GEAR`
 
-`0xE43701C36CAFF1A4` · returns `void`
+`0xE43701C36CAFF1A4` · returns `BOOL`
 
 ```c
 cs_type(Any) BOOL _DOES_VEHICLE_HAVE_LANDING_GEAR(Vehicle vehicle);
@@ -117567,7 +117052,7 @@ NativeDB Introduced: v1180
 
 **Parameters:**
 
-- `Any) BOOL _DOES_VEHICLE_HAVE_LANDING_GEAR(Vehicle vehicle`
+- `Vehicle vehicle`
 
 ---
 
@@ -117646,8 +117131,6 @@ NativeDB Introduced: v3407
 
 - `Vehicle plane` — The propeller plane.
 - `int propeller` — The propeller index to enable (starts at 0).
-
-**Examples:**
 
 ```lua
 CreateThread(function()
@@ -117921,11 +117404,9 @@ NativeDB Introduced: v3258
 
 - `Hash vehicleModel` — The hash of the vehicle model to check.
 
-**Returns:**
+**Return value:**
 
 Returns `true` if the vehicle is electric or `false` otherwise.
-
-**Examples:**
 
 ```lua
 local veh = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -118045,7 +117526,7 @@ Retrieves the remaining duration of nitrous boost available for the specified ve
 
 - `Vehicle vehicle` — The vehicle for which to retrieve the remaining nitrous duration.
 
-**Returns:**
+**Return value:**
 
 The amount of time that the nitrous boost can still be active for the given vehicle. If there is no nitrous system active or available, this may return `0`.
 
@@ -118056,15 +117537,15 @@ CreateThread(function()
         -- Retrieve the player ped.
         playerPed = PlayerPedId()
 
--- Retrieve the vehicle the player is currently in.
+        -- Retrieve the vehicle the player is currently in.
         vehicle = GetVehiclePedIsIn(playerPed, false)
 
--- Retrieve if the nitrous of the vehicle is active.
+        -- Retrieve if the nitrous of the vehicle is active.
         if IsNitrousActive(vehicle) then
             print(GetRemainingNitrousDuration(vehicle))
         end
 
-Wait(0)
+        Wait(0)
     end
 end)
 ```
@@ -118077,7 +117558,7 @@ setTick(async () => {
     // Retrieve the vehicle the player is currently in.
     let vehicle = GetVehiclePedIsIn(playerPed, false);
 
-// Retrieve if the nitrous of the vehicle is active.
+    // Retrieve if the nitrous of the vehicle is active.
     if (IsNitrousActive(vehicle)) {
         console.log(GetRemainingNitrousDuration(vehicle));
     }
@@ -118142,11 +117623,9 @@ Use [`_SET_AIRCRAFT_BOMB_COUNT`](#_0xF4B2ED59DEB5D774) to set the amount of bomb
 
 - `Vehicle aircraft` — The vehicle to get the amount of bombs from.
 
-**Returns:**
+**Return value:**
 
 An int indicating the amount of bombs remaining on that plane.
-
-**Examples:**
 
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -118190,11 +117669,9 @@ Use [`_SET_AIRCRAFT_COUNTERMEASURE_COUNT`](#_0x9BDA23BF666F0855) to set the curr
 
 - `Vehicle aircraft` — The vehicle to get the amount of countermeasures from.
 
-**Returns:**
+**Return value:**
 
 An int indicating the amount of countermeasures remaining on that plane.
-
-**Examples:**
 
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -118275,11 +117752,9 @@ NativeDB Introduced: v3258
 
 - `Hash vehicleModel` — The hash of the vehicle model to check.
 
-**Returns:**
+**Return value:**
 
 Returns the vehicle's drivetrain type.
-
-**Examples:**
 
 ```lua
 local vehicleHash = GetHashKey("elegy")
@@ -118441,7 +117916,7 @@ A getter for [_SET_VEHICLE_ROOF_LIVERY](#_0xA6D3A8750DC73270).
 
 - `Vehicle vehicle` — The vehicle handle.
 
-**Returns:**
+**Return value:**
 
 An index of the current vehicle's rooftop livery.
 
@@ -118461,7 +117936,7 @@ Returns a number of available rooftop liveries, or -1 if vehicle has no rooftop 
 
 - `Vehicle vehicle` — The vehicle handle.
 
-**Returns:**
+**Return value:**
 
 A number of available rooftop liveries for vehicle.
 
@@ -118545,7 +118020,7 @@ enum eHeadlightColors {
 
 - `Vehicle vehicle` — The vehicle to get the headlight color from.
 
-**Returns:**
+**Return value:**
 
 Returns the xenons light color, refer to `eHeadlightColors`
 
@@ -118657,7 +118132,7 @@ BOOL _IS_THIS_MODEL_AN_AMPHIBIOUS_QUADBIKE(cs_type(Any) Hash model);
 
 **Parameters:**
 
-- `cs_type(Any) Hash model`
+- `Hash model`
 
 ---
 
@@ -118740,11 +118215,9 @@ This usually returns true even if there are no visible flames yet (engine health
 
 - `Vehicle vehicle` — The vehicle to check.
 
-**Returns:**
+**Return value:**
 
 Returns true when the engine of your vehicle is on fire. Returns false if it's not on fire.
-
-**Examples:**
 
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -118801,7 +118274,7 @@ NativeDB Introduced: v3407
 
 - `Vehicle vehicle` — The vehicle to check.
 
-**Returns:**
+**Return value:**
 
 Return `true` if the vehicle is on a boost pad, `false` otherwise.
 
@@ -118849,7 +118322,7 @@ BOOL _IS_VEHICLE_SLIPSTREAM_LEADER(Vehicle vehicle);
 
 - `Vehicle vehicle`
 
-**Returns:**
+**Return value:**
 
 True if the vehicle is being slipstreamed by another vehicle
 
@@ -118865,7 +118338,7 @@ BOOL _IS_VEHICLE_WEAPON_DISABLED(cs_type(Any) Hash weaponHash, Vehicle vehicle, 
 
 **Parameters:**
 
-- `cs_type(Any) Hash weaponHash`
+- `Hash weaponHash`
 - `Vehicle vehicle`
 - `Ped owner`
 
@@ -119149,7 +118622,7 @@ NativeDB Introduced: v1290
 **Parameters:**
 
 - `Vehicle vehicle`
-- `cs_type(float) BOOL direction`
+- `BOOL direction`
 
 ---
 
@@ -119203,8 +118676,6 @@ R* used it to "remove" vehicle windows when "nightshark" had some mod, which add
 
 - `Vehicle vehicle` — The vehicle to toggle this for.
 - `BOOL toggle` — True disables the collision, false enables the collision
-
-**Examples:**
 
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -119641,8 +119112,6 @@ Use [`_GET_AIRCRAFT_BOMB_COUNT`](#_0xEA12BD130D7569A1) to get the amount of bomb
 - `Vehicle aircraft` — The vehicle to set the bombCount on.
 - `int bombCount` — The amount of bombs to set for this vehicle.
 
-**Examples:**
-
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
 SetAircraftBombCount(vehicle, 10)
@@ -119726,8 +119195,6 @@ Use [`_GET_AIRCRAFT_COUNTERMEASURE_COUNT`](#_0xF846AA63DF56B804) to get the curr
 
 - `Vehicle aircraft` — The vehicle to set the amount of countermeasures on.
 - `int count` — The amount of countermeasures to set on this vehicle.
-
-**Examples:**
 
 ```lua
 local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
@@ -119847,7 +119314,7 @@ NativeDB Introduced: v3407
 - `Vehicle vehicle`
 - `float scale`
 
-**Returns:**
+**Return value:**
 
 Does not actually return anything.
 
@@ -119864,7 +119331,7 @@ void _SET_VEHICLE_HANDLING_HASH_FOR_AI(Vehicle vehicle, cs_type(Any) Hash hash);
 **Parameters:**
 
 - `Vehicle vehicle`
-- `cs_type(Any) Hash hash`
+- `Hash hash`
 
 ---
 
@@ -120111,7 +119578,7 @@ NativeDB Introduced: v1604
 **Parameters:**
 
 - `Vehicle vehicle`
-- `cs_type(BOOL) int val`
+- `int val`
 
 ---
 
@@ -120309,8 +119776,6 @@ Enables or disables the use of the vehicle's horn button for activating the nitr
 - `Vehicle vehicle` — The vehicle where this setting will be applied.
 - `BOOL bToggle` — If set to `true`, the horn button will activate the nitrous system; if `false`, it will not.
 
-**Examples:**
-
 ```lua
 -- Retrieve the player ped
 local playerPed = PlayerPedId()
@@ -120410,9 +119875,10 @@ You can find the list of colors and ids here: [_GET_VEHICLE_HEADLIGHTS_COLOUR](#
 **Parameters:**
 
 - `Vehicle vehicle` — The vehicle handle.
-- `int color` — The paint index. **Result**: > ![](https://i.imgur.com/yV3cpG9.png)
+- `int color` — The paint index.
 
-**Examples:**
+**Result**:
+> ![](https://i.imgur.com/yV3cpG9.png)
 
 ```lua
 local veh = GetVehiclePedIsUsing(PlayerPedId())
@@ -120464,10 +119930,10 @@ After removing a rise, you will be able to add a rise again.
 - `float yHigh`
 - `float height`
 
-**Returns:**
+**Return value:**
 
 If succeeded to add, returns a rise index that can be used on REMOVE_EXTRA_CALMING_QUAD.
-If failed to add, returns -1 (make sure you don't pass -1 to REMOVE_EXTRA_CALMING_QUAD).
+If failed to add, returns -1 (make sure you don't pass -1 to REMOVE_EXTRA_CALMING_QUAD). 
 
 ---
 
@@ -120504,7 +119970,7 @@ Retrieves the depth of the water beneath the specified position, accounting for 
 - `float z` — The coordinate at which to test at for water.
 - `float* height` — The height at which to test at for water.
 
-**Returns:**
+**Return value:**
 
 Returns `false` when land at the tested coordinates is higher than water, `true` otherwise.
 
@@ -120549,6 +120015,24 @@ Sets the water height for a given position and radius.
 - `float y`
 - `float height`
 - `float radius`
+
+---
+
+### `REMOVE_EXTRA_CALMING_QUAD`
+
+`0xB1252E3E59A82AAF` · `0x45268B6F` · returns `void`
+
+```c
+void REMOVE_EXTRA_CALMING_QUAD(int extraQuad);
+```
+
+Caution: This function is unsafe when used incorrectly.
+Make sure your parameter is from 0-7 (inclusive). Using any other value will result in undefined behaviour (game crashes, etc).
+ADD_EXTRA_CALMING_QUAD returns -1 when it fails, so make sure you're not trying to remove -1 as this could break something.
+
+**Parameters:**
+
+- `int extraQuad` — The value returned from ADD_EXTRA_CALMING_QUAD (not including -1). Value must be in range [0,7] otherwise game bugs will occur.
 
 ---
 
@@ -120660,24 +120144,6 @@ void _0x547237AA71AB44DE(float p0);
 
 ---
 
-### `_REMOVE_CURRENT_RISE`
-
-`0xB1252E3E59A82AAF` · `0x7DBCEF6F` · returns `void`
-
-```c
-void _REMOVE_CURRENT_RISE(int p0);
-```
-
-```
-p0 is the handle returned from _0xFDBF4CDBC07E1706  
-```
-
-**Parameters:**
-
-- `int p0`
-
----
-
 <a id="weapon"></a>
 ## WEAPON
 
@@ -120767,7 +120233,7 @@ int CREATE_AIR_DEFENCE_ANGLED_AREA(float srcCoord1X, float srcCoord1Y, float src
 - `float weaponPositionX`
 - `float weaponPositionY`
 - `float weaponPositionZ`
-- `cs_type(Any) Hash weaponHash`
+- `Hash weaponHash`
 
 ---
 
@@ -120788,13 +120254,13 @@ Native related to [_0xECDC202B25E5CF48](#_0xECDC202B25E5CF48) p1 value. The only
 - `float x`
 - `float y`
 - `float z`
-- `cs_type(int) float radius` — Unknown float 150.0 is used in freemode script.
+- `float radius` — Unknown float 150.0 is used in freemode script.
 - `float weaponPositionX`
 - `float weaponPositionY`
 - `float weaponPositionZ`
 - `Hash weaponHash` — weapon_air_defence_gun and 0 are used in the decompiled scripts.
 
-**Returns:**
+**Return value:**
 
 Seems to be some sort of handle, result is += 1 any time this native is called.
 
@@ -120934,7 +120400,7 @@ Hash GET_BEST_PED_WEAPON(Ped ped, BOOL ignoreAmmoCount);
 - `Ped ped`
 - `BOOL ignoreAmmoCount` — If set to true, the best weapon can have no ammo, otherwise, it will return the best weapon with ammo. Default value is `0`.
 
-**Returns:**
+**Return value:**
 
 The hash of the best weapon the specified ped has
 
@@ -121088,7 +120554,7 @@ int GET_PED_AMMO_BY_TYPE(Ped ped, cs_type(Any) Hash ammoType);
 **Parameters:**
 
 - `Ped ped`
-- `cs_type(Any) Hash ammoType`
+- `Hash ammoType`
 
 ---
 
@@ -121178,7 +120644,7 @@ Hash GET_SELECTED_PED_WEAPON(Ped ped);
 
 - `Ped ped`
 
-**Returns:**
+**Return value:**
 
 Hash: The weapon hash of the currently selected weapon.
 
@@ -121199,7 +120665,7 @@ Note that the group is **not** the same as the location on the weapon wheel.
 
 - `Hash weaponHash` — The hash of the weapon.
 
-**Returns:**
+**Return value:**
 
 Returns the hash of the group of the weapon. Hashes:
 
@@ -121224,8 +120690,6 @@ Returns the hash of the group of the weapon. Hashes:
 | GROUP_THROWN           | 1548507267 | 1548507267  | WEAPON_SNOWBALL         |
 | GROUP_TRANQILIZER      | 75159441   | 75159441    | WEAPON_TRANQUILIZER     |
 | GROUP_UNARMED          | 2685387236 | -1609580060 | WEAPON_UNARMED          |
-
-**Examples:**
 
 ```lua
 print(GetWeapontypeGroup(`WEAPON_PISTOL`)) -- Outputs the hash of GROUP_PISTOL
@@ -121351,9 +120815,9 @@ This native does not return damages of weapons from the melee and explosive grou
 **Parameters:**
 
 - `Hash weaponHash`
-- `cs_type(Any) Hash componentHash` — 0 in the decompiled scripts.
+- `Hash componentHash` — 0 in the decompiled scripts.
 
-**Returns:**
+**Return value:**
 
 Damages of the weapon.
 
@@ -121753,7 +121217,7 @@ Not specifying any bit will lead to the native *always* returning 'false', and f
 - `Ped ped` — The ped to check armed state on.
 - `int typeFlags` — Type flags to check.
 
-**Returns:**
+**Return value:**
 
 Whether or not the ped is currently equipped with any weapon matching typeFlags.
 
@@ -121928,7 +121392,7 @@ void REMOVE_WEAPON_COMPONENT_FROM_WEAPON_OBJECT(Object weaponObject, cs_type(Any
 **Parameters:**
 
 - `Object weaponObject`
-- `cs_type(Any) Hash addonHash`
+- `Hash addonHash`
 
 ---
 
@@ -122085,7 +121549,7 @@ void SET_PED_AMMO_BY_TYPE(Ped ped, cs_type(Any) Hash ammoType, int ammo);
 **Parameters:**
 
 - `Ped ped`
-- `cs_type(Any) Hash ammoType`
+- `Hash ammoType`
 - `int ammo`
 
 ---
@@ -122369,8 +121833,6 @@ These are stored in the `weaponanimations.meta` file located in `Grand Theft Aut
 
 For Lua, it's best if you send the animation using [compile-time jenkins](https://cookbook.fivem.net/2019/06/23/lua-support-for-compile-time-jenkins-hashes/) hashes to avoid overhead. An example is shown down below.
 
-**Animations:**
-
 ```c
 enum eWeaponAnimationOverrides {
 	Ballistic = 0x5534A626,
@@ -122410,8 +121872,6 @@ enum eWeaponAnimationOverrides {
 
 - `Ped ped` — The ped handle.
 - `Hash animStyle` — The animation style to apply, passed as a hash.
-
-**Examples:**
 
 ```lua
 -- Works when holding a pistol.
@@ -122485,7 +121945,7 @@ int _0xA2C9AC24B4061285(Ped ped, cs_type(Any) Hash weaponHash);
 **Parameters:**
 
 - `Ped ped`
-- `cs_type(Any) Hash weaponHash`
+- `Hash weaponHash`
 
 ---
 
@@ -122533,7 +121993,7 @@ void _ADD_AMMO_TO_PED_BY_TYPE(Ped ped, cs_type(Any) Hash ammoType, int ammo);
 **Parameters:**
 
 - `Ped ped`
-- `cs_type(Any) Hash ammoType`
+- `Hash ammoType`
 - `int ammo`
 
 ---
@@ -122600,7 +122060,7 @@ BOOL _GET_MAX_AMMO_BY_TYPE(Ped ped, cs_type(Any) Hash ammoType, int* ammo);
 **Parameters:**
 
 - `Ped ped`
-- `cs_type(Any) Hash ammoType`
+- `Hash ammoType`
 - `int* ammo`
 
 ---
@@ -122637,8 +122097,8 @@ int _GET_PED_WEAPON_LIVERY_COLOR(Ped ped, cs_type(Any) Hash weaponHash, cs_type(
 **Parameters:**
 
 - `Ped ped`
-- `cs_type(Any) Hash weaponHash`
-- `cs_type(Any) Hash camoComponentHash`
+- `Hash weaponHash`
+- `Hash camoComponentHash`
 
 ---
 
@@ -122690,13 +122150,13 @@ int _GET_WEAPON_COMPONENT_VARIANT_EXTRA_COMPONENT_COUNT(cs_type(Any) Hash compon
 
 **Parameters:**
 
-- `cs_type(Any) Hash componentHash`
+- `Hash componentHash`
 
 ---
 
 ### `_GET_WEAPON_COMPONENT_VARIANT_EXTRA_COMPONENT_MODEL`
 
-`0x4D1CB8DC40208A17` · returns `void`
+`0x4D1CB8DC40208A17` · returns `Hash`
 
 ```c
 cs_type(Any) Hash _GET_WEAPON_COMPONENT_VARIANT_EXTRA_COMPONENT_MODEL(cs_type(Any) Hash componentHash, int extraComponentIndex);
@@ -122704,7 +122164,7 @@ cs_type(Any) Hash _GET_WEAPON_COMPONENT_VARIANT_EXTRA_COMPONENT_MODEL(cs_type(An
 
 **Parameters:**
 
-- `Any) Hash _GET_WEAPON_COMPONENT_VARIANT_EXTRA_COMPONENT_MODEL(cs_type(Any) Hash componentHash`
+- `Hash componentHash`
 - `int extraComponentIndex`
 
 ---
@@ -122720,13 +122180,13 @@ int _GET_WEAPON_OBJECT_LIVERY_COLOR(Object weaponObject, cs_type(Any) Hash camoC
 **Parameters:**
 
 - `Object weaponObject`
-- `cs_type(Any) Hash camoComponentHash`
+- `Hash camoComponentHash`
 
 ---
 
 ### `_GET_WEAPON_TIME_BETWEEN_SHOTS`
 
-`0x065D2AACAD8CF7A4` · returns `void`
+`0x065D2AACAD8CF7A4` · returns `float`
 
 ```c
 cs_type(Any) float _GET_WEAPON_TIME_BETWEEN_SHOTS(Hash weaponHash);
@@ -122734,7 +122194,7 @@ cs_type(Any) float _GET_WEAPON_TIME_BETWEEN_SHOTS(Hash weaponHash);
 
 **Parameters:**
 
-- `Any) float _GET_WEAPON_TIME_BETWEEN_SHOTS(Hash weaponHash`
+- `Hash weaponHash`
 
 ---
 
@@ -122747,6 +122207,7 @@ void _GIVE_LOADOUT_TO_PED(Ped ped, cs_type(Any) Hash loadoutHash);
 ```
 
 List of all available loadouts:
+
 ```
 LOADOUT_DEFAULT
 LOADOUT_ANIMAL
@@ -122798,9 +122259,7 @@ LOADOUT_COW
 **Parameters:**
 
 - `Ped ped` — The ped handle to apply this to.
-- `cs_type(Any) Hash loadoutHash` — The loadout to use (needs to be a hash).
-
-**Examples:**
+- `Hash loadoutHash` — The loadout to use (needs to be a hash).
 
 ```lua
 GiveLoadoutToPed(PlayerPedId(), `LOADOUT_FIREMAN`)
@@ -122956,8 +122415,8 @@ void _SET_PED_WEAPON_LIVERY_COLOR(Ped ped, cs_type(Any) Hash weaponHash, cs_type
 **Parameters:**
 
 - `Ped ped`
-- `cs_type(Any) Hash weaponHash`
-- `cs_type(Any) Hash camoComponentHash`
+- `Hash weaponHash`
+- `Hash camoComponentHash`
 - `int colorIndex`
 
 ---
@@ -122974,7 +122433,9 @@ void _SET_PLAYER_AIR_DEFENSE_ZONE_FLAG(Player player, int zoneId, BOOL enable);
 
 - `Player player`
 - `int zoneId`
-- `BOOL enable` — Read [_0x91EF34584710BE99](#_0x91EF34584710BE99) for more information.
+- `BOOL enable`
+
+Read [_0x91EF34584710BE99](#_0x91EF34584710BE99) for more information.
 
 ---
 
@@ -122993,8 +122454,6 @@ Does NOT need to be called every frame.
 
 - `Hash weaponHash` — Hash of the weapon
 - `float damageMultiplier` — Damage Multiplier
-
-**Examples:**
 
 ```lua
 SetWeaponDamageModifier(`WEAPON_CARBINERIFLE`, 0.8)
@@ -123032,7 +122491,7 @@ void _SET_WEAPON_OBJECT_LIVERY_COLOR(Object weaponObject, cs_type(Any) Hash camo
 **Parameters:**
 
 - `Object weaponObject`
-- `cs_type(Any) Hash camoComponentHash`
+- `Hash camoComponentHash`
 - `int colorIndex`
 
 ---
@@ -123057,7 +122516,7 @@ NativeDB Introduced: v3407
 - `int seat` — The seat/weapon index.
 - `Ped ped` — The ped initiating the reload (the one using the weapon).
 
-**Returns:**
+**Return value:**
 
 Return `true` if reload was triggered successfully, `false` otherwise.
 
@@ -123261,11 +122720,9 @@ Refer to https://docs.fivem.net/docs/game-references/zones/ for a list of all zo
 
 - `char* zoneName` — The zone name like "Z_RMAN2", most-left column of popzone.ipl
 
-**Returns:**
+**Return value:**
 
 The zone ID, index in the popzone.ipl file starting with 1
-
-**Examples:**
 
 ```lua
 local zoneId = GetZoneFromNameId("Z_GOLF3")
@@ -123314,7 +122771,7 @@ enum eZoneScumminess
 
 - `int zoneId` — The zone id
 
-**Returns:**
+**Return value:**
 
 The zone scumminess level
 

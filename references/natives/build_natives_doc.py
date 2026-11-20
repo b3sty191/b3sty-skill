@@ -30,12 +30,35 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+import tempfile
 from pathlib import Path
 
 TITLE = "GTA V / FiveM Natives — Complete Reference"
 HASH_RE = re.compile(r"0x[0-9A-Fa-f]+")
-PARAM_RE = re.compile(r"^\*\s+\*\*(?P<name>[^*]+)\*\*\s*:\s*(?P<desc>.*)$")
+# Source param bullets use either `*` or `-` as the list marker.
+PARAM_RE = re.compile(r"^[*-]\s+\*\*(?P<name>[^*]+)\*\*\s*:\s*(?P<desc>.*)$")
 SIG_PARAMS_RE = re.compile(r"\((.*)\)", re.DOTALL)
+# CFX prefixes a `cs_type(...)` codegen/marshalling hint onto the return type or
+# a parameter (e.g. `cs_type(int) BOOL FOO()`, `cs_type(Any) Hash garageHash`).
+# It is not part of the C type, so strip it before reading types or the name.
+CS_TYPE_RE = re.compile(r"cs_type\([^)]*\)\s*")
+
+
+def _clean_sig(signature: str) -> str:
+    return CS_TYPE_RE.sub("", signature).strip()
+
+
+def _text_has_body(buf, i) -> bool:
+    """True if a heading at buf[i] is followed by real content before the next
+    heading, so empty sections (e.g. an empty `## Return value`) are dropped."""
+    j = i + 1
+    while j < len(buf):
+        if re.match(r"^#{1,6}\s+\S", buf[j]):
+            break
+        if buf[j].strip():
+            return True
+        j += 1
+    return False
 
 
 def read_blocks(lines, start):
@@ -65,6 +88,7 @@ def read_blocks(lines, start):
 
 def parse_signature_params(signature: str):
     """Return [(ctype, name)] from a C signature's parameter list."""
+    signature = _clean_sig(signature)
     m = SIG_PARAMS_RE.search(signature)
     if not m:
         return []
@@ -105,15 +129,14 @@ def parse_native(path: Path, namespace: str):
     blocks = list(read_blocks(lines, name_idx + 1))
 
     # First code fence holds `// 0x... [0x...]` then the signature.
-    hashes, signature, rettype = [], None, "void"
+    hashes, signature = [], None
     first_fence_consumed = False
     rendered = []
     for kind, body in blocks:
         if kind.startswith("fence:") and not first_fence_consumed:
             first_fence_consumed = True
-            code = [b for b in body]
             sig_lines = []
-            for b in code:
+            for b in body:
                 s = b.strip()
                 if s.startswith("//"):
                     found = HASH_RE.findall(s)
@@ -122,22 +145,27 @@ def parse_native(path: Path, namespace: str):
                         continue
                 sig_lines.append(b)
             signature = " ".join(l.strip() for l in sig_lines if l.strip())
-            if signature:
-                rettype = signature.split("(")[0].strip().split()[0] if signature.split() else "void"
             rendered.append(("signature", signature))
         elif kind.startswith("fence:"):
             rendered.append(("fence", (kind.split(":", 1)[1], body)))
         else:
             rendered.append(("text", body))
 
-    # Resolve the native name: the heading when present, else the function
-    # name in the C signature (native files with an empty heading carry the
-    # name only in the signature).
-    name = heading
-    if not name and signature:
-        fn = re.search(r"([A-Za-z_]\w*)\s*\(", signature)
-        if fn:
-            name = fn.group(1)
+    # Return type and function name come from the signature once the
+    # `cs_type(...)` marshalling hints are stripped: `<rettype...> NAME(params)`.
+    rettype, funcname = "void", ""
+    if signature:
+        before = _clean_sig(signature).split("(", 1)[0].strip()
+        toks = before.split()
+        if len(toks) >= 2:
+            rettype = " ".join(toks[:-1])
+            funcname = toks[-1].lstrip("*")
+        elif len(toks) == 1:
+            funcname = toks[-1].lstrip("*")
+
+    # Resolve the native name: the heading when present, else the signature's
+    # function name (files with an empty heading carry the name only there).
+    name = heading or funcname
     if not name:
         return None
 
@@ -146,7 +174,7 @@ def parse_native(path: Path, namespace: str):
         "namespace": namespace,
         "hashes": hashes,
         "signature": signature or f"void {name}();",
-        "rettype": rettype or "void",
+        "rettype": rettype,
         "rendered": rendered,
         "signature_params": parse_signature_params(signature or ""),
     }
@@ -181,13 +209,16 @@ def emit_native(nat) -> list[str]:
                 heading = re.match(r"^#{1,6}\s+(.+?)\s*$", line)
                 param = PARAM_RE.match(line)
                 if heading:
-                    out.append(f"**{heading.group(1).strip()}:**")
-                    out.append("")
+                    # Drop headings with no body (e.g. an empty `## Return value`).
+                    if _text_has_body(buf, idx):
+                        out.append(f"**{heading.group(1).strip()}:**")
+                        out.append("")
                 elif param:
                     pname = param.group("name").strip()
                     ctype = type_by_name.get(pname, "")
                     label = f"{ctype} {pname}".strip()
-                    out.append(f"- `{label}` — {param.group('desc').strip()}")
+                    desc = param.group("desc").strip()
+                    out.append(f"- `{label}` — {desc}" if desc else f"- `{label}`")
                 elif line.strip() == "":
                     if out and out[-1] != "":
                         out.append("")
@@ -242,6 +273,7 @@ def build(root: Path) -> str:
     lines.append("")
 
     for ns, natives in sections.items():
+        lines.append(f'<a id="{ns.lower()}"></a>')
         lines.append(f"## {ns}")
         lines.append("")
         lines.append(f"{len(natives)} natives. [↑ Contents](#contents)")
@@ -269,14 +301,38 @@ int GET_ENTITY_HEALTH(Entity entity);
 The health as an integer.
 """
 
+# Exercises: a `cs_type(...)` return prefix (real return is BOOL, not cs_type),
+# a `cs_type(...)` param prefix (type is Hash), a dash-bulleted param with no
+# description, and an empty `## Return value` that must be dropped.
+SELFTEST_FILE_CS = """---
+ns: TEST
+aliases: ["0x1234ABCD"]
+---
+## DO_THING
+
+```c
+// 0x1234ABCD 0xDEADBEEF
+cs_type(int) BOOL DO_THING(cs_type(Any) Hash item, int count);
+```
+
+## Parameters
+- **item**:
+- **count**: how many
+
+## Return value
+"""
+
 
 def selftest() -> int:
-    import tempfile, os
     ok = True
     with tempfile.TemporaryDirectory() as d:
         ns = Path(d) / "ENTITY"
         ns.mkdir()
         (ns / "GetEntityHealth.md").write_text(SELFTEST_FILE, encoding="utf-8")
+        ns2 = Path(d) / "TEST"
+        ns2.mkdir()
+        (ns2 / "DoThing.md").write_text(SELFTEST_FILE_CS, encoding="utf-8")
+
         nat = parse_native(ns / "GetEntityHealth.md", "ENTITY")
         if nat["name"] != "GET_ENTITY_HEALTH":
             ok = False; print("selftest FAIL: name")
@@ -284,14 +340,34 @@ def selftest() -> int:
             ok = False; print("selftest FAIL: hashes", nat["hashes"])
         if nat["rettype"] != "int":
             ok = False; print("selftest FAIL: rettype", nat["rettype"])
+
+        cs = parse_native(ns2 / "DoThing.md", "TEST")
+        if cs["name"] != "DO_THING":
+            ok = False; print("selftest FAIL: cs name", cs["name"])
+        if cs["rettype"] != "BOOL":
+            ok = False; print("selftest FAIL: cs_type return not stripped:", cs["rettype"])
+        if ("Hash", "item") not in cs["signature_params"]:
+            ok = False; print("selftest FAIL: cs_type param not stripped:", cs["signature_params"])
+
         doc = build(Path(d))
         for needle in ["### `GET_ENTITY_HEALTH`",
                        "`0xEEF059FAD016D209` · `0x8E3222B7` · returns `int`",
                        "- `Entity entity` — The entity to check",
                        "**Return value:**",
-                       "All **1 natives** across **1 namespaces**"]:
+                       '<a id="entity"></a>',
+                       "### `DO_THING`",
+                       "· returns `BOOL`",
+                       "- `Hash item`",          # empty desc -> no trailing dash
+                       "- `int count` — how many",
+                       "All **2 natives** across **2 namespaces**"]:
             if needle not in doc:
                 ok = False; print(f"selftest FAIL: missing {needle!r}")
+        if "- `Hash item` —" in doc:
+            ok = False; print("selftest FAIL: empty param desc emitted a trailing dash")
+        # Exactly one Return value section: GET_ENTITY_HEALTH's; DO_THING's empty one dropped.
+        if doc.count("**Return value:**") != 1:
+            ok = False; print("selftest FAIL: empty Return value section not dropped:",
+                              doc.count("**Return value:**"))
     print("native doc builder selftest passed." if ok else "native doc builder selftest FAILED.")
     return 0 if ok else 1
 
