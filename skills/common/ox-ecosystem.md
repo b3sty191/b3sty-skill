@@ -29,6 +29,14 @@ record verified differences in `memory/`.
   player with no item arriving.
 - Item names come from the server item list or your config, never from the
   client payload directly - look the name up in your own index first.
+- `exports.ox_inventory:SetMetadata(inv, slot, metadata)` **replaces** the whole
+  metadata table, it does not merge. To change one field, read the slot
+  (`GetSlot`), mutate the returned table, then write the full table back -
+  passing a partial table wipes durability, charges, and other fields.
+- Items stack only when the name **and** metadata match, so volatile metadata
+  (positions, timestamps, per-use counters) makes every write a new,
+  non-stacking slot and floods the player's inventory. Keep metadata small and
+  stable; store changing values elsewhere, not in item metadata.
 
 ## Hooks Are The Anti-Dupe Boundary
 
