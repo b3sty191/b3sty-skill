@@ -55,6 +55,8 @@ REQUIRED_PATHS = [
     "memory/redm/native-bugs.md",
     "references/natives/fivem-gta5-natives.md",
     "references/natives/redm-rdr3-natives.md",
+    "references/natives/build_natives_doc.py",
+    "references/natives/SOURCES.md",
     "references/server.cfg.example",
     ".github/workflows/validate.yml",
     ".claude-plugin/marketplace.json",

@@ -9,7 +9,21 @@ Generated native references are kept here for lookup. They should be searched wi
 - Previous filename: `NATIVES_GTA5.md`
 - Declared source in file header: `https://github.com/citizenfx/natives` branch `main` and `https://docs.fivem.net/natives/`
 - Content note: the file header says the per-native documentation is taken verbatim from the source repo.
-- License note: GitHub's repository license API returned no license file for `citizenfx/natives` during the 2026-07-02 pre-publication check. Do not assume this repository's MIT license covers this generated reference.
+- License note: GitHub's repository license API returned no license file for `citizenfx/natives` during the 2026-07-02 pre-publication check (re-checked 2026-11-20, still none). Do not assume this repository's MIT license covers this generated reference.
+- Regenerate with `build_natives_doc.py` (pure standard library, no network of its own):
+  ```bash
+  git clone --depth 1 https://github.com/citizenfx/natives /tmp/cfx-natives
+  python3 -I references/natives/build_natives_doc.py /tmp/cfx-natives \
+      -o references/natives/fivem-gta5-natives.md
+  ```
+  The script rebuilds the single-file reference from the upstream per-native
+  markdown in the exact format this file uses; `--selftest` runs its fixtures.
+  Because upstream ships no confirmed redistribution terms (above), decide the
+  publication question before committing a regenerated file to a public package
+  — per the Publication Policy below, keep only the script + these instructions
+  when terms cannot be confirmed. As of 2026-11-20 the script reproduces 6437
+  natives, matching the committed file except for one upstream rename
+  (`_REMOVE_CURRENT_RISE` → `REMOVE_EXTRA_CALMING_QUAD`, now an alias upstream).
 
 ## `redm-rdr3-natives.md`
 
