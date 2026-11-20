@@ -91,6 +91,7 @@ If this repository is private, the installer needs existing GitHub credentials o
 - `skills/common/debugging.md` - reproducible debugging flow for resource, native, NUI, DB, and performance failures.
 - `skills/common/frameworks.md` - ESX, QBCore, Qbox, VORP, and RSG integration: player lookup, money/items/jobs, lifecycle events, and the bridge pattern.
 - `skills/common/ox-lib.md` - ox_lib usage rules when the project already depends on ox_lib or explicitly accepts it.
+- `skills/common/ox-ecosystem.md` - ox_inventory (item exports, `registerHook` anti-dupe, stashes/shops) and ox_target (re-validate interactions server-side).
 - `skills/common/multi-resource.md` - exports, dependencies, state bags, convars, shared scripts, and cross-resource contracts.
 - `skills/common/asset-protection.md` - protecting a resource you sell or distribute: CFX Asset Escrow, `escrow_ignore`, server-side value, secret hygiene.
 

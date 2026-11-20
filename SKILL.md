@@ -33,6 +33,7 @@ Use this skill when working on b3sty RedM/FiveM resources or related Lua code. T
 - Add `skills/common/debugging.md` and the relevant `memory/` files when the task is diagnosis, reproduction, traces, NUI errors, database failures, native bugs, or performance investigation.
 - Add `skills/common/frameworks.md` when the resource uses ESX, QBCore, Qbox, VORP, or RSG (player lookup, money, items, jobs, lifecycle events, bridge).
 - Add `skills/common/ox-lib.md` only when the resource already uses ox_lib or the user explicitly accepts adding it.
+- Add `skills/common/ox-ecosystem.md` when the resource integrates with ox_inventory (items, stashes, shops, dupe-prevention hooks) or ox_target (interaction options re-validated server-side).
 - Add `skills/common/multi-resource.md` when the feature crosses resources through exports, events, callbacks, dependencies, shared scripts, convars, state bags, or framework integration.
 - Add `skills/common/asset-protection.md` when the task is protecting a resource the author sells or distributes (CFX Asset Escrow, `escrow_ignore`, keeping value server-side, secret hygiene).
 - Add `skills/fivem/rules.md` or `skills/redm/rules.md` whenever the resource is game-specific or shared behavior might differ.
@@ -126,6 +127,7 @@ Open lazily by task - do not preload all of them.
 - `skills/common/debugging.md` - when diagnosing resource failures, traces, client/server/NUI issues, DB issues, load order, or performance bugs.
 - `skills/common/frameworks.md` - when a resource integrates with ESX, QBCore, Qbox, VORP, or RSG: player lookup, money/item/job calls, lifecycle events, and the bridge pattern.
 - `skills/common/ox-lib.md` - when a resource already uses ox_lib or the task explicitly accepts adding ox_lib.
+- `skills/common/ox-ecosystem.md` - ox_inventory (server exports, `registerHook` anti-dupe, stashes/shops) and ox_target (client-side UX re-validated server-side).
 - `skills/common/multi-resource.md` - when resources communicate through exports, events, callbacks, dependencies, state bags, or shared libraries.
 - `skills/common/asset-protection.md` - protecting a resource you sell: CFX Asset Escrow, `escrow_ignore`, server-side value, secret hygiene, and why not to roll custom obfuscation.
 

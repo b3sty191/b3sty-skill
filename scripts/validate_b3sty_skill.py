@@ -27,6 +27,7 @@ REQUIRED_PATHS = [
     "skills/common/database.md",
     "skills/common/debugging.md",
     "skills/common/ox-lib.md",
+    "skills/common/ox-ecosystem.md",
     "skills/common/multi-resource.md",
     "skills/common/asset-protection.md",
     "skills/common/frameworks.md",
