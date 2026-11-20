@@ -28,6 +28,7 @@ REQUIRED_PATHS = [
     "skills/common/debugging.md",
     "skills/common/ox-lib.md",
     "skills/common/multi-resource.md",
+    "skills/common/asset-protection.md",
     "skills/common/frameworks.md",
     "commands/b3sty-review.md",
     "commands/b3sty-new-resource.md",

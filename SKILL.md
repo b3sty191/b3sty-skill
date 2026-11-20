@@ -34,6 +34,7 @@ Use this skill when working on b3sty RedM/FiveM resources or related Lua code. T
 - Add `skills/common/frameworks.md` when the resource uses ESX, QBCore, Qbox, VORP, or RSG (player lookup, money, items, jobs, lifecycle events, bridge).
 - Add `skills/common/ox-lib.md` only when the resource already uses ox_lib or the user explicitly accepts adding it.
 - Add `skills/common/multi-resource.md` when the feature crosses resources through exports, events, callbacks, dependencies, shared scripts, convars, state bags, or framework integration.
+- Add `skills/common/asset-protection.md` when the task is protecting a resource the author sells or distributes (CFX Asset Escrow, `escrow_ignore`, keeping value server-side, secret hygiene).
 - Add `skills/fivem/rules.md` or `skills/redm/rules.md` whenever the resource is game-specific or shared behavior might differ.
 - Run `scripts/validate_b3sty_skill.py` after editing this skill package and before publishing it.
 
@@ -126,6 +127,7 @@ Open lazily by task - do not preload all of them.
 - `skills/common/frameworks.md` - when a resource integrates with ESX, QBCore, Qbox, VORP, or RSG: player lookup, money/item/job calls, lifecycle events, and the bridge pattern.
 - `skills/common/ox-lib.md` - when a resource already uses ox_lib or the task explicitly accepts adding ox_lib.
 - `skills/common/multi-resource.md` - when resources communicate through exports, events, callbacks, dependencies, state bags, or shared libraries.
+- `skills/common/asset-protection.md` - protecting a resource you sell: CFX Asset Escrow, `escrow_ignore`, server-side value, secret hygiene, and why not to roll custom obfuscation.
 
 ### Game-Specific
 
