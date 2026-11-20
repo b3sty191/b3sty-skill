@@ -1,0 +1,18 @@
+{
+  "note": "Planted defects in each eval case. A run of /b3sty-review should surface these. Each expectation matches a finding whose trace touches `file` and whose title/description/surface mentions any `keywords`. Severities are the minimum a correct audit should assign.",
+  "cases": {
+    "fivem_shop": [
+      { "id": "shop-client-price",   "file": "core/server.lua", "category": "give-value",       "min_severity": "high",     "keywords": ["price", "client", "payload"], "note": "buy trusts client-supplied price" },
+      { "id": "shop-sql-injection",  "file": "core/server.lua", "category": "sql-injection",    "min_severity": "critical", "keywords": ["sql", "inject", "concat"],    "note": "itemName concatenated into a query" },
+      { "id": "shop-source-yield",   "file": "core/server.lua", "category": "source-yield",     "min_severity": "medium",   "keywords": ["source", "yield", "await"],   "note": "source used after the await yield" },
+      { "id": "shop-admin-acl",      "file": "core/server.lua", "category": "admin-permission", "min_severity": "critical", "keywords": ["ace", "permission", "admin"], "note": "giveitem command has no ACE check" },
+      { "id": "shop-broadcast",      "file": "core/server.lua", "category": "broadcast",        "min_severity": "low",      "keywords": ["-1", "broadcast", "scope"],   "note": "-1 broadcast of shop data per buy" },
+      { "id": "shop-xss",            "file": "html/app.js",     "category": "xss",              "min_severity": "high",     "keywords": ["innerhtml", "xss"],           "note": "player name into innerHTML" },
+      { "id": "shop-wait0",          "file": "core/client.lua", "category": "performance",      "min_severity": "low",      "keywords": ["wait(0)", "wait 0", "marker", "loop"], "note": "constant Wait(0) marker loop" }
+    ],
+    "redm_stable": [
+      { "id": "stable-redm-health",  "file": "core/server.lua", "category": "redm-native",      "min_severity": "medium",   "keywords": ["getentityhealth", "health", "redm"], "note": "server GetEntityHealth unreliable on RedM" },
+      { "id": "stable-netid",        "file": "core/server.lua", "category": "netid-validation", "min_severity": "high",     "keywords": ["netid", "net id", "ownership", "validate", "entity"], "note": "DeleteEntity from unvalidated client net id" }
+    ]
+  }
+}

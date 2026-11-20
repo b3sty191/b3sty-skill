@@ -73,6 +73,7 @@ If this repository is private, the installer needs existing GitHub credentials o
 - `memory/fivem/` - FiveM-only learned facts.
 - `memory/redm/` - RedM-only learned facts.
 - `commands/` - Claude Code slash commands that drive a task using the rules (`/b3sty-review`, `/b3sty-new-resource`, `/b3sty-perf`).
+- `evals/` - planted-bug resources and a scorer that measure how many defects `/b3sty-review` catches.
 - `references/natives/` - large generated native reference files.
 
 ## Common Skills

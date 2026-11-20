@@ -13,6 +13,7 @@ The rest of the repo:
 - `memory/fivem/` - FiveM-only learned facts.
 - `memory/redm/` - RedM-only learned facts.
 - `commands/` - Claude Code slash commands (`/b3sty-review`, `/b3sty-new-resource`, `/b3sty-perf`) that drive a task using the rules above.
+- `evals/` - planted-bug resource fixtures and `score.py` that benchmark `/b3sty-review`'s recall.
 - `references/natives/` - generated native lookup files for FiveM/GTA V and RedM/RDR3.
 
 ## Working Rules

@@ -18,3 +18,4 @@ jobs:
       - run: python scripts/check_lua_examples.py
       - run: python scripts/b3sty_audit_ledger.py --selftest
       - run: python scripts/validate_audit_findings.py --selftest
+      - run: python evals/score.py --selftest
