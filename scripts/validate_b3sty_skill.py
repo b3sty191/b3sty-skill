@@ -30,6 +30,8 @@ REQUIRED_PATHS = [
     "skills/common/ox-ecosystem.md",
     "skills/common/input.md",
     "skills/common/streaming.md",
+    "skills/common/locale.md",
+    "skills/common/operations.md",
     "skills/common/multi-resource.md",
     "skills/common/asset-protection.md",
     "skills/common/frameworks.md",

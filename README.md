@@ -95,6 +95,8 @@ If this repository is private, the installer needs existing GitHub credentials o
 - `skills/common/ox-ecosystem.md` - ox_inventory (item exports, `registerHook` anti-dupe, stashes/shops) and ox_target (re-validate interactions server-side).
 - `skills/common/input.md` - key bindings (`RegisterKeyMapping`), control checks, RedM prompts, and cleanup.
 - `skills/common/streaming.md` - `stream/` assets, the `data_file` directive, runtime model/dict requests, and cleanup.
+- `skills/common/locale.md` - localization: ox_lib locale, a no-ox_lib fallback, placeholders, and missing-key behavior.
+- `skills/common/operations.md` - txAdmin events, save-before-restart, and live-server performance operations.
 - `skills/common/multi-resource.md` - exports, dependencies, state bags, convars, shared scripts, and cross-resource contracts.
 - `skills/common/asset-protection.md` - protecting a resource you sell or distribute: CFX Asset Escrow, `escrow_ignore`, server-side value, secret hygiene.
 
