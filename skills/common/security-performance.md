@@ -580,6 +580,15 @@ Resource-level validation cannot compensate for a soft server platform. These ar
 - Treat third-party resources as untrusted code you are about to run with full server trust. Red flags: obfuscated/encrypted Lua, `PerformHttpRequest` to unknown domains, remote loaders (`load(...)`/`assert(load(...))` on fetched strings), `os.execute`/`io.popen` on the server, giant base64 blobs. "Leaked"/cracked scripts are a known backdoor vector - do not run them.
 - Prefer resources whose source you can read; a resource that must hide its code is itself a risk signal on a server you own.
 
+### The Resource Sandbox
+
+FXServer runs resource Lua in a sandbox, so some "red flag" calls cannot actually do what they look like - which changes what to worry about when auditing a resource. ([Sandbox](https://docs.fivem.net/docs/developers/sandbox/))
+
+- Blocked by default: `os.execute` (all commands), `io.tmpfile()`, and `io.popen` (only emulated `ls`/`dir`). `SaveResourceFile` can only write inside the calling resource - `..` traversal and symlinks are rejected - so a plain `os.execute` on the server is refused unless a grant opened it.
+- `load()` is **not** blocked. A resource that `load()`s a string fetched over HTTP is a live backdoor even inside the sandbox; that, not a blocked `os.execute`, is the real remote-code red flag (see the red-flags list above).
+- `server.cfg` grants widen the sandbox and are the thing to audit before adding a resource that ships them: `add_filesystem_permission A write B` (write into another resource), `add_convar_permission A read <convar>` (read a convar once reads are opt-in), `add_unsafe_worker_permission`, and `add_unsafe_child_process_permission` - child processes escape the sandbox entirely. Treat an unexplained unsafe grant like obfuscated code.
+- For persistence, write inside the resource or go to the database (`skills/common/database.md`); do not expect to write elsewhere on disk.
+
 ## Performance Rules
 
 - Prefer RAM/cache/indexes over repeated CPU work only for hot paths or expensive repeated work.
