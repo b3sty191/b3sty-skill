@@ -68,7 +68,7 @@
 ## CfxLua Syntax
 
 - In RedM/FiveM CfxLua code, b3sty uses the supported compound assignment operators when they make code shorter and clearer: `+=`, `-=`, `*=`, `/=`, `<<=`, `>>=`, `&=`, `|=`, `^=`.
-- `^=` is bitwise XOR (`x = x ~ y`), NOT exponentiation. Binary `^` is power in Lua, so write `x = x ^ y` for powers; `^=` needs integer-representable operands.
+- `^=` is bitwise XOR (`x = x ~ y`), NOT exponentiation. Binary `^` is power in Lua, so write `x = x ^ y` for powers; `^=` needs integer-representable operands. (verified: the CfxLua `luaglm-548` lexer and parser compile `^=` as bitwise XOR, 2026-11-24)
 - Do not use `++` or `--`; CfxLua does not implement increment/decrement operators.
 - Do not assume these operators work in standard Lua, standalone Lua tools, or non-Cfx runtimes.
 - Prefer compound assignment for simple updates such as counters, bit flags, and accumulated values, unless the expression becomes harder to read than the expanded form:

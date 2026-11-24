@@ -4,7 +4,7 @@ Use when a resource has to behave on a live, managed server: save state before a
 
 ## txAdmin Events
 
-Most managed FXServers run txAdmin, which dispatches `txAdmin:events:<name>` to resources with a server-local `TriggerEvent`. Listen with `AddEventHandler`, never `RegisterNetEvent` - they are server-local, and a net registration lets any client forge them. Names below are confirmed in the txAdmin source (`resource/sv_main.lua`, `core/modules/`); the full set also has `playerWarned`, `whitelistPlayer`, `actionRevoked`, `announcement`, `playerDirectMessage`, `healedPlayer`.
+Most managed FXServers run txAdmin, which dispatches `txAdmin:events:<name>` to resources with a server-local `TriggerEvent`. Listen with `AddEventHandler`, never `RegisterNetEvent` - they are server-local, and a net registration lets any client forge them. Names below are confirmed in the txAdmin source (`resource/sv_main.lua`, `core/modules/`); the full set also has `playerWarned`, `whitelistPlayer`, `actionRevoked`, `announcement`, `playerDirectMessage`, `playerHealed` (`target`, `-1` for everyone, and `author`; the old `healedPlayer` with `id` still fires but is deprecated), and `scheduledRestartSkipped` (`secondsRemaining`, `temporary`, `author`; replaces the deprecated `skippedNextScheduledRestart`).
 
 - `txAdmin:events:scheduledRestart` fires on each restart warning, `eventData` carrying `secondsRemaining` and a `translatedMessage`: the signal to persist state before the server goes down.
 - `txAdmin:events:playerKicked` / `playerBanned` fire with `eventData.target` (server id), `author` and `reason`. React when your resource must clean up or log an involuntary leave; do not re-implement the kick.
@@ -46,6 +46,7 @@ Measure on the side that is slow, and label every number measured or estimated. 
 ## Operator Hygiene
 
 - Pin the game build with `sv_enforceGameBuild` and pin the artifact version; an unpinned build changes native behavior and DLC availability under you.
+- txAdmin v8 reads its host settings from `TXHOST_*` environment variables (`TXHOST_DATA_PATH`, `TXHOST_TXA_PORT`, `TXHOST_INTERFACE`); the old `txDataPath`/`txAdminPort`/`txAdminInterface` convars are deprecated configs it still reads unless `TXHOST_IGNORE_DEPRECATED_CONFIGS=true` (verified: txAdmin `core/globalData.ts`, 2026-10-23).
 - Keep secrets in `server.cfg` / `secrets.cfg` convars, never in a resource (`skills/common/server-hardening.md` -> Config, Convars, And Secrets); the hardening baseline is `references/server.cfg.example`.
 - Watch the console for `server thread hitch warning` and `network thread hitch warning`: each names a side to profile (`skills/common/debugging.md` -> Performance Debugging), and a recurring hitch is a resource to fix, not noise.
 - Vet third-party resources before adding them (`skills/common/server-hardening.md` -> Server Hardening And Operations); one you cannot read or audit is a risk whatever it promises.

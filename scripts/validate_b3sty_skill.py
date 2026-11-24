@@ -140,7 +140,7 @@ def check_routing_table(skill_text: str, failures: list[str]) -> None:
 # references/natives/ so a typo or invented native cannot slip into a rule.
 NON_NATIVE_HEX = {"0x7fffffff", "0x1234abcd"}
 NON_NATIVE_NAMES = {"REQUEST_CONTROL_EVENT", "NATIVE_NAME", "SAVE_QUERY", "MAX_SAVE_FAILS"}
-NON_NATIVE_PREFIXES = ("WEAPON_", "COMPONENT_")
+NON_NATIVE_PREFIXES = ("WEAPON_", "COMPONENT_", "TXHOST_")
 
 
 def check_native_refs(paths: list[Path], failures: list[str]) -> None:

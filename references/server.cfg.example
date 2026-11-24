@@ -13,8 +13,8 @@
 exec secrets.cfg
 
 ## Core
-set onesync on                              # required for entityCreating gates, ownership, routing buckets
-# sv_enforceGameBuild 3407                  # pick your build (RedM: 1491), startup-only
+set onesync on                              # always on in artifacts built from 2026-08-17 (citizenfx/fivem 19fa3d5); keep for older artifacts
+# sv_enforceGameBuild 3889                  # pick and pin your build (3889 = latest FiveM in fivem-docs, checked 2026-11-24; RedM: 1491), startup-only
 
 ## Anti-cheat / client integrity
 sv_scriptHookAllowed 0                      # keep ScriptHook-style client plugins blocked

@@ -3,7 +3,7 @@
 ## fxmanifest
 
 - Keep `fxmanifest.lua` explicit and minimal: declare client, server, shared, UI and dependency files; load nothing unused.
-- Use `fx_version 'cerulean'` and `lua54 'yes'`. `lua54 'yes'` selects Lua 5.4 (bitwise `&`, `|`, `~`, `<<`, `>>` are standard); CfxLua adds compound assignment operators and backtick hashes on top - CfxLua-only, never in standard Lua or standalone tooling (`skills/common/style.md` -> CfxLua Syntax).
+- Use `fx_version 'cerulean'`. Every Lua script runs on Lua 5.4 (bitwise `&`, `|`, `~`, `<<`, `>>` are standard): Cfx removed Lua 5.3 in June 2025, so `lua54 'yes'` is deprecated and unneeded (fivem-docs resource manifest, checked 2026-11-24). An old resource that never set it now runs on 5.4: `print` formats with `__tostring` and ignores a global `tostring` override, `math.random` is xoshiro256** so a fixed seed gives a different sequence, and since October 2026 `<=`/`>=` on tables need `__le` (`memory/common/common-errors.md`). CfxLua adds compound assignment operators and backtick hashes on top - CfxLua-only, never in standard Lua or standalone tooling (`skills/common/style.md` -> CfxLua Syntax).
 - Dual-game resources: `games { 'rdr3', 'gta5' }`, plus `rdr3_warning` whenever RedM is supported. FiveM-only manifests: `skills/fivem/rules.md`; RedM-only: `skills/redm/rules.md`.
 - ASCII banner headers are fine if they fit the resource style; never hardcode project branding (author names, descriptions, framework imports) unless the resource belongs to that project.
 
