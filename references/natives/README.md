@@ -10,7 +10,7 @@ Generated single-file native lookup documents.
 
 ## Usage
 
-- Search only the matching file for the target game.
+- Never read one of these files whole, and never page through it: they are multi-megabyte generated dumps. Search the matching game's file for the native name or hash, then read only the matched entry's line range - `rg -n "GET_ENTITY_HEALTH" references/natives/fivem-gta5-natives.md`, then read those lines plus ~40 after.
 - Use these files to verify native names, hashes, signatures, namespaces, parameters, return values, and behavior notes.
 - Use `skills/common/native-usage.md` for how to turn an entry into a Lua call (name conversion, `Citizen.InvokeNative`, marshalling, struct natives) and for `rg` search recipes.
 - Do not copy large native reference content into `skills/` or `memory/`.

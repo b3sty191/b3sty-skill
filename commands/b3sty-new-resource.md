@@ -134,7 +134,7 @@ Controller:Start()
 
 - Replace `resource_name` with the real name everywhere.
 - Add a framework bridge only from `skills/common/frameworks.md` -> Bridge Pattern, trimmed to the functions this resource uses.
-- Put valuable actions (money, items, rewards) through `skills/common/security-performance.md` -> Give-Value Event Hardening from the start.
+- Put valuable actions (money, items, rewards) through `skills/common/give-value-hardening.md` -> Give-Value Event Hardening from the start.
 - For persisted state, follow `skills/common/database.md` and the persistence shape in `memory/common/cfx-patterns.md`.
 
 ## 3. Check Before Handing Over

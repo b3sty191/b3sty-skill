@@ -1,6 +1,6 @@
 # Network Performance Rules
 
-Use this file when a RedM/FiveM resource sends events, syncs state, or ships data between client, server, and NUI, and the task is about bandwidth, event spam, hitches, or "Reliable network event overflow" disconnects. CPU hot paths are in `skills/common/security-performance.md` -> Performance Rules; how to measure is in `skills/common/debugging.md` -> Performance Debugging. Security rules still win: never drop a server check to save bytes.
+Use this file when a RedM/FiveM resource sends events, syncs state, or ships data between client, server, and NUI, and the task is about bandwidth, event spam, hitches, or "Reliable network event overflow" disconnects. CPU hot paths are in `skills/common/performance.md` -> Performance Rules; how to measure is in `skills/common/debugging.md` -> Performance Debugging. Security rules still win: never drop a server check to save bytes.
 
 ## Cost Model
 
@@ -8,6 +8,12 @@ Use this file when a RedM/FiveM resource sends events, syncs state, or ships dat
 - A tiny payload is still Critical when it fires from a per-frame loop: one client at `Wait(0)` sends dozens of events a second, hits the `netEvent` limit, and a hundred clients turn that into thousands for the server to handle.
 - `Wait(0)` means "next frame", not a fixed rate. Any events-per-second figure not taken from `netEventLog` or a profiler is an estimate - say so.
 - A resource can sit at `0.00ms` in `resmon` and still flood the network, or send nothing and burn CPU. Check both before calling a resource optimized.
+
+## OneSync Send Cadence
+
+- Per-entity send delay is 50 ms, 150 ms while the entity is outside that client's view frustum, 250 ms past 250 m and 500 ms past 500 m, divided by 4 within 35 m. Players and occupied vehicles stay at 50 ms (so ~12 ms within 35 m). These are compiled constants - no convar or script changes them. (verified: ServerGameState.cpp, FXServer 35945)
+- One OneSync pass runs every 24 ms (48 ms with `sv_useAccurateSends 0`) and each delay is rounded up to whole passes, so a 12 ms delay really sends every 24 ms. Clients send their own state about 61 Hz (measured), so a faster pass carries no newer data.
+- Close-range desync at these rates is the engine, not the resource: fix it with server-side authority over the outcome, not with a faster sender loop.
 
 ## Rate Limits
 
@@ -22,6 +28,9 @@ FXServer keeps per-client token buckets (tune with `set rateLimiter_<name>_rate`
 | `stateBagFlood` (150 / 175) | Also exceeded: kick "Reliable state bag packet overflow." |
 | `stateBagSize` (128 KiB / 256 KiB) | Kick |
 | `latentEvent` (75 / 125) / `latentEventFlood` (150 / 175) | Fragment dropped / kick "latent event packet overflow." |
+| `netGameEvent` (200 / 300 engine game events) | Kick "Reliable netGameEvent overflow." |
+| `http_<resource>` (10 / 25 per IP, each `SetHttpHandler` endpoint) | Request rejected |
+| `http_info`, `http_players` (4 / 10), `http_perf` (2 / 5), `getstatus` (1 / 5), all per IP | Request rejected |
 
 - A silently dropped event looks like a random gameplay bug ("sometimes the item never arrives"). When a handler "sometimes doesn't fire", check the sender's rate before the handler's logic.
 - The overflow kick is count-based: too many events, not too many bytes. Find the event in `netEventLog` and stop the flood at the source.
@@ -40,7 +49,7 @@ FXServer keeps per-client token buckets (tune with `set rateLimiter_<name>_rate`
 
 ## Latent Events
 
-- Latent events split a large payload into fragments and send them at a capped rate (`bps`, default 25000 when `0` or negative) so the transfer does not choke the connection. Use them for multi-KB transfers, never for small gameplay actions where the added latency matters.
+- Latent events split a large payload into fragments and send them at a capped rate (`bps` is bytes per second, not bits, despite the name; `0` or negative means 25000 B/s) so the transfer does not choke the connection. Use them for multi-KB transfers, never for small gameplay actions where the added latency matters.
 - `bps` is per recipient: a latent event to `-1` sends about `bps x players` from the server. Very high values (around 10,000,000) defeat the point and cause connection problems.
 - Latent events ride on net event reassembly (`sv_enableNetEventReassembly`, on by default); a server that turned it off cannot send them.
 - A normal client-to-server event is capped at 384 KiB per packet and by `netEventSize`; server-to-client events have no hard cap, so a huge normal event can stall that client long enough to time it out. That is the case latent events exist for.

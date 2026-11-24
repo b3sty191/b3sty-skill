@@ -72,7 +72,7 @@ reference.
 - It has a real cost: the server owner who legitimately runs your resource can
   no longer read what it does. In this ecosystem that is exactly the shape of a
   backdoored or data-stealing resource, and good server owners refuse resources
-  they cannot audit. `skills/common/security-performance.md` -> Server Hardening And Operations
+  they cannot audit. `skills/common/server-hardening.md` -> Server Hardening And Operations
   covers vetting third-party resources from the buyer's side.
 - So: protect the parts that must ship with escrow, keep the value on the
   server, and leave the shipped Lua readable. Do not inject decoy logic,
@@ -85,7 +85,7 @@ A leaked or cracked resource leaks whatever secrets you shipped inside it.
 - Never ship API keys, webhook URLs, tokens, database strings, or license
   secrets inside the resource - not in client files, not in NUI, not even in
   escrowed Lua. Keep them in `server.cfg` / `secrets.cfg` convars read at
-  runtime. See `skills/common/security-performance.md` -> Config, Convars, And Secrets
+  runtime. See `skills/common/server-hardening.md` -> Config, Convars, And Secrets
   and `references/server.cfg.example`.
 - NUI assets are not escrow-protected and ship in the clear; treat every value
   the browser can see as public.

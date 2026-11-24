@@ -17,31 +17,46 @@ Use this skill when working on b3sty RedM/FiveM resources or related Lua code. T
 6. Finish with concrete verification: resource start/load order, event names, server validation, cleanup paths, performance hot paths, and any manual repro steps.
 7. Record recurring fixes or newly verified engine quirks in the right `memory/` namespace with date and game build.
 
-## Task Routing
+## Routing
 
-- Start with `skills/common/fxserver.md` when the manifest, load order, dependency list, UI files, or resource layout changes.
-- Start with `skills/common/security-performance.md` for any server event, callback, command, export, NUI callback, state sync, database mutation, reward, item, money, permission, cooldown, or hot loop.
-- Add `skills/common/security-performance.md` -> Event Trust Boundary, Give-Value Event Hardening, ACE Permissions, Built-in Client Events, Config/Convars/Secrets, Identifier Trust, and Server Hardening And Operations for shop/inventory/give-item/economy event hardening, anti-cheat, admin/ACE gating, secrets, SQL injection, the give-value checklist, SetHttpHandler endpoints, hardening convars, and third-party resource vetting.
-- Add `skills/common/networking.md` when the feature creates networked entities, relies on entity ownership, uses routing buckets/instances, broadcasts to clients, reacts to player scope, or handles built-in client events (`weaponDamageEvent`, `startProjectileEvent`, `ptFxEvent`, and the rest).
-- Add `skills/common/nui.md` when the resource has an in-game browser UI (HTML/CSS/JS, React/Svelte/Vue), `SendNUIMessage`, `RegisterNUICallback`, `SetNuiFocus`, or a `ui_page` in the manifest.
-- Add `skills/common/runtime.md` for threads/waits, the `source` variable, exports and stale references, identifiers, convars, resource lifecycle, yield hazards, or game-build gating.
-- Add `skills/common/network-performance.md` for bandwidth, event spam, `-1` broadcasts, latent events, payload size, repeated full fetches, state bag cost, or network overflow kicks.
-- Add `skills/common/database.md` when SQL, OxMySQL/mysql-async, schema, transactions, migrations, dirty saves, or persisted state is involved.
-- Add `skills/common/native-rules.md` and the matching game rules when code calls natives, handles entities, weapons, ammo, vehicles, horses, peds, blips, props, or routing buckets.
-- Add `skills/common/native-usage.md` when translating a native reference entry into a Lua call, invoking by hash with `Citizen.InvokeNative`, handling out-pointer params, packing RDR3 struct arguments, or gating natives by game build.
-- Search the matching native reference only when verifying a specific native name, hash, namespace, signature, parameter behavior, or game difference.
-- Add `skills/common/debugging.md` and the relevant `memory/` files when the task is diagnosis, reproduction, traces, NUI errors, database failures, native bugs, or performance investigation.
-- Add `skills/common/frameworks.md` when the resource uses ESX, QBCore, Qbox, VORP, or RSG (player lookup, money, items, jobs, lifecycle events, bridge).
-- Add `skills/common/ox-lib.md` only when the resource already uses ox_lib or the user explicitly accepts adding it.
-- Add `skills/common/ox-ecosystem.md` when the resource integrates with ox_inventory (items, stashes, shops, dupe-prevention hooks) or ox_target (interaction options re-validated server-side).
-- Add `skills/common/input.md` when the resource reads player input: rebindable keybinds (`RegisterKeyMapping`), control checks, or RedM prompts.
-- Add `skills/common/streaming.md` when the resource ships `stream/` assets, declares `data_file` metas, or requests models/dicts at runtime.
-- Add `skills/common/locale.md` when the resource shows translatable text (ox_lib locale or a shared locale table, keys over hardcoded strings).
-- Add `skills/common/operations.md` for live-server behavior: saving before a txAdmin scheduled restart, reacting to admin-action events, and performance budgets.
-- Add `skills/common/multi-resource.md` when the feature crosses resources through exports, events, callbacks, dependencies, shared scripts, convars, state bags, or framework integration.
-- Add `skills/common/asset-protection.md` when the task is protecting a resource the author sells or distributes (CFX Asset Escrow, `escrow_ignore`, keeping value server-side, secret hygiene).
-- Add `skills/fivem/rules.md` or `skills/redm/rules.md` whenever the resource is game-specific or shared behavior might differ.
-- Run `scripts/validate_b3sty_skill.py` after editing this skill package and before publishing it.
+Open a file only when its triggers match the task; never preload the set. Core Defaults below apply without opening anything.
+
+| Open | Task touches |
+|---|---|
+| `skills/common/security-performance.md` | **start here** for any server event, callback, command, export, NUI callback, state sync, database mutation, reward, item, money, permission, cooldown, or hot loop: event trust boundary, payload validation, throttles, callback safety, atomic state changes, identifier trust, SQL injection, persistence |
+| `skills/common/give-value-hardening.md` | shop/inventory/give-item/economy event hardening, rewards, crafting, trades, payouts, dupes, anti-cheat on value, the give-value checklist, admin/ACE gating, audit trails, abuse response |
+| `skills/common/client-input-validation.md` | anti-cheat on client-reported data: state bags and custom sync, NUI callback payloads, client entity handles/net IDs, built-in client events (`weaponDamageEvent`, `startProjectileEvent`, `ptFxEvent`, `explosionEvent`), client coords and distance |
+| `skills/common/server-hardening.md` | `server.cfg` hardening convars, secrets and convar exposure, operator/txAdmin/database access, `SetHttpHandler` endpoints, the resource sandbox, third-party resource vetting, security logging |
+| `skills/common/performance.md` | CPU hot paths, caches and reverse indexes, staged waits, pool scans, cleanup on player drop / resource stop, anti-overengineering |
+| `skills/common/review-questions.md` | reviewing or auditing code against these rules |
+| `skills/common/fxserver.md` | `fxmanifest.lua`, resource layout, load order, dependency list, UI files |
+| `skills/common/style.md` | full style, formatting, and CfxLua rules |
+| `skills/common/resource-structure.md` | shared client/server/config/event/state structure |
+| `skills/common/networking.md` | OneSync: networked entities, net IDs vs handles, entity ownership, routing buckets/instances, broadcasts, player scope, entity lifecycle events, built-in client events |
+| `skills/common/network-performance.md` | bandwidth, event spam, `-1` broadcasts, latent events, payload size, repeated full fetches, snapshot-then-deltas, state bag cost, network overflow kicks |
+| `skills/common/nui.md` | in-game browser UI (HTML/CSS/JS, React/Svelte/Vue), `SendNUIMessage`, `RegisterNUICallback`, `SetNuiFocus`, `ui_page`, JSON contracts, frontend hygiene, XSS |
+| `skills/common/runtime.md` | threads/waits, the `source` variable, exports and stale references, identifiers, convars, resource lifecycle, yield hazards, game-build gating |
+| `skills/common/database.md` | SQL, OxMySQL/mysql-async, schema, transactions, migrations, dirty saves, persisted state |
+| `skills/common/native-rules.md` | natives, entities, weapons, ammo, vehicles, horses, peds, blips, props, routing buckets (add the matching game rules) |
+| `skills/common/native-usage.md` | turning a native reference entry into a Lua call: name conversion, `Citizen.InvokeNative` by hash, out-pointer params, RDR3 struct args, build gates, confidence policy |
+| `skills/common/debugging.md` | diagnosis, reproduction, traces, NUI errors, database failures, native bugs, load order, performance investigation (add the matching `memory/` files) |
+| `skills/common/frameworks.md` | ESX, QBCore, Qbox, VORP, RSG: player lookup, money, items, jobs, lifecycle events, bridge |
+| `skills/common/ox-lib.md` | the resource already uses ox_lib, or the user explicitly accepts adding it |
+| `skills/common/ox-ecosystem.md` | ox_inventory (items, stashes, shops, `registerHook` dupe prevention) or ox_target (options re-validated server-side) |
+| `skills/common/input.md` | player input: rebindable keybinds (`RegisterKeyMapping`), control checks and polling cost, disabling controls, RedM prompts |
+| `skills/common/streaming.md` | `stream/` assets, `data_file` metas, runtime model/dict requests with a timeout |
+| `skills/common/locale.md` | translatable text: ox_lib locale or a shared locale table, keys over hardcoded strings, placeholders, missing keys |
+| `skills/common/operations.md` | live-server behavior: saving before a txAdmin scheduled restart, admin-action events, performance budgets |
+| `skills/common/multi-resource.md` | exports, events, callbacks, dependencies, shared scripts, convars, state bags, or framework integration across resources |
+| `skills/common/asset-protection.md` | protecting a resource the author sells or distributes: CFX Asset Escrow, `escrow_ignore`, server-side value, secret hygiene |
+| `skills/common/fxserver-components.md` | native C++ server components added to an official artifact through `components.json`: portability, build pins, never replacing `citizen-server-impl` |
+| `skills/fivem/rules.md`, `skills/redm/rules.md` | the resource is game-specific, or shared behavior might differ |
+| `references/server.cfg.example` | setting up or reviewing `server.cfg` |
+| `references/audit-findings-schema.md` | writing or validating `findings.json` for a `/b3sty-review` full audit |
+
+Native references - `references/natives/fivem-gta5-natives.md` (GTA V/FiveM) and `references/natives/redm-rdr3-natives.md` (RDR3/RedM) - are multi-megabyte generated dumps. Never read one whole, and never page through it. Search the matching game's file for the native name or hash, then read only the matched entry's line range, e.g. `rg -n "GET_ENTITY_HEALTH" references/natives/fivem-gta5-natives.md` then read those lines plus ~40 after. Search only to verify a specific native name, hash, namespace, signature, parameter behavior, or game difference.
+
+Run `scripts/validate_b3sty_skill.py` after editing this skill package and before publishing it.
 
 ## Review Priorities
 
@@ -111,48 +126,6 @@ Apply these on every b3sty Lua task unless the task says otherwise.
 - Avoid load-time caching of export results that can go stale when the provider resource restarts. Full mechanics in `skills/common/runtime.md`.
 - Clean up entities, blips, zones, timers, callbacks, throttles, and caches on player drop / resource stop. Guard entity cleanup with `DoesEntityExist`.
 
-## Reference Files
-
-Open lazily by task - do not preload all of them.
-
-### Common
-
-- `skills/common/style.md` - full style, formatting, and CfxLua rules.
-- `skills/common/fxserver.md` - when editing `fxmanifest.lua` or resource layout.
-- `skills/common/native-rules.md` - when calling natives, handling entities/ammo, or debugging native behavior.
-- `skills/common/native-usage.md` - when turning a native reference entry into a Lua call: name conversion, `Citizen.InvokeNative`, result/pointer marshalling, RDR3 struct natives, build gates, confidence policy.
-- `skills/common/resource-structure.md` - shared client/server/config/event/state structure.
-- `skills/common/networking.md` - OneSync, net IDs vs handles, entity ownership, routing buckets, scoped vs broadcast messages, player scope, entity lifecycle events, and built-in client events (`weaponDamageEvent` and friends).
-- `skills/common/nui.md` - in-game browser UI (NUI): Lua<->browser bridge, `SendNUIMessage`, `RegisterNUICallback`, focus, JSON contracts, validation, frontend hygiene, performance, and security.
-- `skills/common/runtime.md` - threads/waits, the `source` variable, exports and stale references, identifiers, convars, resource lifecycle, yield hazards, and game builds.
-- `skills/common/network-performance.md` - net event cost model, FXServer rate limits and overflow kicks, latent events, payload shape, snapshot-then-deltas caching, audience, and state bag cost.
-- `skills/common/security-performance.md` - when writing `:server:` events, callbacks, sync, DB writes, or hot loops.
-- `skills/common/database.md` - when writing SQL, OxMySQL/mysql-async persistence, migrations, transactions, or saved state.
-- `skills/common/debugging.md` - when diagnosing resource failures, traces, client/server/NUI issues, DB issues, load order, or performance bugs.
-- `skills/common/frameworks.md` - when a resource integrates with ESX, QBCore, Qbox, VORP, or RSG: player lookup, money/item/job calls, lifecycle events, and the bridge pattern.
-- `skills/common/ox-lib.md` - when a resource already uses ox_lib or the task explicitly accepts adding ox_lib.
-- `skills/common/ox-ecosystem.md` - ox_inventory (server exports, `registerHook` anti-dupe, stashes/shops) and ox_target (client-side UX re-validated server-side).
-- `skills/common/input.md` - rebindable key mappings, control checks without wasteful polling, disabling controls, and RedM prompts.
-- `skills/common/streaming.md` - the `stream/` folder, the `data_file` directive, runtime model/dict requests with a timeout, and cleanup.
-- `skills/common/locale.md` - translatable strings: ox_lib locale, a no-ox_lib table, placeholders, client/server, and missing-key behavior.
-- `skills/common/operations.md` - txAdmin events, saving before a scheduled restart, and performance operations on a live server.
-- `skills/common/multi-resource.md` - when resources communicate through exports, events, callbacks, dependencies, state bags, or shared libraries.
-- `skills/common/asset-protection.md` - protecting a resource you sell: CFX Asset Escrow, `escrow_ignore`, server-side value, secret hygiene, and why not to roll custom obfuscation.
-
-### Game-Specific
-
-- `skills/fivem/rules.md` - FiveM-only defaults, manifests, GTA V entities, and compatibility checks.
-- `skills/redm/rules.md` - RedM-only defaults, manifests, RDR3 entities, and compatibility checks.
-
-### Native References
-
-These are large generated lookup files. Open only the matching file when verifying a native name, hash, signature, namespace, parameter behavior, or game-specific native difference.
-
-- `references/natives/fivem-gta5-natives.md` - GTA V / FiveM native reference.
-- `references/natives/redm-rdr3-natives.md` - RDR3 / RedM native reference.
-- `references/server.cfg.example` - copyable server hardening baseline (open when setting up or reviewing `server.cfg`).
-- `references/audit-findings-schema.md` - verdict and severity contract for a `/b3sty-review` full audit; open when writing or validating `findings.json`.
-
 ## Commands
 
 Slash commands installed with the Claude Code plugin:
@@ -164,18 +137,10 @@ Slash commands installed with the Claude Code plugin:
 
 ## Memory
 
-Read only when debugging or reusing a learned pattern. Memory files hold facts learned from real work (each entry carries a date and game build). They cross-link to `skills/` for the stable rules and do not duplicate rule text.
+Read only when debugging or reusing a learned pattern. Memory files hold facts learned from real work (each entry carries a date and game build); they cross-link to `skills/` for the stable rules and do not duplicate rule text.
 
-### Common
-
-- `memory/common/native-bugs.md` - known shared native issues and workarounds.
+- `memory/common/native-bugs.md`, `memory/fivem/native-bugs.md`, `memory/redm/native-bugs.md` - known native issues and workarounds: shared, FiveM-only, RedM-only (e.g. `SetPedAmmoByType` reserve ammo).
 - `memory/common/common-errors.md` - recurring shared Lua/resource errors and fixes.
 - `memory/common/cfx-patterns.md` - reusable shared FXServer/CfxLua implementation patterns (controller, index map, cleanup, config split, persistence).
 - `memory/common/security-performance.md` - learned shared security/performance patterns and quick-reference checklists.
-
-### Game-Specific
-
-- `memory/fivem/README.md` - FiveM-specific memory namespace.
-- `memory/fivem/native-bugs.md` - FiveM-only native issues and workarounds.
-- `memory/redm/README.md` - RedM-specific memory namespace.
-- `memory/redm/native-bugs.md` - RedM-only native issues and workarounds (e.g. `SetPedAmmoByType` reserve ammo).
+- `memory/fivem/README.md`, `memory/redm/README.md` - the game-specific memory namespaces.

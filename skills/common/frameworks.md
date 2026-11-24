@@ -34,8 +34,8 @@ Framework APIs change between versions. The shapes below match current mainstrea
   - ESX `xPlayer.removeMoney(amount, reason)` / `removeAccountMoney(account, amount, reason)`: check `getMoney()` / `getAccount(name).money` first.
   - QBCore/Qbox/RSG `Functions.RemoveMoney(type, amount, reason)` returns `false` on refusal, but only the types in `DontAllowMinus` are protected from going negative (defaults: QBCore/Qbox `cash`, `crypto`; RSG `cash`, `gold`, `bloodmoney`). `bank` can go below zero (down to `Config.Money.MinusLimit`, default `-5000`, in QBCore/RSG; unlimited in Qbox). Check `PlayerData.money[type]` first and still honor the return value.
   - VORP `character.removeCurrency(0, amount)` (`0` money, `1` gold, `2` role token) subtracts without any check and returns nothing: check `character.money` / `character.gold` first.
-- Pass a reason string on every add/remove where the framework accepts one; it feeds the framework's own money logs. Keep your resource's audit log as well (`skills/common/security-performance.md` -> Logging And Secrets).
-- The full give-value checklist (validation, throttle, in-flight lock, server-side price) still applies: `skills/common/security-performance.md` -> Give-Value Event Hardening.
+- Pass a reason string on every add/remove where the framework accepts one; it feeds the framework's own money logs. Keep your resource's audit log as well (`skills/common/server-hardening.md` -> Logging And Secrets).
+- The full give-value checklist (validation, throttle, in-flight lock, server-side price) still applies: `skills/common/give-value-hardening.md` -> Give-Value Event Hardening.
 
 ## Items
 
@@ -47,7 +47,7 @@ Framework APIs change between versions. The shapes below match current mainstrea
 
 - Read job and grade from the server player object: ESX `xPlayer.job.name` / `xPlayer.job.grade`, QBCore/Qbox/RSG `PlayerData.job.name` / `PlayerData.job.grade.level` / `PlayerData.job.onduty`, VORP `character.job` / `character.jobGrade`.
 - Check on-duty state where the framework has it; an off-duty officer should not pass a police-only check.
-- Staff/admin actions use ACE (`IsPlayerAceAllowed`), not framework groups alone, unless the project already standardizes on framework groups: `skills/common/security-performance.md` -> ACE Permissions And Admin Authority.
+- Staff/admin actions use ACE (`IsPlayerAceAllowed`), not framework groups alone, unless the project already standardizes on framework groups: `skills/common/give-value-hardening.md` -> ACE Permissions And Admin Authority.
 
 ## Lifecycle Events
 
@@ -61,6 +61,21 @@ Framework APIs change between versions. The shapes below match current mainstrea
 - Framework server lifecycle events are server-local. Listen with `AddEventHandler`, never `RegisterNetEvent`: registering them as net events lets any client fake a "character loaded" call into your handler.
 - Character switch (multicharacter logout) is not `playerDropped`. Clear per-character state on the unload event as well as on `playerDropped`.
 - A restart of your resource does not replay "loaded" events. On `onResourceStart` for your own resource, initialize every already-loaded player (ESX `ESX.GetExtendedPlayers()`, QBCore `QBCore.Functions.GetQBPlayers()`, Qbox `exports.qbx_core:GetQBPlayers()`, RSG `RSGCore.Functions.GetRSGPlayers()`; for VORP loop `GetPlayers()` and skip users whose `getUsedCharacter.charIdentifier` is `nil`).
+
+## ESX Legacy Known Pitfalls
+
+Holes in stock ESX Legacy 1.15.2 - check them against the installed version before trusting a stock path (verified: fork-vs-upstream source diff; 1.16 fixes noted):
+
+- `esx:spawnVehicle` server callback is callable by any client: add an admin check and a throttle.
+- `esx:updateWeaponAmmo` accepts increases: accept decreases only.
+- `esx:giveInventoryItem` allows target == source, which races into a dupe: reject self-transfer.
+- Items with `can_remove = 0` are only hidden in the UI: enforce the flag in the give/drop net handlers.
+- Negative counts are not normalised: clamp every count to a positive integer server-side.
+- Commands registered with no permission are open to every `user` in 1.15.2: default them to admin.
+- `ESX.RefreshItems` clears `ESX.Items` before the SELECT returns, so a player joining in that window loads an empty inventory and it gets saved over the real one (fixed in 1.16): build the new table aside and swap it in with one assignment.
+- `xPlayer.removeWeapon` walks the component list with `ipairs` while removing from it, so every second component survives: iterate a copy, or backwards.
+- `/refreshjobs` swaps `ESX.Jobs`, but online clients keep the old labels and salaries until relog: push the new job data to clients.
+- Pickups are broadcast to `-1` across every routing bucket in 1.15.2: send them per bucket.
 
 ## Bridge Pattern
 
@@ -128,9 +143,9 @@ function Bridge.RemoveCash(source, amount, reason)
 end
 ```
 
-- The core-object lookups run at load time, so the framework must be started before this resource: put it earlier in `server.cfg`, or add a `dependency` line when the resource supports only one framework. A framework restart restarts dependents; see `skills/common/runtime.md` -> Exports And Stale References for resources that outlive a provider restart.
+- The core-object lookups run at load time, so the framework must be started before this resource: put it earlier in `server.cfg`, or add a `dependency` line when the resource supports only one framework. Note that restarting the framework stops every resource that depends on it and does not start them again (`skills/common/runtime.md` -> Resource Lifecycle); see Exports And Stale References there for resources that outlive a provider restart.
 - `Bridge` is a resource-scoped global so other server files in the same resource can call it; it is not visible to other resources.
-- Add only the functions this resource needs (`RemoveCash`, `AddItem`, `HasJob`). A bridge that mirrors the whole framework API is overengineering (`skills/common/security-performance.md` -> Anti-Overengineering).
+- Add only the functions this resource needs (`RemoveCash`, `AddItem`, `HasJob`). A bridge that mirrors the whole framework API is overengineering (`skills/common/performance.md` -> Anti-Overengineering).
 
 ## Review Questions
 
