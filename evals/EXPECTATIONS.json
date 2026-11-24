@@ -7,7 +7,7 @@
       {"id": "shop-source-yield", "file": "core/server.lua", "category": "source-yield", "min_severity": "medium", "keywords": ["source", "yield", "await"], "note": "source used after the await yield"},
       {"id": "shop-admin-acl", "file": "core/server.lua", "category": "admin-permission", "min_severity": "critical", "keywords": ["ace", "permission", "admin"], "note": "giveitem command has no ACE check"},
       {"id": "shop-broadcast", "file": "core/server.lua", "category": "broadcast", "min_severity": "low", "keywords": ["-1", "broadcast", "scope"], "note": "-1 broadcast of shop data per buy"},
-      {"id": "shop-xss", "file": "html/app.js", "category": "xss", "min_severity": "high", "keywords": ["innerhtml", "xss"], "note": "player name into innerHTML"},
+      {"id": "shop-xss", "file": "html/app.js", "category": "xss", "min_severity": "high", "keywords": ["innerhtml", "xss"], "note": "the last buyer's name, broadcast to every client, into innerHTML: cross-player stored XSS"},
       {"id": "shop-wait0", "file": "core/client.lua", "category": "performance", "min_severity": "low", "keywords": ["wait(0)", "wait 0", "marker", "loop"], "note": "constant Wait(0) marker loop"}
     ],
     "redm_stable": [

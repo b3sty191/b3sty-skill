@@ -2,16 +2,14 @@ local Shop = {}
 
 RegisterNUICallback("buy", function(data, cb)
     local item = Config.Items[data.item]
-    -- PLANTED: forwards client price to the server
     TriggerServerEvent("b3sty_shop:server:buy", data.item, item and item.price, tonumber(data.amount) or 1)
     cb({ ok = true })
 end)
 
-RegisterNetEvent("b3sty_shop:client:refresh", function(items)
-    SendNUIMessage({ action = "refresh", name = GetPlayerName(PlayerId()) })
+RegisterNetEvent("b3sty_shop:client:refresh", function(items, lastBuyer)
+    SendNUIMessage({ action = "refresh", items = items, lastBuyer = lastBuyer })
 end)
 
--- PLANTED: constant Wait(0) marker loop regardless of distance
 CreateThread(function()
     while true do
         Wait(0)

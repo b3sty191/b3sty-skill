@@ -262,6 +262,13 @@ def check_reference_toc(failures: list[str]) -> None:
             fail(f"{relative} is long and should include a Contents section", failures)
 
 
+def check_eval_fixtures(failures: list[str]) -> None:
+    """Eval fixtures must not name their own bugs: EXPECTATIONS.json is the answer key."""
+    for path in sorted((ROOT / "evals" / "cases").rglob("*")):
+        if path.is_file() and "planted" in read_text(path).lower():
+            fail(f"Eval fixture leaks its answer key (remove the PLANTED hint): {path.relative_to(ROOT).as_posix()}", failures)
+
+
 def main() -> int:
     failures: list[str] = []
     skill_text = read_text(ROOT / "SKILL.md")
@@ -274,6 +281,7 @@ def main() -> int:
     check_reference_toc(failures)
     check_modes(failures)
     check_routing_table(skill_text, failures)
+    check_eval_fixtures(failures)
 
     # Validate cross-links (backticked skill/memory/references paths) everywhere
     # rules live, not only the top-level entry points. Skip the large generated
