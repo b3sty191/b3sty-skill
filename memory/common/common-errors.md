@@ -61,6 +61,26 @@ Track common errors and fixes here.
 - Date: 2026-11-20
 - Game build: n/a (pure Lua / build-independent)
 
+## Per-Frame Animation Tied To FPS
+
+- Error: marker/fade animation and hold timers run faster or slower depending on the player's FPS.
+- Context: `Wait(0)` draw loops that add a fixed step per frame (`remaining -= 10`, `size += diff * 0.02`, `GetGameTimer() * 0.3` for colour).
+- Cause: a frame is not a fixed amount of time; `GetGameTimer()` is milliseconds, so ms-based sine inputs flicker.
+- Fix: scale by `GetFrameTime()` (seconds): `remaining -= GetFrameTime() * 1000.0`, lerp with `1 - (1 - speed) ^ (GetFrameTime() * 60.0)`, sine inputs from `GetGameTimer() / 1000.0`.
+- Prevention: every per-frame step or timer in a draw loop uses frame time; a loop that can `break` must also reset its "running" flag.
+- Date: 2026-09-28
+- Game build: FiveM 3095 (crest_voicearea)
+
+## Framework Net Event Never Reaches A Plain AddEventHandler
+
+- Error: a HUD / status resource never reacts to `esx:playerLoaded` on join; it only works after restarting that resource mid-session.
+- Context: `AddEventHandler("esx:playerLoaded", ...)` in a client script of another resource; es_extended sends the event from the server (`TriggerClientEvent`).
+- Cause: net-event safety is per resource runtime; a network-triggered event only reaches handlers of resources that called `RegisterNetEvent` for that name themselves. The framework registering it does not cover other resources. The restart path worked only because it polled `IsPlayerLoaded()`.
+- Fix: `RegisterNetEvent("esx:playerLoaded", function(...) ... end)` in every client resource that listens (it still receives local `TriggerEvent` re-fires).
+- Prevention: any framework event that can come from the server (`esx:playerLoaded`, `esx:onPlayerLogout`, `esx:setJob`, ...) is registered with `RegisterNetEvent` in the listening resource; keep the restart-time `IsPlayerLoaded()` check as well.
+- Date: 2026-09-29
+- Game build: FiveM 3095 (crest_hud, crest_status)
+
 ## Template
 
 Copy this block when adding a new entry, then fill it in. Leave it blank intentionally - it is a skeleton for future entries, not a real error.
