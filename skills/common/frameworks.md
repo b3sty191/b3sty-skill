@@ -2,7 +2,7 @@
 
 Use when a resource integrates a player framework: ESX, QBCore, Qbox (FiveM) or VORP, RSG (RedM). b3sty resources stay framework-free by default (`skills/fivem/rules.md` / `skills/redm/rules.md` -> Resource Defaults); add framework code only when the project already runs one.
 
-Framework APIs change between versions: the shapes below match current mainstream releases, so confirm each call against the installed source and record verified differences in `memory/`.
+Framework APIs change between versions: the shapes below match current mainstream releases, so confirm each call against the installed source and record verified differences in `memory/`. VORP depth (inventory export signatures, callbacks, state bags, traps) is in `skills/redm/vorp.md`.
 
 ## Defaults
 

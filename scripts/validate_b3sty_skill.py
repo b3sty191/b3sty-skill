@@ -51,6 +51,7 @@ REQUIRED_PATHS = [
     "skills/common/network-performance.md",
     "skills/fivem/rules.md",
     "skills/redm/rules.md",
+    "skills/redm/vorp.md",
     "memory/common/README.md",
     "memory/common/native-bugs.md",
     "memory/common/common-errors.md",
