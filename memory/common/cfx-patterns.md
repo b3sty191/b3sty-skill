@@ -13,6 +13,7 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
 - Simple Resource Pattern
 - Config Split Pattern
 - Player Persistence Pattern
+- Net Event Guard Injection Pattern
 - Template
 
 ## Table Controller Pattern
@@ -292,6 +293,29 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
 - Notes: failed or 0-row saves are logged and retried up to `MAX_SAVE_FAILS` (the next gameplay change marks the player dirty again); error-surfacing rules are in `skills/common/database.md` -> OxMySQL API Shape. Use `INSERT ... ON DUPLICATE KEY UPDATE` if this resource owns row creation.
 - Notes: on `playerDropped` the final save is always issued, ordered after any in-flight autosave (bounded 10s wait), and the RAM cache is cleared only after it returns. A final save that still fails is logged and that data is lost. If a quick reconnect must never load stale data, have the loader wait while a final save for that identifier is still pending.
 - Notes: uses the oxmysql API (`MySQL.update` / `MySQL.update.await`), not the legacy `MySQL.async.*` aliases - see `skills/common/database.md` -> OxMySQL API Shape.
+
+## Net Event Guard Injection Pattern
+
+- Pattern: load one shared guard file as the first server script of every protected resource; it replaces `RegisterNetEvent` / `AddEventHandler` in that Lua state, so handlers stay untouched. The installing resource writes the line into each fxmanifest while it starts and runs `refresh`, so every resource ensured after it starts with the guard.
+- Use when: many resources need the same per-event rate limit / schema / signal path and editing every handler is not practical (verified 2026-10-13 against FXServer source 35945, FiveM build 3095).
+- Avoid when: the resource is JS/C#, a system resource (`citizen/system_resources`), or registers its net events in `shared_scripts` - the guard never sees those.
+- Example:
+  ```
+  # resources.cfg, above the installer's ensure
+  add_ace resource.crest_skillissue command.refresh allow
+  add_filesystem_permission crest_skillissue write crest_garage
+  ensure crest_skillissue
+  ```
+- Notes (from source):
+  - `add_filesystem_permission` is accepted only while the startup cfg runs (`FilesystemPermissions.cpp`); `SaveResourceFile` and Lua `io.open` writes into another resource are refused without it (`SaveResourceFile` returns nil).
+  - fxmanifest is read at scan time, not at start; `refresh` reloads the metadata of every known resource, started ones only take it on restart (`ServerResourceList.cpp`).
+  - `@other/file.lua` resolves from disk for any scanned resource, started or not (`ScriptHost.cpp` OpenHostFile; mounts in `ServerResources.cpp` after each scan).
+  - `ExecuteCommand` runs synchronously under principal `resource.<name>`: grant `add_ace resource.<name> command.<cmd> allow` (`ResourceScriptFunctions.cpp`).
+  - `shared_scripts` load before `server_scripts` (`ResourceScriptingComponent.cpp`).
+  - Server-local `TriggerEvent` has `source == ""`; `internal-net:` events such as `playerDropped` get a numeric `source` like client events, so wrap only names the resource `RegisterNetEvent`s, not every `AddEventHandler` (`scheduler.lua` event routine).
+  - Resources that start before the installer (its own dependencies, or anything ensured earlier) only pick the guard up on the next full start; an installer with no dependencies ensured first covers everything on the same boot.
+  - One wrapper per handler double-charges limits when a resource has 2+ handlers on one event: register one raw handler per event and fan out, each handler in its own `Citizen.CreateThreadNow` like the scheduler.
+  - Reference implementation with offline tests: `txData/Script/examples/crest_skillissue` (example copy outside `resources/`: `guard.lua`, `core/installer.lua`, `DOCS.md` guard section, `lua5.4 tests/run.lua`).
 
 ## Template
 
