@@ -4,6 +4,8 @@
 
 Reusable rules and working memory for b3sty RedM/FiveM Lua development.
 
+What each update changes and what it helps with: [CHANGELOG.md](CHANGELOG.md).
+
 ## Install
 
 `SKILL.md` is the skill manifest. It works as a first-class skill in **Claude Code**, **OpenAI Codex**, and on **skills.sh**. Pick your platform.
