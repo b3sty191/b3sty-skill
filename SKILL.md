@@ -160,6 +160,7 @@ Slash commands installed with the Claude Code plugin:
 - `commands/b3sty-review.md` - `/b3sty-review`: coverage-led, adversarially verified audit with confirmed/needs_validation/rejected verdicts (`scripts/b3sty_audit_ledger.py` seeds the entry-point ledger; `scripts/validate_audit_findings.py` checks the findings).
 - `commands/b3sty-new-resource.md` - `/b3sty-new-resource`: scaffold a new resource that follows these rules.
 - `commands/b3sty-perf.md` - `/b3sty-perf`: find and fix CPU and network performance problems with a measured/estimated report.
+- `commands/b3sty-ideate.md` - `/b3sty-ideate`: parallel divergent ideation for open-ended design decisions; isolated generator branches under CFX frames, then a critic that rejects anything breaking these rules before deepening the best ideas.
 
 ## Memory
 

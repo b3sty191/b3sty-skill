@@ -72,7 +72,7 @@ If this repository is private, the installer needs existing GitHub credentials o
 - `memory/common/` - learned facts shared by RedM and FiveM.
 - `memory/fivem/` - FiveM-only learned facts.
 - `memory/redm/` - RedM-only learned facts.
-- `commands/` - Claude Code slash commands that drive a task using the rules (`/b3sty-review`, `/b3sty-new-resource`, `/b3sty-perf`).
+- `commands/` - Claude Code slash commands that drive a task using the rules (`/b3sty-review`, `/b3sty-new-resource`, `/b3sty-perf`, `/b3sty-ideate`).
 - `evals/` - planted-bug resources and a scorer that measure how many defects `/b3sty-review` catches.
 - `references/natives/` - large generated native reference files.
 
@@ -105,6 +105,7 @@ If this repository is private, the installer needs existing GitHub credentials o
 - `commands/b3sty-review.md` - `/b3sty-review`: coverage-led, adversarially verified security audit; `confirmed`/`needs_validation`/`rejected` verdicts with FiveM severity anchors (`scripts/b3sty_audit_ledger.py` + `scripts/validate_audit_findings.py`).
 - `commands/b3sty-perf.md` - `/b3sty-perf`: CPU and network performance pass with a measured/estimated report.
 - `commands/b3sty-new-resource.md` - `/b3sty-new-resource`: scaffold a new resource (manifest, controllers, validated events, cleanup, optional bridge/NUI/DB).
+- `commands/b3sty-ideate.md` - `/b3sty-ideate`: divergent ideation for open-ended design decisions - isolated branches under CFX frames, a rule-checked trap gate, then the top ideas deepened (method adapted from UditAkhourii/adhd, MIT).
 
 The Claude Code plugin installs these with the main skill. With a git-clone install, copy `commands/*.md` into `~/.claude/commands/` (or `.claude/commands/` for one project) to use them.
 

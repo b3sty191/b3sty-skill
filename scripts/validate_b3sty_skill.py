@@ -38,6 +38,7 @@ REQUIRED_PATHS = [
     "commands/b3sty-review.md",
     "commands/b3sty-new-resource.md",
     "commands/b3sty-perf.md",
+    "commands/b3sty-ideate.md",
     "scripts/b3sty_audit_ledger.py",
     "scripts/validate_audit_findings.py",
     "references/audit-findings-schema.md",
