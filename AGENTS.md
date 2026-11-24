@@ -9,7 +9,8 @@ The rest of the repo:
 - `modes/` - one file per workflow, loaded when the request matches: review/audit, new resource, performance, ideation.
 - `skills/common/` - stable rules shared by RedM and FiveM; `skills/fivem/`, `skills/redm/` - game-only rules.
 - `memory/common/` - learned facts shared by both games; `memory/fivem/`, `memory/redm/` - game-only learned facts.
-- `evals/` - planted-bug resource fixtures and `score.py`, which benchmark review mode's recall.
+- `evals/` - planted-bug resource fixtures and `score.py`, which benchmark review mode's recall and false positives on decoys.
+- `trigger-evals/` - `claude plugin eval` cases checking the skill loads for RedM/FiveM work and stays out of everything else.
 - `references/natives/` - generated native lookup files for FiveM/GTA V and RedM/RDR3.
 - `scripts/` - package validators plus the audit ledger and findings checkers.
 

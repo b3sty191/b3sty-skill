@@ -53,6 +53,9 @@ good run finds every planted defect, hits no decoy, and adds few extras.
 
 `python3 evals/score.py --selftest` checks the scorer itself (run in CI).
 
+Whether the skill loads at all is a separate question, measured by
+`trigger-evals/` with `claude plugin eval`.
+
 ## Using the evals to improve the skill
 
 When a run misses a planted defect, the gap is usually a rule the skill states
