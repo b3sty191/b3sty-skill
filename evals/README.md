@@ -22,6 +22,11 @@ real resource; every "PLANTED" comment marks a bug the rules tell you to fix.
   broadcast, NUI `innerHTML` XSS, and a constant `Wait(0)` loop.
 - `redm_stable` (RedM) - a server-side `GetEntityHealth` decision that is
   unreliable on RedM, and `DeleteEntity` from an unvalidated client net id.
+- `redm_vorp_trader` (RedM, VORP) - a bounty paid from a client amount, a
+  purchase with no balance check, a pelt sale that trusts a metadata `subItem`,
+  a context-menu handler paying a client price, a client-chosen cart spawn, and
+  a `getItemCount` call with the callback in the wrong slot. Two decoys (a
+  fully guarded purchase, a distance-staged marker loop) measure false positives.
 
 ## Running one
 

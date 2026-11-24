@@ -1,18 +1,32 @@
 {
-  "note": "Planted defects in each eval case. A review-mode full audit should surface these. Each expectation matches a finding whose trace touches `file` and whose title/description/surface mentions any `keywords`. Severities are the minimum a correct audit should assign.",
+  "note": "Planted defects in each eval case. A review-mode full audit should surface these. Each expectation matches a finding whose trace touches `file` and whose title/description/surface mentions any `keywords`; one finding satisfies at most one expectation. Severities are the minimum a correct audit should assign. `decoys` lists correct code that looks risky: a finding on a decoy is a false positive. The fixtures carry no hints - this file is the answer key, so keep it out of the auditor's reach.",
   "cases": {
     "fivem_shop": [
-      { "id": "shop-client-price",   "file": "core/server.lua", "category": "give-value",       "min_severity": "high",     "keywords": ["price", "client", "payload"], "note": "buy trusts client-supplied price" },
-      { "id": "shop-sql-injection",  "file": "core/server.lua", "category": "sql-injection",    "min_severity": "critical", "keywords": ["sql", "inject", "concat"],    "note": "itemName concatenated into a query" },
-      { "id": "shop-source-yield",   "file": "core/server.lua", "category": "source-yield",     "min_severity": "medium",   "keywords": ["source", "yield", "await"],   "note": "source used after the await yield" },
-      { "id": "shop-admin-acl",      "file": "core/server.lua", "category": "admin-permission", "min_severity": "critical", "keywords": ["ace", "permission", "admin"], "note": "giveitem command has no ACE check" },
-      { "id": "shop-broadcast",      "file": "core/server.lua", "category": "broadcast",        "min_severity": "low",      "keywords": ["-1", "broadcast", "scope"],   "note": "-1 broadcast of shop data per buy" },
-      { "id": "shop-xss",            "file": "html/app.js",     "category": "xss",              "min_severity": "high",     "keywords": ["innerhtml", "xss"],           "note": "player name into innerHTML" },
-      { "id": "shop-wait0",          "file": "core/client.lua", "category": "performance",      "min_severity": "low",      "keywords": ["wait(0)", "wait 0", "marker", "loop"], "note": "constant Wait(0) marker loop" }
+      {"id": "shop-client-price", "file": "core/server.lua", "category": "give-value", "min_severity": "high", "keywords": ["price", "client", "payload"], "note": "buy trusts client-supplied price"},
+      {"id": "shop-sql-injection", "file": "core/server.lua", "category": "sql-injection", "min_severity": "critical", "keywords": ["sql", "inject", "concat"], "note": "itemName concatenated into a query"},
+      {"id": "shop-source-yield", "file": "core/server.lua", "category": "source-yield", "min_severity": "medium", "keywords": ["source", "yield", "await"], "note": "source used after the await yield"},
+      {"id": "shop-admin-acl", "file": "core/server.lua", "category": "admin-permission", "min_severity": "critical", "keywords": ["ace", "permission", "admin"], "note": "giveitem command has no ACE check"},
+      {"id": "shop-broadcast", "file": "core/server.lua", "category": "broadcast", "min_severity": "low", "keywords": ["-1", "broadcast", "scope"], "note": "-1 broadcast of shop data per buy"},
+      {"id": "shop-xss", "file": "html/app.js", "category": "xss", "min_severity": "high", "keywords": ["innerhtml", "xss"], "note": "player name into innerHTML"},
+      {"id": "shop-wait0", "file": "core/client.lua", "category": "performance", "min_severity": "low", "keywords": ["wait(0)", "wait 0", "marker", "loop"], "note": "constant Wait(0) marker loop"}
     ],
     "redm_stable": [
-      { "id": "stable-redm-health",  "file": "core/server.lua", "category": "redm-native",      "min_severity": "medium",   "keywords": ["getentityhealth", "health", "redm"], "note": "server GetEntityHealth unreliable on RedM" },
-      { "id": "stable-netid",        "file": "core/server.lua", "category": "netid-validation", "min_severity": "high",     "keywords": ["netid", "net id", "ownership", "validate", "entity"], "note": "DeleteEntity from unvalidated client net id" }
+      {"id": "stable-redm-health", "file": "core/server.lua", "category": "redm-native", "min_severity": "medium", "keywords": ["getentityhealth", "health", "redm"], "note": "server GetEntityHealth unreliable on RedM"},
+      {"id": "stable-netid", "file": "core/server.lua", "category": "netid-validation", "min_severity": "high", "keywords": ["netid", "net id", "ownership", "validate", "entity"], "note": "DeleteEntity from unvalidated client net id"}
+    ],
+    "redm_vorp_trader": [
+      {"id": "vorp-bounty-amount", "file": "core/server.lua", "category": "give-value", "min_severity": "critical", "keywords": ["claimbounty", "bounty"], "note": "claimBounty pays a client-supplied amount through addCurrency, which validates nothing (negative subtracts)"},
+      {"id": "vorp-no-balance", "file": "core/server.lua", "category": "give-value", "min_severity": "high", "keywords": ["buytool"], "note": "buyTool calls removeCurrency with no balance check; VORP lets money go negative"},
+      {"id": "vorp-metadata-subitem", "file": "core/server.lua", "category": "give-value", "min_severity": "high", "keywords": ["sellpelts", "pelt"], "note": "sellPelts pays for count after subItem with metadata, which returns true even when the stack holds fewer"},
+      {"id": "vorp-context-args", "file": "core/server.lua", "category": "give-value", "min_severity": "critical", "keywords": ["quicksell", "context"], "note": "context-menu handler pays client args.price and ignores the subItemById result"},
+      {"id": "vorp-cart-spawn", "file": "core/server.lua", "category": "entity-spawn", "min_severity": "medium", "keywords": ["spawncart", "createvehicle", "cart"], "note": "server spawns a client-chosen model at client-chosen coords"},
+      {"id": "vorp-cb-order", "file": "core/server.lua", "category": "framework-api", "min_severity": "low", "keywords": ["peltcount", "getitemcount"], "note": "getItemCount called with the callback in the itemName slot; the callback never answers"}
+    ]
+  },
+  "decoys": {
+    "redm_vorp_trader": [
+      {"id": "vorp-decoy-buybait", "file": "core/server.lua", "keywords": ["buybait", "bait"], "note": "validated count, in-flight lock, fresh balance, canCarryItem, refund on addItem failure"},
+      {"id": "vorp-decoy-marker", "file": "core/client.lua", "keywords": ["marker", "wait(0)", "staged"], "note": "marker loop already stages its wait by distance"}
     ]
   }
 }
