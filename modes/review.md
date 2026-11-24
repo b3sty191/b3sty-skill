@@ -36,12 +36,13 @@ Order: unauthenticated/lowest-trust surfaces first, then boundaries over the mos
 
 - Any `:server:` event, callback, command, export: `skills/common/security-performance.md` -> Required Event Pattern, `skills/common/give-value-hardening.md`, `skills/common/review-questions.md`
 - Money, items, rewards, shops: `skills/common/give-value-hardening.md` -> Give-value event checklist
-- Framework calls (ESX/QBCore/Qbox/VORP/RSG): `skills/common/frameworks.md`
+- Framework calls (ESX/QBCore/Qbox/VORP/RSG): `skills/common/frameworks.md`; VORP exports and callbacks: `skills/redm/vorp.md`
 - NUI, `RegisterNUICallback`, XSS sinks: `skills/common/nui.md`
 - Networked entities, net IDs, buckets, built-in client events: `skills/common/networking.md`
 - SQL, oxmysql: `skills/common/database.md`
 - Threads, `source` across yields, exports, lifecycle: `skills/common/runtime.md`
 - Net event spam, `-1` broadcasts, payload size, state bags: `skills/common/network-performance.md`
+- Threads and loops, pool scans, caches: `skills/common/performance.md`
 - Natives, hashes: `skills/common/native-usage.md`, then `references/natives/`
 - Game-specific code: `skills/fivem/rules.md` or `skills/redm/rules.md`
 - Cross-resource exports/events: `skills/common/multi-resource.md`
@@ -52,7 +53,8 @@ Settle one invariant at a time:
 2. **Input** - type, range, integer, NaN, string length, table depth; `local source = source` captured before the first yield, re-checked after.
 3. **Abuse** - throttle, in-flight lock, replay, distance/ownership, audit log.
 4. **Lifecycle** - cleanup on `playerDropped`, character unload, `onResourceStop`; NUI focus released; entities guarded with `DoesEntityExist`.
-5. **Portability / performance** - only once the security invariants settle.
+5. **Performance** - after the security invariants, and never skipped in a full audit: `Wait(0)` or short-wait loops not staged by distance or state, pool or player scans per tick, events per tick, `-1` broadcasts of large or frequent data, SQL in loops or per UI open. A hot-path defect is a finding (low or medium by its measured or estimated cost); a micro-optimization is a hardening note.
+6. **Portability** - RedM/FiveM differences and game-build gates (`skills/fivem/rules.md`, `skills/redm/rules.md`).
 
 Check `memory/` for a known engine quirk before blaming the resource. Disposition per unit: **covered** (read to the sink, invariant holds), **candidate** (a boundary failure), **blocked** (source cannot settle it).
 
@@ -66,6 +68,7 @@ Not optional; it is what makes the review trustworthy.
   - **confirmed** - complete source trace, bounded observed result; the only verdict carrying severity (FiveM anchors in the schema), never above demonstrated impact.
   - **needs_validation** - source-grounded, blocked on a fact outside the repo (live FXServer result, `server.cfg` convar or ACE grant, framework version): name the exact blocker and a plan. No severity.
   - **rejected** - disproved by source or a visible control; kept so the next run does not re-raise it.
+- XSS: judge by where the string comes from, traced to its origin. A value only the viewing player sets and only that player sees (their own input, their own name in their own UI) is self-XSS: a hardening note. A value another player can influence - names, chat, item labels, anything stored or broadcast - reaching an `innerHTML`/`v-html`/`{@html}` sink is cross-player XSS, high when it can drive the victim's NUI callbacks.
 - Severity is likelihood x impact, not checklist deviation. A defense-in-depth gap another layer already stops is a hardening note; a guessed deployment behavior is `needs_validation`, never a confirmed bug.
 - Runtime proof: **private test server, dummy accounts** - never live or shared, never real player data - stopping at the first boundary result (the free item, the wrong balance). Most FiveM findings need FXServer and the game, so source alone cannot prove them - that is what `needs_validation` is for; neither inflate such a lead into confirmed nor drop it.
 

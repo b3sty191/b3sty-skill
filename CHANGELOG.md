@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-11-25 - VORP layer, fresher platform facts, evals you can trust
+
+### What this update helps with
+
+**VORP servers.** New `skills/redm/vorp.md`, checked line by line against VORPCORE source (vorp_core 3.4, vorp_inventory 4.5, vorp_lib 0.5). It has the exact argument order of every inventory export, since the callback sits in a different slot almost every time. It also covers traps no doc mentions:
+- `addCurrency` validates nothing: a negative amount subtracts.
+- `addItem` never checks capacity and can yield.
+- `subItem` with metadata returns `true` even when the stack is short.
+- Re-registering a usable item silently replaces the first.
+- Context-menu whitelisting covers only the event name, so the arguments stay client-controlled.
+
+**Facts that changed in 2025-2026**, each checked at source:
+- `lua54 'yes'` is deprecated.
+- OneSync is forced on (citizenfx/fivem `19fa3d5`).
+- `xbl`/`live` identifiers are retired, and a player's `license` can change since the Account Security Update.
+- ox_lib development is back at `overextended/ox_lib`, so the CommunityOx fork is archived. Use at least 3.32.1, which fixes the nearby-player crash.
+- txAdmin v8 renamed events (`playerHealed`, `scheduledRestartSkipped`) and moved host settings to `TXHOST_*`.
+
+Three claims from the source report did not hold up and were left out:
+- that strings no longer coerce in arithmetic;
+- that `json.decode` changed;
+- that `sv_replaceExeToSwitchBuilds` is fully deprecated.
+
+**Evals that measure something.**
+- Fixtures no longer name their own bugs. The validator fails if one says `PLANTED`, and the README says to audit a copy outside the repo.
+- The `fivem_shop` XSS case now really is cross-player (the last buyer's name is broadcast to everyone). It used to show only the viewer's own name, which an auditor rightly rejected as self-XSS.
+- A finding can satisfy only one expectation (it used to inflate recall), catches report how many were `confirmed`, and decoys - correct code that looks risky - count false positives.
+- New hint-free `redm_vorp_trader` case: 6 defects, 2 decoys.
+- Review mode now treats performance as an invariant a full audit never skips.
+- New `trigger-evals/` (`claude plugin eval`) checks that the skill loads for CFX work and not for Python, React, or Roblox Lua.
+
 ## 2026-11-25 - Lean rewrite: one skill, no commands to remember
 
 ### What this update helps with

@@ -11,9 +11,16 @@ directory, then score the `findings.json` it produced:
 
 An expectation counts as caught when the findings file has a `confirmed` or
 `needs_validation` record whose trace touches the expected file and whose
-title/description/surface mentions one of the expectation's keywords. The score
-is recall (planted defects found / planted defects), plus a list of findings
-that matched no expectation, so the reviewer can tell real extras from noise.
+title/description/surface mentions one of the expectation's keywords. Each
+finding can satisfy at most one expectation (maximum one-to-one matching), so
+one broad finding cannot inflate recall. The score is recall (planted defects
+found / planted defects), with how many of those catches were `confirmed`.
+
+Cases may also list decoys in `EXPECTATIONS.json` (`"decoys": {case: [...]}`):
+code that is correct but looks risky. A leftover finding that touches a decoy's
+file and mentions its keywords is reported as a decoy hit - a false positive on
+correct code. Remaining findings are listed so the reviewer can tell real
+extras from noise.
 
 This measures the auditor, not a resource. It is the skill's own benchmark.
 
@@ -56,47 +63,77 @@ def file_matches(expected: str, actual_files: list[str]) -> bool:
     return False
 
 
-def score_case(expectations: list[dict], findings: list[dict]) -> dict:
-    usable = [f for f in findings if f.get("verdict") in USEFUL_VERDICTS]
-    matched_findings: set[int] = set()
-    caught, missed = [], []
+def _matches(spec: dict, rec: dict) -> bool:
+    if not file_matches(spec["file"], finding_files(rec)):
+        return False
+    keywords = [k.lower() for k in spec.get("keywords", [])]
+    text = finding_text(rec)
+    return not keywords or any(kw in text for kw in keywords)
 
-    for exp in expectations:
-        keywords = [k.lower() for k in exp.get("keywords", [])]
-        hit = None
-        for i, rec in enumerate(usable):
-            if not file_matches(exp["file"], finding_files(rec)):
+
+def _max_matching(expectations: list[dict], usable: list[dict]) -> dict[int, int]:
+    """Maximum bipartite matching expectation -> finding (Kuhn's algorithm)."""
+    edges = [[i for i, rec in enumerate(usable) if _matches(exp, rec)] for exp in expectations]
+    owner: dict[int, int] = {}  # finding index -> expectation index
+
+    def assign(e: int, seen: set[int]) -> bool:
+        for f in edges[e]:
+            if f in seen:
                 continue
-            text = finding_text(rec)
-            if any(kw in text for kw in keywords) or not keywords:
-                hit = i
-                break
-        if hit is not None:
-            matched_findings.add(hit)
-            caught.append(exp["id"])
-        else:
-            missed.append(exp["id"])
+            seen.add(f)
+            if f not in owner or assign(owner[f], seen):
+                owner[f] = e
+                return True
+        return False
+
+    for e in range(len(expectations)):
+        assign(e, set())
+    return {e: f for f, e in owner.items()}
+
+
+def score_case(expectations: list[dict], findings: list[dict], decoys: list[dict] | None = None) -> dict:
+    usable = [f for f in findings if f.get("verdict") in USEFUL_VERDICTS]
+    match = _max_matching(expectations, usable)
+    used = set(match.values())
+
+    caught = [exp["id"] for e, exp in enumerate(expectations) if e in match]
+    missed = [exp["id"] for e, exp in enumerate(expectations) if e not in match]
+    confirmed = [expectations[e]["id"] for e, f in match.items() if usable[f].get("verdict") == "confirmed"]
+
+    decoy_hits = []
+    for decoy in decoys or []:
+        for i, rec in enumerate(usable):
+            if i not in used and _matches(decoy, rec):
+                used.add(i)
+                decoy_hits.append(f"{decoy['id']}: {rec.get('fingerprint') or rec.get('title', '?')}")
 
     unmatched = [
         (usable[i].get("fingerprint") or usable[i].get("title", "?"))
-        for i in range(len(usable)) if i not in matched_findings
+        for i in range(len(usable)) if i not in used
     ]
     total = len(expectations)
     recall = len(caught) / total if total else 1.0
     return {
         "total": total,
         "caught": caught,
+        "caught_confirmed": confirmed,
         "missed": missed,
         "recall": recall,
+        "decoy_hits": decoy_hits,
         "unmatched_findings": unmatched,
     }
 
 
 def report(result: dict, case: str) -> int:
     pct = round(result["recall"] * 100)
-    print(f"case {case}: caught {len(result['caught'])}/{result['total']} planted defects ({pct}% recall)")
+    print(f"case {case}: caught {len(result['caught'])}/{result['total']} planted defects "
+          f"({pct}% recall; {len(result['caught_confirmed'])} confirmed)")
     if result["missed"]:
         print("  MISSED: " + ", ".join(result["missed"]))
+    if result["decoy_hits"]:
+        print("  DECOY HITS (false positives on correct code):")
+        for hit in result["decoy_hits"]:
+            print("    - " + hit)
     if result["unmatched_findings"]:
         print("  findings matching no planted defect (verify - extra or false positive):")
         for fp in result["unmatched_findings"]:
@@ -134,6 +171,31 @@ def selftest() -> int:
     if "a" in rej["caught"]:
         ok = False
         print("selftest FAIL: a rejected record was counted as a catch")
+    # one broad finding must not satisfy two expectations
+    broad = {"verdict": "confirmed", "title": "client price into innerHTML", "trace": [
+        {"file": "core/server.lua"}, {"file": "html/app.js"}]}
+    one = score_case(_EXP, [broad])
+    if len(one["caught"]) != 1:
+        ok = False
+        print("selftest FAIL: one finding counted for several expectations:", one)
+    # matching is maximal, not greedy: the broad finding must yield 'a' to the narrow one
+    narrow_b = {**_PERFECT[1]}
+    both = score_case(_EXP, [broad, narrow_b])
+    if both["missed"]:
+        ok = False
+        print("selftest FAIL: greedy matching dropped a catch:", both)
+    # needs_validation counts for recall but not as confirmed
+    nv = score_case(_EXP, [{**_PERFECT[0], "verdict": "needs_validation"}, _PERFECT[1]])
+    if nv["recall"] != 1.0 or nv["caught_confirmed"] != ["b"]:
+        ok = False
+        print("selftest FAIL: confirmed breakdown wrong:", nv)
+    # a leftover finding on a decoy is reported as a decoy hit
+    decoy = [{"id": "d", "file": "core/server.lua", "keywords": ["buybait"]}]
+    fp = {"verdict": "confirmed", "title": "buyBait has no balance check", "trace": [{"file": "core/server.lua"}]}
+    dec = score_case(_EXP, _PERFECT + [fp], decoy)
+    if len(dec["decoy_hits"]) != 1 or dec["unmatched_findings"]:
+        ok = False
+        print("selftest FAIL: decoy hit not reported:", dec)
     print("eval scorer selftest passed." if ok else "eval scorer selftest FAILED.")
     return 0 if ok else 1
 
@@ -161,7 +223,8 @@ def main() -> int:
         print("findings.json must be a JSON array", file=sys.stderr)
         return 2
 
-    return report(score_case(cases[args.case], findings), args.case)
+    decoys = exp_all.get("decoys", {}).get(args.case, [])
+    return report(score_case(cases[args.case], findings, decoys), args.case)
 
 
 if __name__ == "__main__":

@@ -37,7 +37,13 @@ LUA_RULES = [
     ("nui_callback", "client", re.compile(r"""RegisterNUICallback\s*\(\s*["']([^"']+)["']""")),
     ("command", "server", re.compile(r"""RegisterCommand\s*\(\s*["']([^"']+)["']""")),
     ("callback", "server", re.compile(r"""lib\.callback\.register\s*\(\s*["']([^"']+)["']""")),
-    ("callback", "server", re.compile(r"""(?:ESX\.RegisterServerCallback|QBCore\.Functions\.CreateCallback|RSGCore\.Functions\.CreateCallback|VORPcore\.addRpcCallback)\s*\(\s*["']([^"']+)["']""")),
+    ("callback", "server", re.compile(r"""(?:ESX\.RegisterServerCallback|QBCore\.Functions\.CreateCallback|RSGCore\.Functions\.CreateCallback|\w+\.addRpcCallback)\s*\(\s*["']([^"']+)["']""")),
+    # VORP `Core.Callback.Register` under any core variable name: dispatched by name from the
+    # client-callable `vorp:TriggerServerCallback` net event.
+    ("callback", "server", re.compile(r"""\b\w+\.Callback\.Register\s*\(\s*["']([^"']+)["']""")),
+    # vorp_inventory context-menu events: whitelisted by name only, then fired server-locally
+    # with the client's arguments and item id - a client-reachable boundary.
+    ("net_event", "server", re.compile(r"""addAllowedContextMenuEvent\s*\(\s*["']([^"']+)["']""")),
     ("export", "either", re.compile(r"""exports\s*\(\s*["']([^"']+)["']""")),
     ("http_handler", "server", re.compile(r"""SetHttpHandler\s*\(""")),
     ("sql", "server", re.compile(r"""(?:MySQL\.\w+(?:\.await)?|exports\.oxmysql:\w+|exports\.ghmattimysql:\w+|exports\[['"]mysql-async['"]\])\s*\(""")),
@@ -169,6 +175,8 @@ RegisterNUICallback("buy", function(data, cb) end)   -- client boundary
 RegisterCommand("giveitem", function(src, args) end)
 exports("GetBalance", function(src) end)
 MySQL.update.await("UPDATE users SET money = ?", { 1 })
+Core.Callback.Register("trader:count", function(source, cb) end)
+exports.vorp_inventory:addAllowedContextMenuEvent("trader:server:quickSell", GetCurrentResourceName())
 """
 
 SELFTEST_JS = """
@@ -180,7 +188,7 @@ const safe = foo.textContent;
 def selftest() -> int:
     lua = scan_text(SELFTEST_LUA, "core/server.lua", ".lua")
     got = sorted({u["surface"] for u in lua})
-    want = {"net_event", "builtin_event", "nui_callback", "command", "export", "sql"}
+    want = {"net_event", "builtin_event", "nui_callback", "command", "export", "sql", "callback"}
     ok = True
     if got != sorted(want):
         print(f"selftest FAIL: lua surfaces {got} != {sorted(want)}")
@@ -191,6 +199,10 @@ def selftest() -> int:
     nui = [u for u in lua if u["surface"] == "nui_callback"]
     if not nui or nui[0]["side"] != "client":
         print("selftest FAIL: NUI callback side")
+        ok = False
+    names = {u["name"] for u in lua}
+    if not {"trader:count", "trader:server:quickSell"} <= names:
+        print("selftest FAIL: VORP callback or context-menu event not seeded")
         ok = False
     web = scan_text(SELFTEST_JS, "html/app.js", ".js")
     if not any(u["surface"] == "xss" for u in web):

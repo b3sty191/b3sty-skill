@@ -11,6 +11,7 @@ Use only when a resource already depends on ox_lib or the task explicitly accept
 
 ## Manifest
 
+- Install the release zip from the maintained upstream, `overextended/ox_lib` (v3.42.2 as of 2026-11-24; docs `overextended.dev/ox_lib`): the source repo has no root `fxmanifest.lua`, and the release bundles `cfxlua-require`. Require at least v3.32.1 - it fixed a progress-prop state bag handler that created every prop twice and leaked one, which Cfx's Fall 2025 client notes flagged as letting cheaters crash nearby players; current upstream also caps props server-side (`ox:progressPropLimit`, default 2). The CommunityOx fork shipped that fix in v3.32.x but has had no commits since 2026-02-20 and is archived on GitHub - do not point new installs or docs at it.
 - Declare `dependency 'ox_lib'` when the resource cannot run without it, and load ox_lib before scripts that use `lib`, `cache` or locale helpers:
   ```lua
   shared_scripts {
@@ -18,7 +19,7 @@ Use only when a resource already depends on ox_lib or the task explicitly accept
       'config.lua',
   }
   ```
-- `'@ox_lib/init.lua'` swaps global `require` for `lib.require` - that is what lets `require('configs.items')` load resource files - so code using it breaks if ox_lib is removed (`skills/common/style.md` -> Lua Style has the no-ox_lib loader).
+- `'@ox_lib/init.lua'` installs a `require` that loads resource files (current releases use `cfxlua-require` and keep `lib.require` as an alias) - that is what lets `require('configs.items')` work - so code using it breaks if ox_lib is removed (`skills/common/style.md` -> Lua Style has the no-ox_lib loader).
 - Keep ox_lib imports out of standalone Lua tooling, non-Cfx scripts, and files meant to run without the dependency.
 - With locale files, list them under `files` and initialize locale once.
 
