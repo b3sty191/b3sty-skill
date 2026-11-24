@@ -89,6 +89,7 @@ Use this file when diagnosing RedM/FiveM resource failures, crashes, bad state, 
   - `resmon 1` in the client F8 console shows per-resource frame time (ms) and memory; a resource idling above ~0.10ms or spiking on interaction is the place to look (a community rule of thumb, not an engine limit - compare against the same server's baseline, idle and during the action). Server-side `resmon` exists only in the Windows FXServer GUI; on Linux use the server profiler.
   - `profiler record 500` then `profiler view` (client F8 or server console) captures a tick-level trace of every resource; `profiler saveJSON <file>` exports it for `chrome://tracing` / Perfetto when the in-game view is not enough.
   - `netEventLog 1` (client F8) lists recent net events with direction (`C->S` / `S->C`), name, and payload bytes; state bags are not listed. `netgraph` shows live packets/bytes, `net_statsFile <file>` logs net stats, and `cl_drawPerf 1` overlays FPS/ping/loss.
+  - `set onesync_logFile <path>` writes a OneSync sync log - per-client packet rates and which entity owners send most. It grows fast, so enable it for a 1-30 s capture and turn it off again (verified: `ServerGameState.cpp`, FXServer 35945).
   - Client `resmon`, `netEventLog`, and `profiler` are developer commands: on the production channel they print "Access denied" until the game is launched with `+set moo 31337`. `cl_drawPerf` works without it.
   - Match the tool to the hitch. "server thread hitch warning" means the 50 ms server tick ran late - slow scripts, synchronous loops, heavy handlers; profile the server. A network thread hitch is the network/send loop falling behind - check event and state bag volume with `netEventLog`, and host load; raising an unrelated `Wait` fixes neither.
   - txAdmin's performance chart shows server tick-time trends over hours - use it to catch slow leaks and load-correlated stalls that a live snapshot misses.
@@ -97,6 +98,13 @@ Use this file when diagnosing RedM/FiveM resource failures, crashes, bad state, 
 - Increase waits based on distance/active state before adding complex caches.
 - Cache only values that are expensive or hot enough to justify ownership and cleanup.
 - Check `skills/common/security-performance.md` before performance changes in events, callbacks, sync, DB writes, or loops.
+
+## Offline Tests And Crash Harnesses
+
+- Server Lua can be tested without FXServer: preprocess CfxLua to Lua 5.4 (rewrite compound assignment, and rewrite backtick hashes only for UPPERCASE names - lowercase backticks are SQL identifiers), then load the real resource files into a per-test environment instead of copying logic into the test.
+- Drive them with a cooperative scheduler on a virtual clock: `Wait` yields, time advances only when nothing is runnable, promise resolution re-queues the waiting thread, and a step cap catches loops that never wait. Pair it with a fake `oxmysql` that really applies the shipped SQL, then assert on resulting DB state and on value conservation, not on prints.
+- Prove a save pipeline is dupe-safe with a crash harness: a throwaway FXServer and MariaDB on other ports (schema only, via `mariadb-dump --no-data` - never the live DB), synthetic players, a fixed mint of items/money, trades that neither create nor destroy value, and `kill -9` mid-trade. Pass = roster sum minus the mint is 0 and no save sequence went backwards.
+- Keep the harness ledger in a DB table, not a file: CfxLua sandboxes `io`, and a committed row survives the kill. Run it at realistic size - 64 synthetic players came out clean where 512 duped items (verified: kill -9 harness, 512 players).
 
 ## Finishing A Fix
 

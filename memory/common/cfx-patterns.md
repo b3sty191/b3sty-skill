@@ -13,6 +13,9 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
 - Simple Resource Pattern
 - Config Split Pattern
 - Player Persistence Pattern
+- Save Sequence Guard Pattern
+- Linked Trade Save Pattern
+- Build-Aside Reload Pattern
 - Net Event Guard Injection Pattern
 - Template
 
@@ -142,7 +145,7 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
 
 - Pattern: delete local entities on `onResourceStop`, player drop, and disabled state.
 - Use when: the resource creates objects, blips, zones, peds, vehicles, or temporary handles.
-- Notes: guard deletes with `DoesEntityExist`. Full cleanup scope (blips, zones, NUI focus, timers, callbacks, throttles, caches, local state) is in `skills/common/security-performance.md` -> Cleanup.
+- Notes: guard deletes with `DoesEntityExist`. Full cleanup scope (blips, zones, NUI focus, timers, callbacks, throttles, caches, local state) is in `skills/common/performance.md` -> Cleanup.
 
 ## Simple Resource Pattern
 
@@ -293,6 +296,97 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
 - Notes: failed or 0-row saves are logged and retried up to `MAX_SAVE_FAILS` (the next gameplay change marks the player dirty again); error-surfacing rules are in `skills/common/database.md` -> OxMySQL API Shape. Use `INSERT ... ON DUPLICATE KEY UPDATE` if this resource owns row creation.
 - Notes: on `playerDropped` the final save is always issued, ordered after any in-flight autosave (bounded 10s wait), and the RAM cache is cleared only after it returns. A final save that still fails is logged and that data is lost. If a quick reconnect must never load stale data, have the loader wait while a final save for that identifier is still pending.
 - Notes: uses the oxmysql API (`MySQL.update` / `MySQL.update.await`), not the legacy `MySQL.async.*` aliases - see `skills/common/database.md` -> OxMySQL API Shape.
+- Notes: reconnect gating for that final save - on drop, store `Controller.PendingDrop[identifier]` (the save promise) and make the loader wait for it before reading the row:
+  ```lua
+  local waited = 0
+  while Controller.PendingDrop[identifier] and waited < DROP_SAVE_TIMEOUT do
+      Wait(250)
+      waited = waited + 250
+  end
+
+  if Controller.PendingDrop[identifier] then
+      deferrals.done("previous session is still being saved, retry shortly")
+      return
+  end
+  ```
+  Escalate while the save keeps missing the timeout: 1x free the memory/slot, 2x allow joins but refuse offline edits as busy (a save in flight would land on top of the edit), 4x let a join watchdog drop loads that never finish (an oxmysql await with no connection never returns), 10x give up with an ERROR log (verified: offline join/drop regression tests).
+- Notes: after the drop row is written, wait one tick and write it again if a yielding `playerDropped` handler changed the data (at most twice). Never `pcall`-swallow a load failure and leave the player on the loading screen - refuse the join with a visible reason.
+
+## Save Sequence Guard Pattern
+
+- Pattern: every saved row carries a monotonic `save_seq BIGINT NOT NULL DEFAULT 0`, and each write refuses to land behind a newer one.
+- Use when: saves of one row can overlap - a retry, a late autosave, a second process, or an external saver.
+- Avoid when: exactly one in-process writer ever touches the row.
+- Example:
+  ```lua
+  -- Seed from max(DB, local KVP) and record the sequence before the write goes out,
+  -- so a crash can never reuse a sequence.
+  local stored = tonumber(GetResourceKvpString("seq:" .. identifier) or "0") or 0
+  local seq = math.max(row.save_seq or 0, stored) + 1
+  SetResourceKvp("seq:" .. identifier, tostring(seq))
+
+  local affected = MySQL.update.await(
+      "UPDATE users SET data = ?, save_seq = ? WHERE identifier = ? AND save_seq < ?",
+      { json.encode(data), seq, identifier, seq }
+  )
+
+  if affected == 0 then   -- superseded by a newer save: count it, never retry it
+      Controller.Superseded = Controller.Superseded + 1
+  end
+  ```
+- Notes: `NOT NULL DEFAULT 0` matters - with NULL, `save_seq < ?` is never true and that row never saves. Seeding from 0 instead of the stored max silently refuses every save after a relog.
+- Notes: 0 affected rows means superseded, not failed: count it, warn at most once a minute, never retry. Every write changes `save_seq`, so the count is reliable whatever the client-found-rows connection flag is set to.
+- Notes: a multi-row batch guards with `WHERE u.save_seq < v.save_seq`; when fewer rows matched than were sent, read the sequences back with one `SELECT ... IN (...)` to see which were refused (`MySQL.transaction` returns only true/false, never counts).
+- Notes: gate joins while a sequence is still unconfirmed in SQL instead of loading an older row; a cache in front of SQL (Redis `appendfsync everysec`) acknowledging a write is not durability (verified: kill -9 harness at 512 players, `seq_regressions`, `dupe_*` and `loss_*` all 0).
+
+## Linked Trade Save Pattern
+
+- Pattern: when value moves between two owners, build both rows in the same frame and write them in one transaction.
+- Use when: give, transfer, trade, drop + pickup, or any third-party remove + add.
+- Avoid when: the mutation changes one row only.
+- Example:
+  ```lua
+  -- Same frame, no yield between the snapshots, so neither side can move on.
+  local giverRow, receiverRow = Controller:BuildRow(giver), Controller:BuildRow(receiver)
+  Controller.Linked[giver], Controller.Linked[receiver] = true, true   -- held out of the solo autosave lanes
+
+  local ok = MySQL.transaction.await({
+      { SAVE_QUERY, giverRow },
+      { SAVE_QUERY, receiverRow },
+  })
+
+  Controller.Linked[giver], Controller.Linked[receiver] = nil, nil
+  if not ok then Controller.PlayerDirty[giver], Controller.PlayerDirty[receiver] = true, true end
+  ```
+- Notes: saving the sides separately leaves a crash window - the receiver's new row with the giver's old row is a dupe, the reverse is a loss. Retries and sequence numbers cannot close it (verified: kill -9 harness, `item_delta` +7 at 512 players before the fix; 64-player runs were clean, so a small roster hides the bug).
+- Notes: keep both players out of the solo autosave lanes until the group is written, or a solo lane commits half the pair.
+
+## Build-Aside Reload Pattern
+
+- Pattern: rebuild a shared catalog into a local table and swap it in with one assignment.
+- Use when: reloading items, jobs, shops or any shared table from the database while players are online.
+- Avoid when: the table is only read at startup, before any player is loaded.
+- Example:
+  ```lua
+  function Controller:ReloadItems()
+      local rows = MySQL.query.await("SELECT name, weight FROM items")
+      if not rows or #rows == 0 then return end   -- keep the old catalog on failure
+
+      local items = {}   -- built aside; self.Items stays readable during the await
+      for i = 1, #rows do
+          items[rows[i].name] = rows[i]
+      end
+
+      for name, item in pairs(self.PendingItems) do   -- registered during the await
+          items[name] = item
+      end
+
+      self.PendingItems = {}
+      self.Items = items   -- one assignment: no reader ever sees a partial table
+  end
+  ```
+- Notes: clearing the live table before the await lets a reader see it empty, and an empty inventory can be saved over real data (verified: offline items regression test).
+- Notes: push the change to online players as one shared diff, not each player's full inventory (300 items x 50 players: 1.04 MB -> 3.3 KB measured).
 
 ## Net Event Guard Injection Pattern
 

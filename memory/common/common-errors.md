@@ -81,6 +81,21 @@ Track common errors and fixes here.
 - Date: 2026-09-29
 - Game build: FiveM 3095 (crest_hud, crest_status)
 
+## `<=` Breaks On A Metatable That Defines Only `__lt`
+
+- Error: `attempt to compare two table values` from `a <= b` on objects that compared fine on an older server artifact.
+- Context: server-side CfxLua comparing objects (version wrappers, sortable records) whose metatable has `__lt` but no `__le`.
+- Cause: from artifact 37850 the server Lua is built without the Lua 5.3 compatibility option (only the math-library compat remains), so `a <= b` is no longer emulated as `not (b < a)`.
+- Fix: define `__le` next to `__lt`.
+  ```lua
+  local mt = {}
+  mt.__lt = function(a, b) return a.v < b.v end
+  mt.__le = function(a, b) return not (b.v < a.v) end
+  ```
+- Prevention: any metatable with `__lt` also gets `__le`; the math compat functions still exist, so only the comparison metamethods changed.
+- Date: 2026-10-28
+- Game build: n/a (server artifact 37850 and later)
+
 ## Template
 
 Copy this block when adding a new entry, then fill it in. Leave it blank intentionally - it is a skeleton for future entries, not a real error.

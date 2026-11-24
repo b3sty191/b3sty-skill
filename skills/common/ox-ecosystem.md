@@ -6,7 +6,7 @@ beyond the `lib` runtime: **ox_inventory** (items, stashes, shops) and
 `lib.zones`, notify, context menus) use `skills/common/ox-lib.md`. For which
 inventory a framework runs, see `skills/common/frameworks.md` -> Items. The
 give-value security rules still apply on top of everything here
-(`skills/common/security-performance.md` -> Give-Value Event Hardening).
+(`skills/common/give-value-hardening.md` -> Give-Value Event Hardening).
 
 API shapes change between ox_inventory/ox_target versions; confirm against the
 installed version's source before relying on an export or a hook payload, and
@@ -94,7 +94,7 @@ Everything it runs is on the attacker's machine.
 - Any server effect a target option triggers (a `serverEvent`, a callback)
   must re-validate on the server: the player's distance to the entity/coords,
   ownership or job, cooldown, and that the entity or net ID is real
-  (`skills/common/security-performance.md` -> Entity And Net ID Validation).
+  (`skills/common/client-input-validation.md` -> Entity And Net ID Validation).
   Treat a
   target `serverEvent` exactly like any `:server:` event
   (`skills/common/security-performance.md` -> Event Trust Boundary).

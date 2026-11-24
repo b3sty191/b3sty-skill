@@ -12,7 +12,7 @@ Lower CPU time and network traffic without changing gameplay or weakening server
 Open these before proposing fixes:
 
 - `skills/common/debugging.md` -> Performance Debugging - tools and how to measure.
-- `skills/common/security-performance.md` -> Performance Rules - CPU hot paths.
+- `skills/common/performance.md` -> Performance Rules - CPU hot paths.
 - `skills/common/network-performance.md` - event cost, rate limits, latent events, snapshot-then-deltas, state bags.
 
 ## 1. Measure Or Mark Estimates

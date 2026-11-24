@@ -9,7 +9,7 @@ Use this file when a RedM/FiveM resource reads or writes SQL, owns persisted pla
 - Do not add a database dependency to a resource that can stay config-only or framework-state-only.
 - Keep query code close to the feature unless the same query is reused enough to justify a small helper.
 - Validate public event, callback, command, export, and NUI input before it reaches SQL.
-- Run the game database as a dedicated user with grants limited to the game schema (no `SUPER`/`FILE`/`GRANT`, never root), reachable only from the server host or a private network. See `skills/common/security-performance.md` -> Server Hardening And Operations.
+- Run the game database as a dedicated user with grants limited to the game schema (no `SUPER`/`FILE`/`GRANT`, never root), reachable only from the server host or a private network. See `skills/common/server-hardening.md` -> Server Hardening And Operations.
 - Use `skills/common/security-performance.md` with this file for event validation, throttles, replay protection, and dirty saves.
 
 ## Manifest And Startup
@@ -59,7 +59,7 @@ MySQL.insert.await("INSERT INTO logs (item) VALUES (?)", { item })
         query('INSERT INTO inventory (owner, item, count) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE count = count + ?', { owner, item, amount, amount })
     end)
     ```
-- See `skills/common/security-performance.md` -> Give-Value Event Hardening (`PurchaseSql`) for the full hardened handler around the conditional debit (validation, throttle, in-flight lock).
+- See `skills/common/give-value-hardening.md` -> Give-Value Event Hardening (`PurchaseSql`) for the full hardened handler around the conditional debit (validation, throttle, in-flight lock).
 
 ## OxMySQL API Shape
 
@@ -83,7 +83,7 @@ MySQL.insert.await("INSERT INTO logs (item) VALUES (?)", { item })
 - Treat a transaction result of `false` as a rejected mutation and do not apply in-memory success state. A `true` result does not mean every conditional statement matched a row.
 - Prefer one conditional update over check-then-update when one row can enforce the rule.
 - For money and inventory, avoid flows that read a balance, yield, and then write a new balance without locking, a transaction, or a conditional update.
-- Use unique constraints plus `INSERT ... ON DUPLICATE KEY UPDATE` for upsert behavior.
+- Use unique constraints plus `INSERT ... ON DUPLICATE KEY UPDATE` for upsert behavior, but only where this resource owns row creation: on a save path ODKU recreates rows deleted while the owner was online and can collide with other unique keys. For saves of existing rows use a plain `UPDATE` (see Performance).
 - Do not use `REPLACE INTO` for normal upserts because it deletes and reinserts the row.
 - Add request IDs, claim IDs, or in-flight markers when client retries could grant twice.
 
@@ -97,6 +97,7 @@ MySQL.insert.await("INSERT INTO logs (item) VALUES (?)", { item })
 - Store only the data the resource owns; do not mirror large framework state unless the resource is authoritative for it.
 - Prefer updating specific columns/JSON fields when practical instead of rewriting large blobs for every change.
 - See `memory/common/cfx-patterns.md` -> Player Persistence Pattern for a concrete cache + dirty save shape.
+- See `memory/common/cfx-patterns.md` -> Save Sequence Guard Pattern when saves of one row can overlap (retry, late autosave, second writer), and -> Linked Trade Save Pattern when value moves between two owners.
 
 ## Schema And Migrations
 
@@ -107,6 +108,7 @@ MySQL.insert.await("INSERT INTO logs (item) VALUES (?)", { item })
 - Write migrations to be idempotent when possible.
 - Add indexes for identifiers, owner columns, foreign keys, lookup keys, and high-frequency filters.
 - Avoid storing searchable gameplay fields only inside JSON blobs.
+- Check `SHOW GRANTS` for the game user before releasing a migration: an `ALTER TABLE ... ADD COLUMN` that fails for lack of privilege leaves every join failing with `ERROR 1054` on the missing column. Gate joins on the column existing (an information_schema check), refuse with a "retry shortly" message, and log loudly (verified: live boot + offline harness).
 
 ## Performance
 
@@ -117,6 +119,13 @@ MySQL.insert.await("INSERT INTO logs (item) VALUES (?)", { item })
 - Coalesce frequent state changes into one save.
 - Use slow-query/debug logging temporarily while diagnosing, then turn it off or scope it to the resource.
 - Treat startup slow queries differently from gameplay slow queries; gameplay stalls matter more.
+- Batch saves of existing rows with one multi-row `UPDATE t JOIN (SELECT ? AS pk, ? AS col UNION ALL SELECT ?, ?) v ON t.pk = v.pk SET t.col = v.col` per statement shape instead of N single-row updates in a transaction: 0.25-0.28 s -> 0.14-0.15 s per 10k rows and 499 fewer round-trips per batch (verified: MariaDB 12.3.3 benchmark).
+  - Collapse duplicate keys to the newest row before building the statement; with a duplicate key in the derived table MariaDB picks the winning value non-deterministically.
+  - Send variable row counts through the text protocol (`MySQL.update`), not `MySQL.prepare`: every batch size is another prepared statement and fills the per-connection cache up to `max_prepared_stmt_count` (16382).
+  - Cap rows per statement in gameplay-time lanes (about 16): parameter binding runs on svMain, ~29 us per row at 2048 players.
+- Do not build every player's save row in one frame: at 2048 players that was a 222 ms svMain frame; 150 players per frame with `Wait(0)` between chunks cut the worst frame to 69 ms (wall time 0.36 s -> 0.86 s). Prefer a time budget (~8 ms per frame) measured with `os.nanotime` over a fixed count (verified: 2048-player save waves).
+- Calling oxmysql (or any JS resource) from Lua packs the arguments with msgpack on svMain before the query exists: ~31 ms of a ~45-50 ms save burst at 2048 players, of which 15.7 ms was packing 3.8 MB of rows inside the JS `msgpack.js`. Split large parameter arrays across frames; this cost never shows up as database time (verified: measured benchmark, 2048 players).
+- Server `SetResourceKvp*`/`DeleteResourceKvp` fsync the WAL on every call (~0.6 ms each, so 500 writes in a loop stall the tick ~300 ms). For bulk writes use the `*NoSync` variants plus one `FlushResourceKvp()`; NoSync data survives `kill -9` but not power loss before that flush (verified: `ServerKVScriptFunctions.cpp`, FXServer 35945).
 
 ## Error Handling And Logging
 
@@ -124,6 +133,7 @@ MySQL.insert.await("INSERT INTO logs (item) VALUES (?)", { item })
 - Do not log full payloads containing secrets, tokens, webhooks, passwords, authorization headers, or large JSON blobs.
 - Use retry windows for transient save failures, but cap retries and keep failure visible.
 - Make failed persistence behavior explicit: retry, mark dirty again, reject the action, or roll back in-memory state. Put that recovery in a path that actually runs on error: a `pcall` around `.await`, or a callback with `mysql_option 'return_callback_errors'` declared (see OxMySQL API Shape above).
+- A MariaDB outage is silent in resource logs: oxmysql queues the queries and runs them when the connection returns, so `.await` simply hangs, nothing errors and nothing rolls back. Bound long awaits with your own watchdog and confirm the outage in the oxmysql/MariaDB logs (verified: live connection-loss test).
 - Do not silently create missing critical rows in response to untrusted client input.
 
 ## Review Questions

@@ -202,6 +202,7 @@ local found, groundZ = Citizen.InvokeNative(0xC906A7DAB05C8D2B --[[GET_GROUND_Z_
 - **Pass the documented default explicitly** (`0`, `0.0`, `false`) instead of `nil` for "optional" params. `nil` silently marshals as a raw 0 (reads as 0/0.0/false/NULL), which hides intent and can mask a missing or misspelled variable.
 - **String returns can be `nil`;** guard before concatenation or `joaat`.
 - **Argument count must match the signature exactly.** Extra or missing args silently corrupt the call; recount against the doc entry when a hash call misbehaves.
+- **An unregistered native, and every argument past a native's known parameter count, mangles 64-bit integers.** The invoker overwrites the upper 32 bits of each non-zero, non-pointer integer argument with a fixed DEADBEEF marker, so only the low 32 bits survive. Pass large values as strings, or split them into two 32-bit arguments (verified: `ScriptInvoker.cpp`, FXServer 35945).
 - Prefer the named global when it exists: it self-documents and handles out-params and Hash-name strings for you. It does not coerce floats, so float params still need float-subtype values (`90.0`, `v + 0.0`). BOOL returns are still `1`/`false`.
 
 ## Struct Natives (RDR3 `Any*`)

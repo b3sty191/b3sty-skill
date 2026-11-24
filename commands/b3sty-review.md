@@ -71,8 +71,8 @@ it needs:
 
 | Surface found | Open |
 |---|---|
-| Any `:server:` event, callback, command, export | `skills/common/security-performance.md` (Required Event Pattern, Give-Value Event Hardening, Review Questions) |
-| Money, items, rewards, shops | `skills/common/security-performance.md` -> Give-value event checklist |
+| Any `:server:` event, callback, command, export | `skills/common/security-performance.md` -> Required Event Pattern, `skills/common/give-value-hardening.md`, `skills/common/review-questions.md` |
+| Money, items, rewards, shops | `skills/common/give-value-hardening.md` -> Give-value event checklist |
 | Framework calls (ESX/QBCore/Qbox/VORP/RSG) | `skills/common/frameworks.md` |
 | NUI, `RegisterNUICallback`, XSS sinks | `skills/common/nui.md` |
 | Networked entities, net IDs, buckets, built-in client events | `skills/common/networking.md` |

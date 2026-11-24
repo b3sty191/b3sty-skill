@@ -38,6 +38,8 @@ sv_authMaxVariance 1                        # 1-5, identifier stability required
 ## Exposure
 sv_requestParanoia 1                        # HTTP flood defense on info/dynamic/players.json: block IPs whose requests carry a Via (proxy) header,
 #   2 also blocks browser requests to those endpoints, 3 also closes the socket
+# set sv_prometheusBasicAuthUser "metrics"  # /perf (Prometheus tick and thread timings) is public without BOTH of these
+# set sv_prometheusBasicAuthPassword ""     # real password in secrets.cfg - with both set, /perf answers 401
 # sv_master1 ""                             # marks the server private (browser Connect button disabled), but it is still listed - this does NOT delist.
 #   Enforce real access with an allowlist in playerConnecting deferrals (optionally 'sets sv_appearAllowlisted true'),
 #   sv_lan true is LAN/dev only

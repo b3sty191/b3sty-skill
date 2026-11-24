@@ -25,7 +25,7 @@ Use this file when a RedM/FiveM feature crosses resource boundaries through expo
 - Keep export names small and specific.
 - Validate every export argument, especially `source`, item names, amounts, coords, entity/net IDs, job/group names, and permission flags.
 - Public exports that mutate player state must check that the source is a real player and is allowed to perform the action.
-- Return explicit success/failure values instead of relying on side effects or thrown errors.
+- Return explicit success/failure values instead of relying on side effects or thrown errors. Never `return nil, reason`: export returns are unpacked with `table.unpack`, so a `nil` first value can drop the rest - see `skills/common/runtime.md` -> Exports And Stale References.
 - Do not expose internal tables directly; return copies or narrow values when callers should not mutate state.
 - Do not let an export bypass validation used by the matching server event/callback.
 - Add LuaDoc annotations when export parameter meaning is not obvious.

@@ -86,7 +86,13 @@ If this repository is private, the installer needs existing GitHub credentials o
 - `skills/common/networking.md` - OneSync, net IDs vs handles, entity ownership, routing buckets, scoped vs broadcast messages, player scope, entity lifecycle events, and built-in client events.
 - `skills/common/nui.md` - in-game browser UI (NUI): Lua<->browser bridge, focus, JSON contracts, validation, frontend hygiene, performance, and security.
 - `skills/common/runtime.md` - threads/waits, the `source` variable, exports and stale references, identifiers, convars, resource lifecycle, yield hazards, and game builds.
-- `skills/common/security-performance.md` - client-hostile/server-authoritative security: event trust boundary, give-value (give-item/give-money) hardening, ACE permissions, built-in client event exploits, SQL injection, secrets/convars, identifier trust, throttles, persistence, cleanup, and the security review checklist.
+- `skills/common/security-performance.md` - client-hostile/server-authoritative core: event trust boundary, payload validation, network exposure, throttles, callback safety, atomic state changes, SQL injection, persistence, and identifier trust.
+- `skills/common/give-value-hardening.md` - give-value (give-item/give-money) event hardening, the give-value checklist, ACE permissions and admin grants, abuse handling and audit trails.
+- `skills/common/client-input-validation.md` - state bags and custom sync, NUI callback payloads, entity and net ID validation, built-in client event exploits, and position checks.
+- `skills/common/server-hardening.md` - `server.cfg` hardening convars, secrets and convar exposure, operator access, HTTP handlers, the resource sandbox, third-party resource vetting, and security logging.
+- `skills/common/performance.md` - CPU hot paths, caches and reverse indexes, staged waits, lifecycle cleanup, and anti-overengineering.
+- `skills/common/review-questions.md` - the security and performance review checklist.
+- `skills/common/fxserver-components.md` - native C++ server components added to an official artifact through `components.json`.
 - `skills/common/network-performance.md` - net event cost, FXServer rate limits and overflow kicks, latent events, payload shape, snapshot-then-deltas caching, and state bag cost.
 - `skills/common/database.md` - SQL, OxMySQL/mysql-async, migrations, transactions, and persistence rules.
 - `skills/common/debugging.md` - reproducible debugging flow for resource, native, NUI, DB, and performance failures.

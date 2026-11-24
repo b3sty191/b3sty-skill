@@ -21,10 +21,12 @@ These are the mechanics every RedM/FiveM Lua author hits. Native call mechanics 
 
 - `CreateThread(function() ... end)` starts a cooperative coroutine that nothing preempts. Each resource has its own Lua state, but every resource runs on the same main thread (the client game thread or the server main thread). A thread that never `Wait`s therefore freezes the whole client game or server tick, not just its own resource, until it returns.
 - `Wait(ms)` yields the current thread. `Wait(0)` yields one frame and resumes next frame. A loop without `Wait` is a busy loop that stalls the runtime.
-- Use staged waits by distance/activeness (idle `Wait(1000)+`, nearby `Wait(500)`, active `Wait(100)`, frame work `Wait(0)`); see `skills/common/security-performance.md` -> Performance Rules.
+- Use staged waits by distance/activeness (idle `Wait(1000)+`, nearby `Wait(500)`, active `Wait(100)`, frame work `Wait(0)`); see `skills/common/performance.md` -> Performance Rules.
 - `Citizen.Wait`, `Citizen.Await`, and `Citizen.CreateThreadNow` exist for specific cases; default to `Wait`/`CreateThread`. `Citizen.Await` is for awaiting a future-like value inside a thread.
 - Do not leave per-frame (`Wait(0)`) threads running when the work is idle. Gate them by distance or state and let idle threads sleep long.
 - A thread started inside a resource keeps running until it ends or the resource stops; start long-lived loops explicitly and ensure they have an exit path.
+- `GetGameTimer()` is a live millisecond clock, not a per-tick timestamp: two reads inside the same handler can return different values, and a GC pause widens the gap. Never pair or deduplicate events by `GetGameTimer()` equality - compare against a window, or bump a counter once per pass and match on that. For in-frame CPU budgets use `os.nanotime`/`os.clock` (verified: offline kill -9 harness, 512 players - 71 of 680 paired trades read different values and duplicated items).
+- CfxLua forces generational GC on every resource's Lua state, and a collection runs inside whatever frame allocated, so a major collect can stall svMain 200+ ms in the middle of a bulk save (measured 64-120 ms at an ~80 MB heap, 227 ms at 677 MB). No `collectgarbage` tuning removed it; allocate less on bulk paths instead - reuse encoded rows that did not change, and share methods through one metatable rather than per-object closures (full collect over 2048 player objects: 2.5 ms with closures vs 0.09 ms with a shared table) (verified: `LuaScriptRuntime.h` sets generational mode at state creation, measured on FXServer 35945/37850).
 
 ## The `source` Variable
 
@@ -48,6 +50,8 @@ These are the mechanics every RedM/FiveM Lua author hits. Native call mechanics 
   ```
   If the providing resource restarts, `ESX` may still reference the old object/code while the rest of the server uses the new one. After a framework restart, prefer re-fetching the shared object over trusting a load-time local.
 - Do not guard with `if exports['name'] then`. The exports proxy is never nil, and indexing a method on a provider that has not started (or has no such export) throws `No such export <method> in resource <name>`. Check `GetResourceState('name') == 'started'` before calling, wrap the call in `pcall(function() return exports['name']:method(...) end)`, or make the call from `onResourceStart`/`onServerResourceStart` for that resource.
+- Export and funcref return values are packed as `{ fn(...) }` and unpacked with `table.unpack`, so a `nil` first value leaves a hole and the values behind it can be lost. Return `false, reason`, never `nil, reason` (verified: `scheduler.lua`).
+- An error thrown inside an export reaches the caller as a bare `error()`: a blank `SCRIPT ERROR` with no message. The real message and traceback are printed under the *provider* resource, so read its console lines instead of debugging the caller (verified: `scheduler.lua`).
 - See `skills/common/multi-resource.md` -> Dependencies And Load Order for declaring dependencies instead of racing with `Wait`.
 
 ## Players And Identifiers
@@ -70,13 +74,14 @@ These are the mechanics every RedM/FiveM Lua author hits. Native call mechanics 
   - `setr name value` — server replicated; readable by clients via `GetConvar`, changeable only server-side. Anything in `setr` is public to clients.
   - `sets name "value"` — server information; exposed publicly in `info.json` and the server list. Never use `sets` for anything sensitive.
 - In resources, `SetConvar`, `SetConvarReplicated`, and `SetConvarServerInfo` mirror the three commands; standard convars can only be used in server scripts.
-- Keep secrets (tokens, webhook keys, DB credentials) in server-only `set` convars or env, never in `setr`/`sets` or shared/client files. See `skills/common/security-performance.md` -> Config, Convars, And Secrets.
+- Keep secrets (tokens, webhook keys, DB credentials) in server-only `set` convars or env, never in `setr`/`sets` or shared/client files. See `skills/common/server-hardening.md` -> Config, Convars, And Secrets.
 - Do not read a convar every frame; read it once on load and when a config-change reload path runs.
 
 ## Resource Lifecycle
 
 - `ensure name` starts the resource if it is stopped, or restarts it if it is already running. That makes it safe to repeat in `server.cfg` and useful as a quick reload in the console. `start name` only starts a stopped resource. Neither command watches for crashes or restarts anything automatically: a script error does not stop a resource, and a stopped resource stays stopped until someone starts it again.
 - Load order follows declaration order. Declare dependencies with `dependency`/`dependencies` in `fxmanifest.lua` and check `GetResourceState` for optional ones instead of guessing with `Wait`.
+- Stopping a resource also stops every resource that declares it as a dependency, and starting it again does **not** bring them back: they stay stopped, with their `onResourceStop` already run (so a framework restart leaves dependents down, not restarted). `restart oxmysql` therefore leaves `es_extended` and everything under it stopped. `ensure` each dependent afterwards, or restart the server (verified: `ResourceDependencyLoader.cpp`).
 - Resource events:
   - `onResourceStart(resource)` — fires on both sides when a resource starts, including this one.
   - `onResourceStarting(resource)` — fires before start; useful to set up before another resource initializes.

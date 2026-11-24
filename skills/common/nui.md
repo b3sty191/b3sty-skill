@@ -147,7 +147,7 @@ end)
 - Never send webhook URLs, API tokens, server secrets, admin flags, hidden reward logic, or full economy data to the UI.
 - Do not let the UI drive trust: a "you are admin" flag in the UI means nothing. Permission is checked server-side with ACE.
 - A NUI callback that forwards a valuable action must go through the same server validation as the matching `:server:` event.
-- Full hardening rules and the give-value checklist are in `skills/common/security-performance.md` -> NUI Callback Hardening and Give-Value Event Hardening.
+- Full hardening rules and the give-value checklist are in `skills/common/client-input-validation.md` -> NUI Callback Hardening and `skills/common/give-value-hardening.md` -> Give-Value Event Hardening.
 
 ## Lifecycle And Cleanup
 
