@@ -1,6 +1,6 @@
 ---
 name: b3sty-skill
-description: b3sty rules for writing, refactoring, reviewing/auditing, debugging, optimizing, or designing FiveM/RedM Lua resources: fxmanifest, natives/InvokeNative, events/callbacks/exports, NUI (XSS), OneSync (net IDs, ownership, routing buckets, state bags), built-in client events, ESX/QBCore/Qbox/VORP/RSG/ox, oxmysql/SQL injection, ACE, secrets/convars, SetHttpHandler, txAdmin/server.cfg, throttles, dupes/anti-cheat, runtime gotchas (source, threads, game builds), cleanup. Use for any FXServer resource task.
+description: "b3sty rules for writing, refactoring, reviewing/auditing, debugging, optimizing, or designing FiveM/RedM Lua resources: fxmanifest, natives/InvokeNative, events/callbacks/exports, NUI (XSS), OneSync (net IDs, ownership, routing buckets, state bags), built-in client events, ESX/QBCore/Qbox/VORP/RSG/ox, oxmysql/SQL injection, ACE, secrets/convars, SetHttpHandler, txAdmin/server.cfg, throttles, dupes/anti-cheat, runtime gotchas (source, threads, game builds), cleanup. Use for any FXServer resource task."
 ---
 
 # b3sty Skill

@@ -96,11 +96,14 @@ def check_skill_frontmatter(skill_text: str, failures: list[str]) -> None:
     description = re.search(r"^description:\s*(.*)$", frontmatter, re.MULTILINE)
     if not description:
         fail("SKILL.md frontmatter must include description", failures)
-    elif len(description.group(1).strip()) > 1024:
-        fail(
-            f"SKILL.md description is {len(description.group(1).strip())} characters; maximum is 1024",
-            failures,
-        )
+    else:
+        raw = description.group(1).strip()
+        # An unquoted YAML scalar with ": " or " #" breaks strict parsers (the skills CLI skips the skill).
+        if raw[:1] not in "\"'" and (": " in raw or " #" in raw):
+            fail("SKILL.md description contains ': ' or ' #'; wrap it in double quotes", failures)
+        text = raw[1:-1] if raw[:1] in "\"'" and raw[-1:] == raw[:1] else raw
+        if len(text) > 1024:
+            fail(f"SKILL.md description is {len(text)} characters; maximum is 1024", failures)
     if "RedM" not in frontmatter or "FiveM" not in frontmatter:
         fail("SKILL.md description should mention RedM and FiveM", failures)
 
