@@ -1,59 +1,53 @@
 # RedM Rules
 
-Use this file for RedM-only resources or when a shared resource needs RDR3-specific behavior.
+For RedM-only resources, or when a shared resource needs RDR3-specific behavior.
 
 ## Manifest
 
-- Use `games { 'rdr3' }` for RedM-only resources.
-- Include the required `rdr3_warning` entry when RedM is supported.
-- Use `games { 'rdr3', 'gta5' }` only when the resource is intentionally shared with FiveM.
+- `games { 'rdr3' }` for RedM-only resources; `games { 'rdr3', 'gta5' }` only when the resource is intentionally shared with FiveM.
+- Include the required `rdr3_warning` entry whenever RedM is supported.
 - Keep the common manifest rules from `skills/common/fxserver.md`.
 
 ## Resource Defaults
 
-- Keep shared logic in common client/server files only when the behavior is actually portable.
-- Keep RDR3-specific peds, horses, wagons, weapons, controls, animations, and natives in RedM-specific files or clearly guarded branches.
+- Share logic in common client/server files only when the behavior is actually portable.
+- Keep RDR3-specific peds, horses, wagons, weapons, controls, animations, and natives in RedM files or clearly guarded branches.
 - Do not assume FiveM entity, weapon, ammo, vehicle, or control behavior matches RedM.
-- Stay framework-free by default; when a project already uses a RedM framework, isolate framework-specific code behind small local adapters.
+- Framework-free by default; if the project already runs a RedM framework, isolate its code behind small local adapters.
 
 ## Entities And Natives
 
-- Use `references/natives/redm-rdr3-natives.md` when checking RDR3 / RedM native names, hashes, signatures, or parameters.
-- Use `skills/common/native-usage.md` to turn a doc entry into the Lua call: hash-only natives via `Citizen.InvokeNative`, `Any*` struct packing, confidence policy, and build gates all apply heavily to RDR3.
-- Verify RDR3 native hashes, parameter order, and return values before sharing a native wrapper with FiveM.
+- Check RDR3 / RedM native names, hashes, signatures, and parameters in `references/natives/redm-rdr3-natives.md`; turn an entry into the Lua call with `skills/common/native-usage.md` — hash-only natives via `Citizen.InvokeNative`, `Any*` struct packing, confidence policy, and build gates all apply heavily to RDR3.
+- Verify RDR3 hashes, parameter order, and return values before sharing a native wrapper with FiveM.
 - Treat horses, mounts, wagons, ped components, weapons, ammo, and scenario behavior as RedM-specific until confirmed portable.
-- Do not rely on server-side `GetEntityHealth` for RedM health checks; it can return `0` for live entities. See `memory/redm/native-bugs.md`.
-- Do not rely on server-side `GetVehiclePedIsIn(ped, false) ~= 0` alone to prove a RedM player is currently seated; guard it with `IsPedInAnyVehicle`.
-- Cache repeated native calls in loops following `skills/common/native-rules.md`.
-- Clean up spawned entities on resource stop and player drop following `skills/common/security-performance.md`.
+- Server-side `GetEntityHealth` and `GetVehiclePedIsIn` are unreliable in RedM — see Entity Health and Vehicle State below, plus `memory/redm/native-bugs.md`.
+- Cache repeated native calls in loops (`skills/common/native-rules.md`); clean up spawned entities on resource stop and player drop (`skills/common/security-performance.md`).
 
 ## Entity Health
 
-- In RedM, avoid using `GetEntityHealth(entity)` on the server as the source of truth.
-- Client-side health reads are acceptable for UI or visual behavior, but client-reported health is untrusted for rewards, damage, permissions, or anti-abuse checks.
-- For server-side decisions, keep server-owned eligibility/health-like state where possible, or validate through server-controlled action state instead of trusting a direct health native read.
-- If a resource must accept client-reported health, clamp and type-check it, rate-limit updates, compare it against expected server-side state, and never use it as the only condition for valuable outcomes.
+- Never treat server-side `GetEntityHealth(entity)` as the source of truth in RedM; it can return `0` for live entities.
+- Client-side health reads are fine for UI or visuals, but client-reported health is untrusted for rewards, damage, permissions, or anti-abuse checks.
+- For server-side decisions keep server-owned eligibility/health-like state, or validate through server-controlled action state instead of a direct health native read.
+- If a resource must accept client-reported health: clamp and type-check it, rate-limit updates, compare it against expected server-side state, and never make it the only condition for a valuable outcome.
 
 ## Vehicle State
 
-- In RedM server code, treat `GetVehiclePedIsIn(ped, false)` as unreliable unless `IsPedInAnyVehicle(ped, false)` is true first.
-- Use a small wrapper that returns `0` when the ped is not currently in a vehicle.
+- In RedM server code, treat `GetVehiclePedIsIn(ped, false)` as unreliable unless `IsPedInAnyVehicle(ped, false)` is true first; use a small wrapper that returns `0` when the ped is not currently in a vehicle.
 - Do not grant rewards, vehicle access, or ownership changes from a non-zero vehicle handle unless the current seated state is verified.
 
 ## Ammo
 
-- GTA V also has `SetPedAmmoByType`/`GetPedAmmoByType` (same hashes in both games: set `0x5FD1E1F011E76D7E`, get `0x39D22031557946C1`), but the stale reserve-ammo bug and the `RemoveAllPedAmmo` reapply workaround below are RedM-specific. Keep that wrapper behind a RedM guard and use the plain native in FiveM.
+- GTA V also has `SetPedAmmoByType`/`GetPedAmmoByType` (same hashes in both games: set `0x5FD1E1F011E76D7E`, get `0x39D22031557946C1`), but the stale reserve-ammo bug and the `RemoveAllPedAmmo` reapply workaround below are RedM-specific: keep that wrapper behind a RedM guard and use the plain native in FiveM.
 - Do not rely on direct RedM ammo set/remove natives alone when setting or reducing reserve ammo by type.
-- Use a wrapper that first records the requested ammo type and amount in the resource-owned ammo map (local player state/helper), then clears ammo with `RemoveAllPedAmmo(ped)` and reapplies the full map, so a later call for another type cannot restore a stale value.
+- Wrap it instead: record the requested ammo type and amount in the resource-owned ammo map (local player state/helper), then clear ammo with `RemoveAllPedAmmo(ped)` and reapply the full map, so a later call for another type cannot restore a stale value. This avoids RedM ammo state bugs where reserve ammo may not decrease correctly or may restore after direct ammo natives.
 - Keep the public helper signature clean, such as `SetAmmoByType(ammoType, amount)`.
-- This avoids RedM ammo state bugs where reserve ammo may not decrease correctly or may restore after using direct ammo natives.
 - See `memory/redm/native-bugs.md` for the full entry and a reference wrapper.
 
 ## Weapon Cosmetics
 
 - For RedM weapon components, verify the final held weapon entity when visual output matters; ped-level component checks can succeed while the held weapon does not render the cosmetic.
 - Keep deny/fallback lists for known non-rendering longarm cosmetics instead of offering every shared component as supported.
-- Test shared longarm components on the actual weapon models used by the resource before moving the code into a shared cosmetic system.
+- Test shared longarm components on the actual weapon models the resource uses before moving the code into a shared cosmetic system.
 
 ## Events And State
 
@@ -63,12 +57,4 @@ Use this file for RedM-only resources or when a shared resource needs RDR3-speci
 
 ## Compatibility Checks
 
-Before moving RedM code into a shared file, check:
-
-- native availability and parameter behavior;
-- entity type behavior;
-- horse/mount/wagon assumptions;
-- animation/control names;
-- weapon/ammo semantics;
-- framework assumptions;
-- UI/NUI assumptions.
+Before moving RedM code into a shared file, check native availability and parameter behavior, entity type behavior, horse/mount/wagon assumptions, animation/control names, weapon/ammo semantics, framework assumptions, and UI/NUI assumptions.

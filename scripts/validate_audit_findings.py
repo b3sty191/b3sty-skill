@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Validate a b3sty audit `findings.json` so prose and JSON cannot disagree.
 
-A `/b3sty-review` full audit writes findings as machine-checkable records with
+A review-mode full audit writes findings as machine-checkable records with
 one of three verdicts. The rules here enforce the discipline that makes the
 audit trustworthy:
 

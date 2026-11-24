@@ -2,170 +2,78 @@
 
 [![skills.sh](https://skills.sh/b/b3sty191/b3sty-skill)](https://skills.sh/b3sty191/b3sty-skill)
 
-Reusable rules and working memory for b3sty RedM/FiveM Lua development.
+A skill that makes your AI assistant write, review, debug, and speed up RedM/FiveM Lua resources the way an experienced FXServer developer would.
 
-What each update changes and what it helps with: [CHANGELOG.md](CHANGELOG.md).
+What each update changes: [CHANGELOG.md](CHANGELOG.md).
 
 ## Install
 
-`SKILL.md` is the skill manifest. It works as a first-class skill in **Claude Code**, **OpenAI Codex**, and on **skills.sh**. Pick your platform.
-
-### Claude Code - plugin (easiest)
-
-Run these two commands inside Claude Code:
+**Claude Code plugin** (easiest) - run these two commands inside Claude Code:
 
 ```text
 /plugin marketplace add b3sty191/b3sty-skill
 /plugin install b3sty-skill@b3sty
 ```
 
-Done - the skill auto-triggers on RedM/FiveM Lua work. Manage or update it later from the `/plugin` menu.
-
-### Claude Code - git clone
-
-Clone straight into a skills directory (personal, all projects):
+**skills.sh** - from any terminal:
 
 ```bash
-# macOS / Linux
-git clone https://github.com/b3sty191/b3sty-skill.git ~/.claude/skills/b3sty-skill
-
-# Windows (PowerShell)
-git clone https://github.com/b3sty191/b3sty-skill.git "$env:USERPROFILE\.claude\skills\b3sty-skill"
-
-# project-local (this project only)
-git clone https://github.com/b3sty191/b3sty-skill.git .claude/skills/b3sty-skill
+npx skills add b3sty191/b3sty-skill --skill b3sty-skill
 ```
 
-Restart Claude Code (or open a new session) so the skill is loaded. Update any time with:
+**OpenAI Codex** - ask Codex: `Use $skill-installer to install from repo b3sty191/b3sty-skill path . with name b3sty-skill`, restart it, then invoke `$b3sty-skill`.
+
+**Git clone** (any agent that reads skill folders) - clone into your skills directory, e.g. `git clone https://github.com/b3sty191/b3sty-skill.git ~/.claude/skills/b3sty-skill`, then restart the agent. Clone rather than copy: a copy goes stale silently and misses security fixes. If the repo is private, the install needs GitHub credentials or `GITHUB_TOKEN` / `GH_TOKEN`.
+
+## Use
+
+No commands to remember. Ask in plain words and the skill triggers itself, picking the right mode for the request:
+
+```text
+Review this resource before I put it on my server
+Make me a shop script with a NUI menu and ESX money
+Why does my server drop to 20 FPS near the market?
+Give me ideas for a bounty-hunter job in RedM
+Fix this error: attempt to index a nil value (local 'xPlayer')
+```
+
+## What's inside
+
+| Path | What it is |
+|---|---|
+| `SKILL.md` | entry point: triggers, workflow, core defaults, and which file to open per task |
+| `modes/` | one file per workflow - review/audit, new resource, performance, ideation |
+| `skills/` | the stable rules: common, plus FiveM-only and RedM-only |
+| `memory/` | learned facts with date and game build (native bugs, errors, patterns) |
+| `references/` | generated native dumps, `server.cfg.example`, the audit findings schema |
+| `scripts/` | package validators and the audit ledger/findings checkers |
+| `evals/` | planted-bug resources and a scorer that measure the auditor's recall |
+
+## Updating
 
 ```bash
-git -C ~/.claude/skills/b3sty-skill pull
+npx skills update                      # skills.sh install
+git -C ~/.claude/skills/b3sty-skill pull   # git clone install
 ```
 
-Clone rather than copy: a copied snapshot goes stale silently and misses security fixes, while a clone updates with one `git pull`.
-
-Use it by asking Claude Code to work on b3sty RedM/FiveM Lua resources (it auto-triggers from the description), or invoke it directly:
-
-```text
-Use the b3sty-skill skill to implement or review this FiveM resource for server authority, events, natives, persistence, cleanup, and performance.
-```
-
-### OpenAI Codex
-
-Ask Codex to install this skill from GitHub:
-
-```text
-Use $skill-installer to install from repo b3sty191/b3sty-skill path . with name b3sty-skill
-```
-
-Then restart Codex so the new skill is loaded, and invoke it with `$b3sty-skill`.
-
-### Private Repo Install
-
-If this repository is private, the installer needs existing GitHub credentials or `GITHUB_TOKEN` / `GH_TOKEN` with access to the repo. Public installs do not need a token.
-
-## Structure
-
-- `SKILL.md` - skill entry point: trigger metadata, core defaults, and load guidance.
-- `AGENTS.md` - agent-facing overview; points to `SKILL.md`.
-- `skills/common/` - stable rules shared by RedM and FiveM.
-- `skills/fivem/` - FiveM-only rules and compatibility guidance.
-- `skills/redm/` - RedM-only rules and compatibility guidance.
-- `memory/common/` - learned facts shared by RedM and FiveM.
-- `memory/fivem/` - FiveM-only learned facts.
-- `memory/redm/` - RedM-only learned facts.
-- `commands/` - Claude Code slash commands that drive a task using the rules (`/b3sty-review`, `/b3sty-new-resource`, `/b3sty-perf`, `/b3sty-ideate`).
-- `evals/` - planted-bug resources and a scorer that measure how many defects `/b3sty-review` catches.
-- `references/natives/` - large generated native reference files.
-
-## Common Skills
-
-- `skills/common/style.md` - coding and communication style.
-- `skills/common/fxserver.md` - FXServer resource and manifest rules.
-- `skills/common/native-rules.md` - native call policy: safety, caching, wrappers.
-- `skills/common/native-usage.md` - calling natives from Lua: doc-entry translation, `Citizen.InvokeNative`, marshalling, RDR3 struct natives, build gates.
-- `skills/common/resource-structure.md` - shared resource structure, events, state, and cleanup shape.
-- `skills/common/networking.md` - OneSync, net IDs vs handles, entity ownership, routing buckets, scoped vs broadcast messages, player scope, entity lifecycle events, and built-in client events.
-- `skills/common/nui.md` - in-game browser UI (NUI): Lua<->browser bridge, focus, JSON contracts, validation, frontend hygiene, performance, and security.
-- `skills/common/runtime.md` - threads/waits, the `source` variable, exports and stale references, identifiers, convars, resource lifecycle, yield hazards, and game builds.
-- `skills/common/security-performance.md` - client-hostile/server-authoritative core: event trust boundary, payload validation, network exposure, throttles, callback safety, atomic state changes, SQL injection, persistence, and identifier trust.
-- `skills/common/give-value-hardening.md` - give-value (give-item/give-money) event hardening, the give-value checklist, ACE permissions and admin grants, abuse handling and audit trails.
-- `skills/common/client-input-validation.md` - state bags and custom sync, NUI callback payloads, entity and net ID validation, built-in client event exploits, and position checks.
-- `skills/common/server-hardening.md` - `server.cfg` hardening convars, secrets and convar exposure, operator access, HTTP handlers, the resource sandbox, third-party resource vetting, and security logging.
-- `skills/common/performance.md` - CPU hot paths, caches and reverse indexes, staged waits, lifecycle cleanup, and anti-overengineering.
-- `skills/common/review-questions.md` - the security and performance review checklist.
-- `skills/common/fxserver-components.md` - native C++ server components added to an official artifact through `components.json`.
-- `skills/common/network-performance.md` - net event cost, FXServer rate limits and overflow kicks, latent events, payload shape, snapshot-then-deltas caching, and state bag cost.
-- `skills/common/database.md` - SQL, OxMySQL/mysql-async, migrations, transactions, and persistence rules.
-- `skills/common/debugging.md` - reproducible debugging flow for resource, native, NUI, DB, and performance failures.
-- `skills/common/frameworks.md` - ESX, QBCore, Qbox, VORP, and RSG integration: player lookup, money/items/jobs, lifecycle events, and the bridge pattern.
-- `skills/common/ox-lib.md` - ox_lib usage rules when the project already depends on ox_lib or explicitly accepts it.
-- `skills/common/ox-ecosystem.md` - ox_inventory (item exports, `registerHook` anti-dupe, stashes/shops) and ox_target (re-validate interactions server-side).
-- `skills/common/input.md` - key bindings (`RegisterKeyMapping`), control checks, RedM prompts, and cleanup.
-- `skills/common/streaming.md` - `stream/` assets, the `data_file` directive, runtime model/dict requests, and cleanup.
-- `skills/common/locale.md` - localization: ox_lib locale, a no-ox_lib fallback, placeholders, and missing-key behavior.
-- `skills/common/operations.md` - txAdmin events, save-before-restart, and live-server performance operations.
-- `skills/common/multi-resource.md` - exports, dependencies, state bags, convars, shared scripts, and cross-resource contracts.
-- `skills/common/asset-protection.md` - protecting a resource you sell or distribute: CFX Asset Escrow, `escrow_ignore`, server-side value, secret hygiene.
-
-## Commands
-
-- `commands/b3sty-review.md` - `/b3sty-review`: coverage-led, adversarially verified security audit; `confirmed`/`needs_validation`/`rejected` verdicts with FiveM severity anchors (`scripts/b3sty_audit_ledger.py` + `scripts/validate_audit_findings.py`).
-- `commands/b3sty-perf.md` - `/b3sty-perf`: CPU and network performance pass with a measured/estimated report.
-- `commands/b3sty-new-resource.md` - `/b3sty-new-resource`: scaffold a new resource (manifest, controllers, validated events, cleanup, optional bridge/NUI/DB).
-- `commands/b3sty-ideate.md` - `/b3sty-ideate`: divergent ideation for open-ended design decisions - isolated branches under CFX frames, a rule-checked trap gate, then the top ideas deepened (method adapted from UditAkhourii/adhd, MIT).
-
-The Claude Code plugin installs these with the main skill. With a git-clone install, copy `commands/*.md` into `~/.claude/commands/` (or `.claude/commands/` for one project) to use them.
-
-## Game-Specific Skills
-
-- `skills/fivem/rules.md` - FiveM-only defaults and compatibility checks.
-- `skills/redm/rules.md` - RedM-only defaults and compatibility checks.
-
-## Native References
-
-- `references/natives/fivem-gta5-natives.md` - GTA V / FiveM native reference. Formerly `NATIVES_GTA5.md`.
-- `references/natives/redm-rdr3-natives.md` - RDR3 / RedM native reference. Formerly `REDM_NATIVES.md`.
-- `references/natives/SOURCES.md` - source attribution and publication notes for generated native references.
-- `references/server.cfg.example` - copyable `server.cfg` hardening baseline.
-- `references/audit-findings-schema.md` - findings verdict/severity contract for a `/b3sty-review` full audit.
-
-The native files are generated lookup references and are intentionally kept outside `skills/` and `memory/`.
-
-## Memory
-
-- `memory/common/common-errors.md` - common shared errors and fixes.
-- `memory/common/native-bugs.md` - known shared native issues and workarounds.
-- `memory/common/cfx-patterns.md` - reusable shared FXServer/CfxLua patterns.
-- `memory/common/security-performance.md` - learned shared security and performance patterns.
-- `memory/fivem/README.md` - FiveM-specific memory namespace.
-- `memory/fivem/native-bugs.md` - FiveM-only native issues and workarounds.
-- `memory/redm/README.md` - RedM-specific memory namespace.
-- `memory/redm/native-bugs.md` - RedM-only native issues and workarounds.
-
-`skills/` holds stable rules; `memory/` holds learned facts with date and game build; `references/` holds large generated source material. See `SKILL.md` for which file to open for each task.
-
-## Agent Configs
-
-- **Claude Code** - uses `SKILL.md` directly as the skill manifest (frontmatter `name` + `description`); no separate config file.
-- `.claude-plugin/marketplace.json` - Claude Code plugin marketplace manifest for `/plugin` install.
-- `agents/openai.yaml` - OpenAI Codex skill UI metadata (display name, short description, default prompt); Codex loads the skill itself from `SKILL.md`.
-- `skills.sh.json` - skills.sh grouping/visibility.
+Plugin installs update from the `/plugin` menu in Claude Code.
 
 ## Maintenance
 
-Run the package checks before publishing changes:
+Before publishing changes:
 
 ```bash
 python scripts/validate_b3sty_skill.py
-python <skill-creator>/scripts/quick_validate.py .
 python scripts/check_lua_examples.py
 python scripts/b3sty_audit_ledger.py --selftest
 python scripts/validate_audit_findings.py --selftest
+python <skill-creator>/scripts/quick_validate.py .
 ```
 
-`<skill-creator>` is your local skill-creator install (for Codex on Windows: `%USERPROFILE%\.codex\skills\.system\skill-creator`).
+`<skill-creator>` is your local skill-creator install (Codex on Windows: `%USERPROFILE%\.codex\skills\.system\skill-creator`).
+
+To measure review quality, audit an eval case in review mode and score the findings: `python3 evals/score.py --expectations evals/EXPECTATIONS.json --case fivem_shop --findings <out>/findings.json`. See `evals/README.md`.
 
 ## License
 
-Original b3sty skill rules, memory notes, and packaging metadata are MIT licensed. Generated native references keep their upstream terms; see `NOTICE.md` and `references/natives/SOURCES.md`.
+Original b3sty skill rules, memory notes, and packaging metadata are MIT licensed. Generated native references keep their upstream terms; see [NOTICE.md](NOTICE.md) and `references/natives/SOURCES.md`.

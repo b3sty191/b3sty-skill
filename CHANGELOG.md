@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-11-25 - Lean rewrite: one skill, no commands to remember
+
+### What this update helps with
+
+**Easier to use.** The four slash commands are gone. Ask in plain words ("review this resource", "make me a shop script", "why is my server lagging", "give me ideas for...") and the skill picks the right workflow from `modes/` by itself. The README is a third of its old size: install, examples, done.
+
+**Less paid on every session.** In Claude Code, the plugin used to add ~778 tokens of skill and command descriptions to *every* session, FiveM or not. Now one description of 505 characters (was 989), and the four command descriptions are gone.
+
+**Less paid per task.** Measured on this branch:
+
+| What the agent loads | Before | After |
+|---|---|---|
+| `SKILL.md` | 14,710 B | 12,201 B |
+| Review workflow | 9,020 B (`commands/b3sty-review.md`) | 7,538 B (`modes/review.md`) |
+| All rule files (`skills/`) | 248,088 B | 221,907 B |
+| Memory (`memory/`) | 43,407 B | 40,260 B |
+
+**Same quality.** Every rule file was rewritten without dropping a rule, number, API name, caveat, or verified tag. An independent audit compared every old file against its new version; the 10 regressions it found (mostly code examples) were restored. Planted-bug evals were run twice per version on the same fixtures, with the `PLANTED` comments stripped so the auditor cannot read the answers:
+
+| Run | fivem_shop | redm_stable | Total |
+|---|---|---|---|
+| Before, run 1 | 5/7 | 1/2 | 6/9 |
+| Before, run 2 | 5/7 | 1/2 | 6/9 |
+| After, run 1 | 5/7 | 1/2 | 6/9 |
+| After, run 2 | 5/7 | 2/2 | 7/9 |
+
+Both versions miss the same two: the NUI `innerHTML` sink is rejected as self-XSS (only the viewer's own name reaches it), and the `Wait(0)` loop is a performance issue, not a security finding.
+
+### If you used the commands
+`/b3sty-review`, `/b3sty-perf`, `/b3sty-new-resource`, and `/b3sty-ideate` are now `modes/review.md`, `modes/perf.md`, `modes/new-resource.md`, and `modes/ideate.md`. Ask for the task instead, or invoke the skill directly (`/b3sty-skill review ./my_resource`).
+
 ## 2026-11-25 - Verified FXServer know-how + per-task token diet ([#6](https://github.com/b3sty191/b3sty-skill/pull/6))
 
 ### What this update helps with

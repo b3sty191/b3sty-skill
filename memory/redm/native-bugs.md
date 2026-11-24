@@ -1,6 +1,6 @@
 # RedM Native Bugs
 
-Track recurring RDR3 / RedM-only native issues here. Bugs that reproduce in both RedM and FiveM belong in `memory/common/native-bugs.md` instead.
+RDR3 / RedM-only native issues. Bugs that reproduce in both games go in `memory/common/native-bugs.md`.
 
 ## Server-Side `GetEntityHealth` Returns `0`
 
@@ -8,12 +8,12 @@ Track recurring RDR3 / RedM-only native issues here. Bugs that reproduce in both
 - Runtime: RedM server (RDR3) CfxLua
 - Game build: Unknown
 - Date: 2026-07-02
-- Symptom: calling `GetEntityHealth(entity)` on the server can return `0` consistently, even when the entity is alive.
-- Cause: unknown RedM server native/runtime behavior. Client-side health reads are not affected in the same way.
-- Fix / workaround: do not use server-side `GetEntityHealth` as the source of truth in RedM; use client-side reads only for UI/visuals.
+- Symptom: server-side `GetEntityHealth(entity)` can return `0` consistently, even for a living entity.
+- Cause: unknown RedM server native/runtime behavior; client-side reads are not affected the same way.
+- Fix / workaround: never use server-side `GetEntityHealth` as the source of truth in RedM; use client-side reads for UI/visuals only.
 - Related rules: `skills/redm/rules.md` -> Entity Health (server-owned state, handling client-reported health).
-- Notes: on the server, call the named global `GetEntityHealth`, not `Citizen.InvokeNative` with the RDR3 client hash; FXServer does not register game hashes.
-- Notes: confirm the affected game build when the issue is next reproduced.
+- Notes: on the server call the named global `GetEntityHealth`, not `Citizen.InvokeNative` with the RDR3 client hash; FXServer does not register game hashes.
+- Notes: confirm the affected game build when next reproduced.
 
 ## Server-Side `GetVehiclePedIsIn(ped, false)` Can Return The Last Vehicle
 
@@ -21,11 +21,11 @@ Track recurring RDR3 / RedM-only native issues here. Bugs that reproduce in both
 - Runtime: RedM server (RDR3) CfxLua, OneSync
 - Game build: RedM/30408, FXServer-master server v1.0.0.29199 win32 report.
 - Date: 2026-07-02
-- Symptom: server-side `GetVehiclePedIsIn(ped, false)` can return the last vehicle handle after the ped has exited and is on foot. `GetVehiclePedIsIn(ped, true)` returns the same handle.
-- Cause: unknown RedM server native/runtime behavior; the `lastVehicle` flag is not respected in the reported server-side path.
-- Fix / workaround: guard the server-side vehicle lookup with `IsPedInAnyVehicle(ped, false)` and return `0` when the ped is not currently in a vehicle.
-- Notes: do not use server-side `GetVehiclePedIsIn(ped, false) ~= 0` alone as proof that a RedM player is currently seated in a vehicle.
-- Notes: on the server, call the named globals, not `Citizen.InvokeNative` with the RDR3 client hash; FXServer does not register game hashes.
+- Symptom: server-side `GetVehiclePedIsIn(ped, false)` can return the last vehicle handle after the ped exited and is on foot; `GetVehiclePedIsIn(ped, true)` returns the same handle.
+- Cause: unknown RedM server native/runtime behavior; the `lastVehicle` flag is not respected in that server-side path.
+- Fix / workaround: guard the lookup with `IsPedInAnyVehicle(ped, false)` and return `0` when the ped is not seated.
+- Notes: never use server-side `GetVehiclePedIsIn(ped, false) ~= 0` alone as proof that a RedM player is seated in a vehicle.
+- Notes: on the server call the named globals, not `Citizen.InvokeNative` with the RDR3 client hash; FXServer does not register game hashes.
 - Source: citizenfx/fivem#4006.
 
 ```lua
@@ -34,9 +34,7 @@ local Controller = {}
 ---@param ped number
 ---@return number
 function Controller:GetCurrentVehicle(ped)
-    if not IsPedInAnyVehicle(ped, false) then
-        return 0
-    end
+    if not IsPedInAnyVehicle(ped, false) then return 0 end
 
     return GetVehiclePedIsIn(ped, false)
 end
@@ -48,11 +46,11 @@ end
 - Runtime: RedM (RDR3) CfxLua
 - Game build: Unknown; citizenfx/fivem#3980 reports RedM all versions.
 - Date: 2026-07-02
-- Symptom: direct RedM ammo set/remove natives can fail to decrease ammo, only change it temporarily, or allow the old ammo value to restore after shooting, reload, or weapon switching.
+- Symptom: direct RedM ammo set/remove natives can fail to decrease ammo, change it only temporarily, or let the old value restore after shooting, reload, or weapon switching.
 - Cause: direct reserve/removal updates can leave native ammo state inconsistent with RedM weapon/inventory state.
-- Fix / workaround: own ammo in resource/server state, then apply the full desired ammo map in one wrapper. The wrapper records the requested amount in the owned ammo map first, then clears all ped ammo with `RemoveAllPedAmmo(ped)` and reapplies the whole map, so a later call for another type cannot restore a stale value.
-- Notes: wrap this behavior in a helper and document the parameters with LuaDoc.
-- Notes: RedM-only workaround. Both games pool ammo by type (`SetPedAmmoByType` has the same hash `0x5FD1E1F011E76D7E` in GTA V), but this wrapper depends on RDR3's `_REMOVE_ALL_PED_AMMO` and targets a RedM-specific stale-ammo bug, so keep it behind a RedM guard. Confirm the affected game build and date when the issue is next reproduced.
+- Fix / workaround: own ammo in resource/server state and apply the whole desired map in one wrapper: record the requested amount first, then `RemoveAllPedAmmo(ped)` and reapply the full map, so a later call for another type cannot restore a stale value.
+- Notes: wrap this in a helper and document the parameters with LuaDoc.
+- Notes: RedM-only workaround. Both games pool ammo by type (`SetPedAmmoByType` has the same hash `0x5FD1E1F011E76D7E` in GTA V), but this wrapper depends on RDR3's `_REMOVE_ALL_PED_AMMO` and targets a RedM-specific stale-ammo bug, so keep it behind a RedM guard. Confirm the affected game build and date when next reproduced.
 - Source: citizenfx/fivem#3980.
 
 ```lua
@@ -75,7 +73,7 @@ function Controller:SetAmmoByType(ammoType, amount)
     local ammoMap = self:GetCurrentAmmoMap()
     ammoMap = type(ammoMap) == "table" and ammoMap or {}
 
-    -- Update owned state first so the next call reapplies this amount, not a stale one.
+    -- Owned state first, so the next call reapplies this amount, not a stale one.
     ammoMap[ammoType] = amount
     self:SetCurrentAmmoMap(ammoMap)
 
@@ -92,11 +90,11 @@ end
 - Runtime: RedM client (RDR3) CfxLua
 - Game build: RDR2 build 1491 report; exact affected range unknown.
 - Date: 2026-07-02
-- Symptom: some shared longarm cosmetic components apply to a ped and can render on standalone weapon objects, but do not render on the final held weapon entity.
+- Symptom: some shared longarm cosmetic components apply to a ped and can render on standalone weapon objects, but not on the final held weapon entity.
 - Cause: unknown RedM weapon component/rendering behavior for specific shared longarm cosmetics.
-- Fix / workaround: verify cosmetics on the actual held weapon entity, not only with the ped-level check. Keep per-component fallback/deny lists for known non-rendering cosmetics and do not promise unsupported visual variants in UI.
-- Notes: reported failing examples include `COMPONENT_LONGARM_GRIPSTOCK_TINT_PEARL`, `COMPONENT_LONGARM_GRIP_MATERIAL_BURLED`, and `COMPONENT_LONGARM_WRAP_MATERIAL_LEATHER` on rolling block/carcano/bolt-action longarms.
-- Notes: per citizenfx/fivem#4026, the standalone weapon object path that does render uses the same `GiveWeaponComponentToEntity` native; the failure is specific to the held weapon. Recheck when reproduced.
+- Fix / workaround: verify cosmetics on the held weapon entity, not only with the ped-level check. Keep per-component fallback/deny lists for known non-rendering cosmetics and do not promise unsupported visual variants in UI.
+- Notes: reported failures include `COMPONENT_LONGARM_GRIPSTOCK_TINT_PEARL`, `COMPONENT_LONGARM_GRIP_MATERIAL_BURLED`, `COMPONENT_LONGARM_WRAP_MATERIAL_LEATHER` on rolling block/carcano/bolt-action longarms.
+- Notes: per citizenfx/fivem#4026 the standalone weapon object path that does render uses the same `GiveWeaponComponentToEntity` native; the failure is specific to the held weapon. Recheck when reproduced.
 - Source: citizenfx/fivem#4026.
 
 ## Template

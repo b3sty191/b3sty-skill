@@ -1,17 +1,14 @@
----
-description: Scaffold a new RedM/FiveM Lua resource that follows the b3sty rules from the first commit - fxmanifest, config, client/server controllers, prefixed events with server validation, cleanup, and optional framework bridge, NUI, and oxmysql pieces. Use when asked to create, start, scaffold, or bootstrap a new FiveM or RedM resource or script.
-argument-hint: [resource name and what it does]
----
-
 # b3sty New Resource
 
-Target: $ARGUMENTS
+Use when: asked to create, start, scaffold, or bootstrap a new FiveM or RedM resource or script - fxmanifest, config, client/server controllers, prefixed events with server validation, cleanup, and optional framework bridge, NUI, and oxmysql pieces.
 
-Create a new RedM/FiveM resource skeleton that already satisfies the b3sty rules. Paths under `skills/` and `memory/` below are relative to the b3sty-skill root (the folder holding the main `SKILL.md`; with the plugin install, the plugin root).
+Target: the resource name and what it does.
+
+Create a skeleton that already satisfies the b3sty rules. Paths are relative to the skill root (the main `SKILL.md`'s folder; the plugin root on a plugin install).
 
 ## 1. Decide The Shape
 
-Infer from the request and the surrounding server repo; ask only for what cannot be inferred:
+Infer from the request and the surrounding server repo; ask only for what cannot be inferred. Default to the smallest shape: no framework, no NUI, no database.
 
 - **Resource name** - lowercase with underscores; it prefixes every event (`name:server:action`).
 - **Game** - `gta5`, `rdr3`, or both.
@@ -19,8 +16,6 @@ Infer from the request and the surrounding server repo; ask only for what cannot
 - **NUI** - only if the feature needs a browser UI.
 - **Database** - only if state must survive a restart.
 - **ox_lib** - only if the server already runs it (`skills/common/ox-lib.md`).
-
-Default to the smallest shape: no framework, no NUI, no database.
 
 ## 2. Files
 
@@ -145,4 +140,4 @@ Controller:Start()
 - No constant `Wait(0)` loop.
 - The manifest lists only files that exist, and `games` matches the natives used.
 
-Tell the user the `ensure resource_name` line to add to `server.cfg` (after its framework and oxmysql), and the in-game steps to confirm it starts cleanly.
+Give the user the `ensure resource_name` line for `server.cfg` (after its framework and oxmysql), and the in-game steps to confirm it starts cleanly.

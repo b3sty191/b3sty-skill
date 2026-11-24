@@ -1,6 +1,6 @@
 # FiveM Native Bugs
 
-Track recurring GTA V / FiveM-only native issues here. Bugs that reproduce in both RedM and FiveM belong in `memory/common/native-bugs.md` instead.
+GTA V / FiveM-only native issues. Bugs that reproduce in both games go in `memory/common/native-bugs.md`.
 
 ## `AddBlipForArea` Ignores `SetBlipAsShortRange`
 
@@ -8,10 +8,10 @@ Track recurring GTA V / FiveM-only native issues here. Bugs that reproduce in bo
 - Runtime: FiveM client (GTA V)
 - Game build: FiveM client 22591 / GTA V legacy build report; exact affected range unknown.
 - Date: 2026-07-02
-- Symptom: an area/radar blip created with `AddBlipForArea` remains visible on the minimap at long distance even after `SetBlipAsShortRange(blip, true)`.
-- Cause: likely upstream GTA V/RAGE radar-area visibility behavior. Regular coordinate blips do not show the same behavior.
-- Fix / workaround: do not rely on `SetBlipAsShortRange` for area blips. Create/remove area blips manually by player distance, or use coordinate/radius marker alternatives when short-range behavior matters.
-- Notes: `IsBlipOnMinimap` may also return true for radar-area blips, so it is not a reliable workaround for this issue.
+- Symptom: an area/radar blip from `AddBlipForArea` stays visible on the minimap at long distance even after `SetBlipAsShortRange(blip, true)`.
+- Cause: likely upstream GTA V/RAGE radar-area visibility behavior; regular coordinate blips behave normally.
+- Fix / workaround: do not rely on `SetBlipAsShortRange` for area blips. Create/remove them manually by player distance, or use coordinate/radius marker alternatives.
+- Notes: `IsBlipOnMinimap` may also return true for radar-area blips, so it is not a reliable workaround.
 - Source: citizenfx/fivem#3973.
 
 ## `SetPedHeadBlendData` Followed By Freemode Mask Variation Can Crash
@@ -20,9 +20,9 @@ Track recurring GTA V / FiveM-only native issues here. Bugs that reproduce in bo
 - Runtime: FiveM client (GTA V) CfxLua
 - Game build: GTA V builds 3258 and 3751 reports; exact affected range unknown.
 - Date: 2026-07-02
-- Symptom: calling `SetPedHeadBlendData` on a freemode ped, then applying some mask component variations, can crash the FiveM client.
-- Cause: unknown freemode head blend/component interaction. Custom streamed freemode head assets can make related failures more likely and should be ruled out during debugging.
-- Fix / workaround: avoid applying known crashing mask drawables immediately after `SetPedHeadBlendData`. Gate/test mask drawables, avoid the sequence in bulk appearance apply paths, and prefer a staged apply path with rollback/fallback for risky masks.
+- Symptom: calling `SetPedHeadBlendData` on a freemode ped, then applying some mask component variations, can crash the client.
+- Cause: unknown freemode head blend/component interaction. Rule out custom streamed freemode head assets while debugging - they make related failures more likely.
+- Fix / workaround: avoid known crashing mask drawables right after `SetPedHeadBlendData`. Gate/test mask drawables, avoid the sequence in bulk appearance apply paths, and prefer a staged apply with rollback/fallback for risky masks.
 - Notes: reported repro uses `mp_m_freemode_01`, mask component `1`, drawable `28`, texture `0`; disabling the `SetPedHeadBlendData` path avoids the crash.
 - Source: citizenfx/fivem#4037.
 

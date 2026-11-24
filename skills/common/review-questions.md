@@ -4,34 +4,31 @@ Run this checklist over a feature, resource, or diff. Each question maps to a ru
 
 ## Review Questions
 
-- What can a malicious client fake in this feature?
-- Which server-side checks reject fake values?
-- Is this network event actually meant to be public, or should it be a local function (`AddEventHandler`)?
-- Does the handler reject a non-numeric/empty `source` (server-originated) or `source <= 0` when only a real client may trigger it?
-- Does the recipient of any value come from `source`, never from a payload field?
-- Do commands, exports, callbacks, and NUI callbacks validate the same things as server events?
-- Is every value resolved from server-held state (catalog, balance, permissions), not the payload?
-- Does this give-value event pass the give-value checklist (identity, catalog, bounded quantity, fresh afford check, atomic debit+grant, idempotency, ACE-gated admin path)?
-- Are admin/sensitive actions gated by `IsPlayerAceAllowed`, not by a client-side flag or a client-reported job/identifier?
-- Does this event need a throttle or cooldown? Could an unthrottled handler be a DoS or dupe vector?
-- Does this valuable action need a request ID, in-flight flag, transaction, or duplicate-claim check?
-- Does this callback/event clean up pending state on disconnect?
-- Are client-provided coords, entity IDs, net IDs, jobs, permissions, and ownership claims verified server-side?
-- Is entity ownership rechecked against a server registry (ownership migrates)?
-- Are built-in client events (`weaponDamageEvent`, `explosionEvent`, and friends) intercepted/validated, and are the networked-event convars set where abuse matters?
-- Is any broadcast `TriggerClientEvent(name, -1)` justified, or should it be scoped/targeted?
-- Is every SQL query parameterized (`?`/`@name`)? Any client value concatenated into SQL or an identifier?
-- Are client strings and tables bounded (length, key count, depth) before they are decoded, iterated, stored, or logged?
-- Does any `SetHttpHandler` endpoint exist, and does it authenticate, bound, and rate-limit like a public event?
-- Do valuable mutations write an audit trail that could reconstruct a dupe after the fact?
-- Are the platform hardening convars set (`sv_scriptHookAllowed 0`, `sv_pureLevel`, `sv_requestParanoia`, rcon off), is the FXServer artifact recent, and are third-party resources vetted before install?
-- Are secrets in server-only `set` convars (never `setr`/`sets`/shared/client)?
-- Does identity come from `GetPlayerIdentifiers(source)` on the server, and are bans/whitelist checked in `playerConnecting` deferrals?
-- Are prices, rewards, drop rates, and permission gates kept out of shared/client config or revalidated server-side?
+- What can a malicious client fake here, and what rejects it server-side?
+- Public net event, or should it be a local function (`AddEventHandler`)?
+- Non-numeric/empty `source` (server-originated) and `source <= 0` rejected where only a real client may trigger?
+- Recipient of any value taken from `source`, never from a payload field?
+- Commands, exports, callbacks, NUI callbacks validated like server events?
+- Every value resolved from server-held state (catalog, balance, permissions) - no client-sent price, reward, or count?
+- Give-value handler passes the checklist (identity, catalog, bounded quantity, fresh afford check, atomic debit+grant, idempotency, ACE-gated admin path)?
+- Admin/sensitive actions gated by `IsPlayerAceAllowed`, not by a client-side flag or a client-reported job/identifier?
+- Throttle or cooldown present - could an unthrottled handler be a DoS or dupe vector?
+- Request ID, in-flight flag, transaction, or duplicate-claim check on valuable actions?
+- `source` re-validated after every yield (`.await`, `Wait`), pending state cleaned up on disconnect?
+- Client coords, entity IDs, net IDs, jobs, permissions, ownership claims verified server-side; ownership rechecked against a server registry (it migrates)?
+- RedM: any gate on a server-side `GetEntityHealth` read (it can return `0` for live entities - `skills/redm/rules.md`)?
+- Built-in client events (`weaponDamageEvent`, `explosionEvent`, and friends) intercepted/validated, networked-event convars set where abuse matters?
+- Any broadcast `TriggerClientEvent(name, -1)` justified, or should it be scoped/targeted?
+- Every SQL query parameterized (`?`/`@name`)? Any client value concatenated into SQL or an identifier?
+- Client strings and tables bounded (length, key count, depth) before decode, iteration, storage, or logging?
+- `SetHttpHandler` endpoints authenticating, bounding, and rate-limiting like a public event?
+- Audit trail on valuable mutations, enough to reconstruct a dupe after the fact?
+- Hardening convars set (`sv_scriptHookAllowed 0`, `sv_pureLevel`, `sv_requestParanoia`, rcon off), FXServer artifact recent, third-party resources vetted?
+- Secrets only in server-only `set` convars (never `setr`/`sets`/shared/client), nothing secret reachable by a client?
+- Identity from `GetPlayerIdentifiers(source)` on the server, bans/whitelist checked in `playerConnecting` deferrals?
+- Prices, rewards, drop rates, permission gates kept out of shared/client config or revalidated server-side?
 - Can another resource call this interface with bad input?
-- Is any secret or webhook visible to the client?
-- Is this loop always necessary, or can it be event-driven?
-- Is any hot path scanning a large table repeatedly?
-- Can this data be indexed once and read O(1)?
-- Are database writes debounced and dirty-tracked?
-- Are log payloads bounded and redacted?
+- Is this loop necessary, or can it be event-driven - does any `Wait(0)` need to run every frame?
+- Hot path scanning a large table that could be indexed once and read O(1)?
+- Database writes debounced and dirty-tracked?
+- Log payloads bounded and redacted?

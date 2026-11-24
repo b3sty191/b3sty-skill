@@ -4,7 +4,7 @@
   "groupings": [
     {
       "title": "RedM/FiveM",
-      "description": "Lua rules, natives, memory, and performance guidance for b3sty resources.",
+      "description": "Build, review, debug, and speed up RedM/FiveM Lua resources.",
       "skills": ["b3sty-skill"]
     }
   ]

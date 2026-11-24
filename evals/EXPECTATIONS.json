@@ -1,5 +1,5 @@
 {
-  "note": "Planted defects in each eval case. A run of /b3sty-review should surface these. Each expectation matches a finding whose trace touches `file` and whose title/description/surface mentions any `keywords`. Severities are the minimum a correct audit should assign.",
+  "note": "Planted defects in each eval case. A review-mode full audit should surface these. Each expectation matches a finding whose trace touches `file` and whose title/description/surface mentions any `keywords`. Severities are the minimum a correct audit should assign.",
   "cases": {
     "fivem_shop": [
       { "id": "shop-client-price",   "file": "core/server.lua", "category": "give-value",       "min_severity": "high",     "keywords": ["price", "client", "payload"], "note": "buy trusts client-supplied price" },

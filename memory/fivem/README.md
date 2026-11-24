@@ -1,8 +1,6 @@
 # FiveM Memory
 
-Store learned facts that apply only to FiveM here.
-
-Use `memory/common/` for facts that apply to both FiveM and RedM. Add the date and game build to every real entry.
+Learned facts that apply only to FiveM; shared ones go in `memory/common/`. Every real entry carries Date and Game build.
 
 ## Files
 
@@ -10,7 +8,7 @@ Use `memory/common/` for facts that apply to both FiveM and RedM. Add the date a
 
 ## Template
 
-Copy this block when adding a new FiveM-specific entry.
+Copy this block for a new FiveM-specific entry.
 
 - Topic:
 - Date:

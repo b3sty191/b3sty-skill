@@ -1,12 +1,12 @@
 # Security And Performance Rules
 
-Use these rules for RedM/FiveM resources where player input, server state, entities, database writes, callbacks, or loops are involved.
+For RedM/FiveM resources touching player input, server state, entities, database writes, callbacks, or loops.
 
 ## Contents
 
 This file: Priority, Event Trust Boundary, Server Authority, Server Event Validation, Network Exposure, Commands/Exports/Public Interfaces, Required Event Pattern, Throttle And Cooldown, Callback Safety, Client Requests, Atomic State Changes And Replay Protection, Database And Persistence, Identifier Trust.
 
-Split files - open only the ones the task touches. Headings are unchanged, so an "above"/"below" pointer to a section that is not in this file resolves to the file listed here.
+Split files - open only what the task touches. Headings are unchanged, so an "above"/"below" pointer to a section not here resolves to the file listed:
 
 - `skills/common/give-value-hardening.md` -> Give-Value Event Hardening, ACE Permissions And Admin Authority, Abuse Handling.
 - `skills/common/client-input-validation.md` -> Sync Safety, NUI Callback Hardening, Entity And Net ID Validation, Built-in Client Events, Position And Interaction Checks.
@@ -16,79 +16,53 @@ Split files - open only the ones the task touches. Headings are unchanged, so an
 
 ## Priority
 
-- **The client is always hostile; the server is the only authority.** Every section below assumes a modded client can fire any registered net event with arbitrary arguments, and that any value received from a client is attacker-controlled until proven otherwise.
+- **The client is always hostile; the server is the only authority.** A modded client can fire any registered net event with arbitrary arguments; every value from a client is attacker-controlled until proven otherwise.
 - Security and performance are core requirements, not cleanup tasks.
-- Keep the b3sty style: direct, readable, hardcode-friendly code is fine, but do not sacrifice validation or runtime cost.
-- Keep security/performance checks direct and local; do not build a framework or generic layer around them.
+- b3sty style (direct, readable, hardcode-friendly) is fine, never at the cost of validation or runtime cost.
+- Checks stay direct and local - no framework or generic layer around them.
 
 ## Event Trust Boundary
 
-- `RegisterNetEvent` marks an event as network-callable. Any client can trigger it with `TriggerServerEvent(name, ...)` and arbitrary arguments, whether or not your UI is the intended caller. Treat every registered net event as a public, attacker-callable endpoint. ([RegisterNetEvent](https://docs.fivem.net/docs/scripting-reference/runtimes/lua/functions/RegisterNetEvent/), [Secure your events](https://docs.fivem.net/docs/developers/server-security/))
-- `RegisterServerEvent` is the deprecated form and does the same thing; use `RegisterNetEvent` in new code. ([cfx-server-data PR #204](https://github.com/citizenfx/cfx-server-data/pull/204))
-- `AddEventHandler` is same-context only (client-to-client or server-to-server) and is not network-reachable from the opposing side. Use it for internal logic that must not be callable by clients. ([Secure your events](https://docs.fivem.net/docs/developers/server-security/))
-- `RegisterNetEvent` does not block same-context execution. On the server, a same-context `TriggerEvent` reaches a `RegisterNetEvent` handler with `source == ""` (empty string) ([scheduler.lua](https://github.com/citizenfx/fivem/blob/master/data/shared/citizen/scripting/lua/scheduler.lua)). Client-triggered events always carry a numeric `source`. Guard with `if type(source) ~= "number" or source <= 0 then return end` in handlers that must only run when a real client triggered them. (`65535` is the `source` that *client-side* handlers see for events sent by the server; use `if source ~= 65535 then return end` there to accept only server-sent events.) ([Secure your events](https://docs.fivem.net/docs/developers/server-security/))
-- Always read identity from the implicit `source` (capture `local source = source` before any yield). Never trust a player ID, target, or identifier field from the payload. See `skills/common/runtime.md` -> The `source` Variable and Identifier Trust below.
-- Validate `source` (a number, `> 0`, and a real player), then `type(...)` and bounds for every field, before doing work.
+Principles: [Secure your events](https://docs.fivem.net/docs/developers/server-security/).
 
-### Naive vs hardened handler
-
-Vulnerable - the client controls the recipient, the item, and the amount:
-
-```lua
--- BAD: client controls who gets what, and how much
-RegisterNetEvent("shop:server:buy", function(item, price)
-    local src = source
-    local player = Framework.GetPlayer(src)
-    player.addMoney(-price)       -- client-chosen "price" can be negative
-    player.addItem(item)          -- client-chosen item; no catalog check
-end)
-```
-
-- The vulnerable version is a direct dupe: a client passes a negative `price` (money goes up) or an item it should never receive.
-- The hardened shape: identity from `source` only, item/price resolved from a server-side catalog, quantity clamped to a positive bounded integer, affordability read from server-held balance at transaction time, and the debit+grant made atomic. The full, race-safe version is in Give-Value Event Hardening below (it builds on the server-authority principles in CFX's [Secure your events](https://docs.fivem.net/docs/developers/server-security/) guide); use that as the template instead of re-deriving it per resource.
-
-
+- `RegisterNetEvent` makes an event network-callable: any client can `TriggerServerEvent(name, ...)` it with arbitrary arguments, whatever the intended caller. Every registered net event is a public, attacker-callable endpoint. ([RegisterNetEvent](https://docs.fivem.net/docs/scripting-reference/runtimes/lua/functions/RegisterNetEvent/))
+- `RegisterServerEvent` is the deprecated form of the same thing; use `RegisterNetEvent` in new code. ([cfx-server-data PR #204](https://github.com/citizenfx/cfx-server-data/pull/204))
+- `AddEventHandler` is same-context only (client-to-client, server-to-server), unreachable from the opposing side: use it for logic clients must not be able to call.
+- `RegisterNetEvent` does not block same-context execution: a server-side `TriggerEvent` reaches the handler with `source == ""` (empty string) ([scheduler.lua](https://github.com/citizenfx/fivem/blob/master/data/shared/citizen/scripting/lua/scheduler.lua)), client-triggered events always carry a numeric `source`. Guard client-only handlers with `if type(source) ~= "number" or source <= 0 then return end`. (*Client-side* handlers see `source == 65535` for server-sent events; there use `if source ~= 65535 then return end` to accept only those.)
+- Identity is the implicit `source` (capture `local source = source` before any yield), never a player ID, target, or identifier field from the payload. See `skills/common/runtime.md` -> The `source` Variable and Identifier Trust below.
+- The naive shop handler - `function(item, price)` doing `player.addMoney(-price)` then `player.addItem(item)` - is a direct dupe: the client picks the recipient, the item (no catalog check), and a negative `price` that *raises* its money. The hardened, race-safe template (identity from `source`, item/price from a server-side catalog, quantity a clamped positive integer, affordability from the server-held balance at transaction time, atomic debit+grant) is in Give-Value Event Hardening; use it instead of re-deriving it per resource.
 
 ## Server Authority
 
-- The server must be the source of truth for money, items, jobs, groups, permissions, ownership, rewards, cooldowns, and saved player data.
-- Read jobs, groups, licenses, ownership, balances, inventory, and permission state from server-side framework/state only.
-- Client code may request an action, render UI, play effects, attach objects, or apply optimistic local state.
-- Client-provided permission, job, group, ownership, balance, or inventory values are display hints only and must not decide access.
-- Server code must validate and either accept or reject the requested action.
-- If client code applies optimistic state, it must support rollback when the server rejects the request.
+- The server owns money, items, jobs, groups, permissions, ownership, rewards, cooldowns, and saved player data; read jobs, groups, licenses, ownership, balances, inventory, and permission state from server-side framework/state only.
+- Client-provided permission, job, group, ownership, balance, and inventory values are display hints and must not decide access.
+- Client code may request an action, render UI, play effects, attach objects, or apply optimistic local state; the server validates and accepts or rejects, and optimistic client state must roll back on rejection.
 
 ## Server Event Validation
 
-- Every custom `:server:` event must validate its payload before doing work.
-- Validate `source` when the event depends on a real player.
-- Validate `type(...)` for every field used by the event.
-- Normalize numbers with `tonumber` and explicit min/max bounds; reject non-integer quantities (`x % 1 ~= 0`) instead of flooring them.
-- Reject `NaN`, negative values, empty strings, invalid keys, unknown items, unknown jobs, unknown weapons, and unknown config names.
-- Check requested item/action names against server-side config or indexes.
-- Never trust client-provided price, reward amount, inventory count, permission group, job, target ownership, or cooldown state.
-- Bound every client string (`#s <= N` length cap) before comparing, storing, logging, or writing it to the database.
-- A hostile client can send huge or deeply nested tables (msgpack allows it). Cap key count and nesting depth before iterating, `json.encode`-ing, forwarding, or storing a payload table; reject oversized payloads, do not truncate them silently.
-- Wrap `json.decode` of client-supplied strings in `pcall` and treat a decode failure as hostile input.
-- Reject unexpected types instead of coercing them: a table where a string was expected ends the handler, it does not get `tostring`-ed into something usable.
+Every custom `:server:` event checks all of this before doing work:
+
+- `source`: a number, `> 0`, a real player, whenever the event depends on one.
+- Types: `type(...)` of every field used. Reject unexpected types instead of coercing - a table where a string was expected ends the handler, it does not get `tostring`-ed into something usable.
+- Numbers: `tonumber` plus explicit min/max bounds; reject `NaN`, negatives, and non-integer quantities (`x % 1 ~= 0`) instead of flooring them.
+- Strings: bounded (`#s <= N` length cap) before comparing, storing, logging, or writing to the database; reject empty strings and invalid keys.
+- Names: item/action/job/weapon/config keys resolved against server-side config or indexes; unknown item, job, weapon, or config name = reject.
+- Values: never a client-provided price, reward amount, inventory count, permission group, job, target ownership, or cooldown state.
+- Tables: msgpack allows huge and deeply nested payloads, so cap key count and nesting depth before iterating, `json.encode`-ing, forwarding, or storing one, and reject oversized payloads instead of silently truncating. `pcall` any `json.decode` of a client string; a decode failure is hostile input.
 
 ## Network Exposure
 
-- Use `RegisterNetEvent` only for handlers that clients or other resources are allowed to call.
-- Treat every networked `:server:` event as client-callable, even when the current UI is the only intended caller.
-- Keep internal server logic in local functions or non-networked handlers, then call it from validated network handlers.
-- Do not create generic public dispatchers that call arbitrary actions, functions, exports, or config keys from a client-provided string.
-- Avoid `TriggerClientEvent(name, -1)` broadcasts for targeted or frequent data. Send to a single player or a server-computed recipient set, and prefer state bags for replicated visible state. Full OneSync mechanics in `skills/common/networking.md`.
-- If a handler is intended only for another server resource, document that contract and still validate the payload at the boundary.
+- `RegisterNetEvent` only for handlers clients or other resources may call; internal server logic stays in local functions or non-networked handlers called from validated network handlers.
+- No generic public dispatchers that call arbitrary actions, functions, exports, or config keys from a client-provided string.
+- Avoid `TriggerClientEvent(name, -1)` broadcasts for targeted or frequent data: send to one player or a server-computed recipient set, and prefer state bags for replicated visible state. Full OneSync mechanics in `skills/common/networking.md`.
+- A handler meant only for another server resource: document that contract and still validate the payload at the boundary.
 - `SetHttpHandler` endpoints are public internet-reachable input, not resource-internal plumbing; harden them like net events (see Server Hardening And Operations below).
 
 ## Commands, Exports, And Public Interfaces
 
-- Treat commands, exports, framework callbacks, and NUI callbacks as public input boundaries.
-- Validate command args, callback payloads, export params, and any `source` argument before doing work.
-- Server commands that affect players, money, inventory, jobs, permissions, entities, or saved state must check permission server-side.
-- Public exports that accept a player `source` must verify that the source is a real player and is allowed to perform the action.
-- Do not let an export or callback bypass the validation required for the matching server event.
+- Commands, exports, framework callbacks, and NUI callbacks are public input boundaries: validate command args, callback payloads, export params, and any `source` argument before doing work, and never let them bypass the validation of the matching server event.
+- Server commands touching players, money, inventory, jobs, permissions, entities, or saved state check permission server-side.
+- A public export taking a player `source` verifies it is a real player allowed to perform the action.
 
 ## Required Event Pattern
 
@@ -101,18 +75,10 @@ local Controller = {
 
 function Controller:IsActionThrottled(source, key, limit)
     local now = GetGameTimer()
-    local actionThrottle = self.ActionThrottle[source]
-
-    if not actionThrottle then
-        actionThrottle = {}
-        self.ActionThrottle[source] = actionThrottle
-    end
-
-    if now - (actionThrottle[key] or 0) < limit then
-        return true
-    end
-
-    actionThrottle[key] = now
+    local throttle = self.ActionThrottle[source]
+    if not throttle then throttle = {}; self.ActionThrottle[source] = throttle end
+    if now - (throttle[key] or 0) < limit then return true end
+    throttle[key] = now
     return false
 end
 
@@ -120,17 +86,14 @@ RegisterNetEvent("resource_name:server:action", function(payload)
     local source = source
     if type(source) ~= "number" or source <= 0 then return end   -- "" = server-side TriggerEvent
     if type(payload) ~= "table" then return end
-
     if Controller:IsActionThrottled(source, "action", 500) then return end
 
     local itemName = payload["Item"]
     local amount = tonumber(payload["Amount"])
-
     if type(itemName) ~= "string" or itemName == "" then return end
-    if not amount or amount ~= amount then return end
-
-    if amount % 1 ~= 0 then return end
-    if amount <= 0 or amount > 100 then return end
+    if not amount or amount ~= amount then return end            -- non-numeric / NaN
+    if amount % 1 ~= 0 then return end                           -- reject non-integers
+    if amount <= 0 or amount > 100 then return end               -- positive, bounded
 
     local itemIndex = Controller.ItemIndex[itemName]
     local itemData = itemIndex and Controller.ItemList[itemIndex]
@@ -141,82 +104,58 @@ end)
 
 AddEventHandler("playerDropped", function()
     local source = source
-
-    if source then
-        Controller.ActionThrottle[source] = nil
-    end
+    if source then Controller.ActionThrottle[source] = nil end
 end)
 ```
 
 ## Throttle And Cooldown
 
-- Add server-side throttles for events that can be spammed.
-- Use per-player throttle tables for general actions.
-- Use per-player per-key throttles when one event updates multiple keys.
-- Clean throttle/cooldown tables on `playerDropped`.
-- Typical floors:
-  - `50ms` only for low-cost, coalesced state updates that are expected to happen frequently.
-  - `250-500ms` for normal public server events and deliberate player actions such as item use.
-  - `1000ms+` for heavy rewards, crafting, database, or webhook actions.
+- Throttle server-side every event that can be spammed: per-player tables for general actions, per-player per-key when one event updates several keys. Clean them on `playerDropped`.
+- Typical floors: `50ms` only for low-cost coalesced state updates expected to be frequent; `250-500ms` for normal public server events and deliberate player actions such as item use; `1000ms+` for heavy rewards, crafting, database, or webhook actions.
 
 ## Callback Safety
 
-- Validate callback names and IDs.
-- Rate-limit callback requests per player and callback name.
-- Store pending callbacks by ID.
-- Also store a reverse index such as `pendingByTarget[source][id] = true` so cleanup is O(1) per player instead of scanning all pending callbacks.
-- When receiving a client callback response, verify that the response comes from the original target player.
-- Expire stale pending callbacks on a timer.
-- Clear pending callbacks for a player on `playerDropped`.
-- Run callback handlers with `pcall` when third-party handlers can throw.
+- Validate callback names and IDs; rate-limit per player and callback name.
+- Store pending callbacks by ID plus a reverse index (`pendingByTarget[source][id] = true`) so cleanup is O(1) per player instead of scanning all pending callbacks.
+- Verify a callback response comes from the original target player.
+- Expire stale pending callbacks on a timer; clear a player's on `playerDropped`.
+- `pcall` callback handlers when third-party handlers can throw.
 
 ## Client Requests
 
-- NUI callbacks and client events must be treated as untrusted input.
-- Client-side checks are only UX; they are not security.
-- If a client sends coordinates, entity IDs, weapon data, or status values, the server must validate them against server-side state or reasonable bounds.
-- For position snapshots, compare against server position, snapshot age, and a distance threshold before accepting.
+- NUI callbacks and client events are untrusted input; client-side checks are UX only, never security.
+- Client-sent coordinates, entity IDs, weapon data, and status values are validated against server-side state or reasonable bounds; position snapshots additionally against server position, snapshot age, and a distance threshold.
 
 ## Atomic State Changes And Replay Protection
 
-- Check and mutate valuable state in one server-side flow for purchases, crafting, rewards, item transfers, payments, and ownership changes.
-- Do not check a balance, inventory item, or cooldown, then delay before applying the mutation unless the state is reserved or rechecked.
-- Use the framework, database transaction, conditional update, lock, or per-player in-flight flag that best fits the resource.
-- Add request IDs, claim state, or server-side in-flight markers for reward, claim, crafting, payment, and transfer actions that can be replayed.
-- Cooldowns reduce spam but are not enough for high-value actions; reject duplicate requests before granting rewards or writing saved state.
-- Make retry behavior explicit so a failed request cannot grant twice and a successful request can be recognized if the client retries.
-- Classic dupe patterns to refuse by design: check-balance -> `Wait` -> mutate (a flood lands multiple debits/grants); grant in RAM before the DB commit then lose the race; accept a negative amount in a transfer; trusting a client-reported count. The concrete race-safe flow is in Give-Value Event Hardening above.
+- Check and mutate valuable state in one server-side flow for purchases, crafting, rewards, item transfers, payments, and ownership changes. Never check a balance, inventory item, or cooldown and then delay before mutating unless the state is reserved or rechecked.
+- Use whatever fits the resource: framework API, database transaction, conditional update, lock, or per-player in-flight flag.
+- Reward, claim, crafting, payment, and transfer actions that can be replayed need request IDs, claim state, or server-side in-flight markers. Cooldowns reduce spam but are not enough for high-value actions: reject duplicate requests before granting rewards or writing saved state.
+- Make retry behavior explicit so a failed request cannot grant twice and a successful one is recognized if the client retries.
+- Classic dupe patterns to refuse by design: check-balance -> `Wait` -> mutate (a flood lands multiple debits/grants); grant in RAM before the DB commit, then lose the race; accept a negative amount in a transfer; trust a client-reported count. The concrete race-safe flow is in Give-Value Event Hardening above.
 
 ## Database And Persistence
 
-- Use parameterized SQL queries only. Never concatenate player input into SQL (see SQL Injection below).
-- Track dirty fields for large player data.
-- Save only changed JSON fields when possible.
-- Debounce autosaves instead of saving on every small mutation.
-- Use retry windows for failed saves.
-- On resource stop or player drop, force-save dirty player state.
-- Do not run a database write every tick or every client update.
-- Never decide *whether* to save a player from a client-sent lifecycle flag (`spawned` / `esx:onPlayerSpawn`): a modified client that never sends it is never saved while its trade partner is, which is a dupe. Save every loaded player, and only substitute the ped-derived fields (position, health, armour) with the loaded values until the spawn event arrives or a server grace period (60 s) passes - that also stops a client freezing its health by withholding the event. (verified: offline regression test with a never-spawning player)
-- See `memory/common/cfx-patterns.md` -> Player Persistence Pattern for a concrete RAM-cache + spread-autosave + force-save shape.
+- Parameterized SQL only; never concatenate player input into SQL (see SQL Injection below).
+- Track dirty fields for large player data, saving only changed JSON fields when possible.
+- Debounce autosaves instead of writing on every small mutation, use retry windows for failed saves, never write to the database every tick or every client update, and force-save dirty player state on resource stop or player drop.
+- Never decide *whether* to save a player from a client-sent lifecycle flag (`spawned` / `esx:onPlayerSpawn`): a modified client that never sends it is never saved while its trade partner is, which is a dupe. Save every loaded player, substituting only the ped-derived fields (position, health, armour) with the loaded values until the spawn event arrives or a server grace period (60 s) passes - that also stops a client freezing its health by withholding the event. (verified: offline regression test with a never-spawning player)
+- `memory/common/cfx-patterns.md` -> Player Persistence Pattern has a concrete RAM-cache + spread-autosave + force-save shape.
 
 ### SQL Injection
 
-oxmysql binds parameters safely with `?` (or `@name` named placeholders); the database engine never treats a bound value as SQL. Concatenating a string into the query lets a single quote break out and run arbitrary SQL. ([oxmysql](https://overextended.dev/docs/oxmysql))
-
-Vulnerable - the item name is spliced into the query:
+oxmysql binds `?` (or `@name`) parameters safely; the engine never treats a bound value as SQL. Concatenating a string into the query lets a single quote break out and run arbitrary SQL. ([oxmysql](https://overextended.dev/docs/oxmysql))
 
 ```lua
 -- BAD: a player sends item = "x'; DROP TABLE inventory; --"
 RegisterNetEvent("shop:log", function(item)
     local src = source
-    MySQL.query("INSERT INTO logs (item) VALUES ('" .. item .. "')")  -- SQL injection
+    MySQL.query("INSERT INTO logs (item) VALUES ('" .. item .. "')")   -- SQL injection
 end)
 ```
 
-Safe - the value is bound, not concatenated:
-
 ```lua
--- GOOD: the ? placeholder is bound by the engine; item is data, never SQL
+-- GOOD: bounded string, then a bound ? placeholder; item is data, never SQL
 RegisterNetEvent("shop:log", function(item)
     local src = source
     if type(item) ~= "string" or item == "" or #item > 64 then return end
@@ -224,15 +163,14 @@ RegisterNetEvent("shop:log", function(item)
 end)
 ```
 
-- The same rule applies to dynamic table/column/identifier names: bind values with `?`/`@name`, and for any dynamic identifier choose from a server-side allowlist - never splice client input into the SQL text.
-- For multi-step valuable writes, wrap the parameterized statements in one `MySQL.transaction.await({ ... })` so they commit together or not at all ([oxmysql transaction](https://overextended.dev/docs/oxmysql/Functions/transaction)). A transaction only rolls back on an SQL error: a conditional `UPDATE` that matches 0 rows does not abort it, so check the debit's affected row count before granting (see Give-Value Event Hardening). Full SQL rules and the API shape are in `skills/common/database.md`.
+- Same rule for dynamic table/column/identifier names: bind values with `?`/`@name`, and pick any dynamic identifier from a server-side allowlist - never splice client input into the SQL text.
+- Wrap multi-step valuable writes in one `MySQL.transaction.await({ ... })` so they commit together or not at all ([oxmysql transaction](https://overextended.dev/docs/oxmysql/Functions/transaction)). A transaction rolls back only on an SQL error: a conditional `UPDATE` matching 0 rows does not abort it, so check the debit's affected row count before granting (see Give-Value Event Hardening). Full SQL rules and API shape in `skills/common/database.md`.
 
 ## Identifier Trust
 
-- Player identity is only reliable server-side, from `GetPlayerIdentifiers(source)` ([GetPlayerIdentifiers](https://docs.fivem.net/docs/scripting-reference/runtimes/lua/functions/GetPlayerIdentifiers/)) or `GetPlayerIdentifierByType`. A client-reported identifier is attacker input, not identity.
-- Identifier types returned: `steam` (hex), `discord` (int), `xbl` (int), `live` (Microsoft PUID), `license`/`license2` (ROS hash - `license2` can equal `license` for Steam users), `fivem` (Cfx user id), `ip` (IPv4 string).
-- Do not trust a single identifier type in isolation. Ban/whitelist on the strongest available identifiers (prefer `license2` when present, else `license`; for bans, store every returned identifier plus `GetPlayerToken` hardware tokens rather than a single type), and treat `ip` as the weakest (shared NAT, rotates). Keep an existing DB key scheme stable when migrating to `license2`.
+- Identity is reliable only server-side, from `GetPlayerIdentifiers(source)` ([GetPlayerIdentifiers](https://docs.fivem.net/docs/scripting-reference/runtimes/lua/functions/GetPlayerIdentifiers/)) or `GetPlayerIdentifierByType`. A client-reported identifier is attacker input, not identity.
+- Types returned: `steam` (hex), `discord` (int), `xbl` (int), `live` (Microsoft PUID), `license`/`license2` (ROS hash - `license2` can equal `license` for Steam users), `fivem` (Cfx user id), `ip` (IPv4 string).
+- Never trust one identifier type in isolation. Ban/whitelist on the strongest available (prefer `license2`, else `license`; for bans store every returned identifier plus `GetPlayerToken` hardware tokens rather than a single type) and treat `ip` as the weakest (shared NAT, rotates). Keep an existing DB key scheme stable when migrating to `license2`.
 - Of the connect-time trust convars ([Server Commands](https://docs.fivem.net/docs/server-manual/server-commands/)), only `sv_authMaxVariance` (1-5, default 5) has an effect: FXServer compares it against the lowest variance among a player's identifiers (`license`/`steam` = 1, `ip` = 5), so any value below 5 rejects players with no `license`/`steam` identifier. `sv_authMinTrust` is effectively a no-op, because the always-present `ip:` identifier reports trust 5. See `skills/common/runtime.md` -> Players And Identifiers.
-- Run ban/whitelist lookups during `playerConnecting` using the `deferrals` API (defer, do async checks, call `done()` exactly once), not after the player is in-game.
-- The recipient/target of a value is always `source` resolved to its identifiers server-side; never a payload field (see Event Trust Boundary and Give-Value Event Hardening).
-
+- Run ban/whitelist lookups during `playerConnecting` through the `deferrals` API (defer, do async checks, call `done()` exactly once), not after the player is in-game.
+- The recipient/target of a value is always `source` resolved to its identifiers server-side, never a payload field (see Event Trust Boundary and Give-Value Event Hardening).

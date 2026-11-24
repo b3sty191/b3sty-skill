@@ -1,6 +1,6 @@
 # Cfx Patterns
 
-Track reusable FXServer/CfxLua implementation patterns here. These apply to both RedM and FiveM unless noted.
+Reusable FXServer/CfxLua patterns, for both RedM and FiveM unless noted.
 
 ## Contents
 
@@ -25,120 +25,86 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
 - Use when: a resource needs shared indexes, active entities, cached data, or lifecycle methods.
 - Example:
   ```lua
-  local Controller = {
-      ["Visible"] = "all",
-      ["Players"] = {},
-  }
+  local Controller = { ["Visible"] = "all", ["Players"] = {} }
 
   function Controller:Initialize()
       self.ObjectsIndex = {}
   end
   ```
-- Notes: this keeps the flow direct without creating a large framework around a small resource.
+- Notes: keeps the flow direct instead of wrapping a small resource in a framework.
 
 ## Index Map Pattern
 
-- Pattern: build a sorted list plus a reverse lookup table.
-- Use when: synced state should store small indexes instead of long object names.
-- Also use when: code repeatedly loops through a list to find one entry by name, ID, hash, category, or source.
+- Pattern: a sorted list plus a reverse lookup table.
+- Use when: synced state should carry small indexes instead of long object names.
+- Also use when: code loops a list repeatedly to find one entry by name, ID, hash, category, or source.
 - Example:
   ```lua
-  local Controller = {}
-
   function Controller:BuildObjectIndex(objects)
-      self.ObjectsIndex = {}
-      self.ObjectsIndexKey = {}
+      self.ObjectsIndex, self.ObjectsIndexKey = {}, {}
 
-      for objectName in pairs(objects) do
-          table.insert(self.ObjectsIndex, objectName)
-      end
-
+      for objectName in pairs(objects) do self.ObjectsIndex[#self.ObjectsIndex + 1] = objectName end
       table.sort(self.ObjectsIndex)
 
-      for index, objectName in ipairs(self.ObjectsIndex) do
-          self.ObjectsIndexKey[objectName] = index
-      end
+      for index, objectName in ipairs(self.ObjectsIndex) do self.ObjectsIndexKey[objectName] = index end
   end
   ```
-- Notes: useful for inventory items, object attachers, clothing sets, and other editable data maps.
-- Notes: in hot paths, direct lookup is preferred over repeated `for` scans.
+- Notes: fits inventory items, object attachers, clothing sets, other editable data maps.
+- Notes: in hot paths, direct lookup beats repeated `for` scans.
 
 ## State Bag Render Pattern
 
 - Pattern: server changes `Player(source).state`, client listens and renders local entities.
 - Use when: clients need to see visual state for nearby or known players.
-- Example: server sets `Player(source).state:set("attach", attach, true)`, client uses `AddStateBagChangeHandler("attach", ...)`.
+- Example: server `Player(source).state:set("attach", attach, true)`, client `AddStateBagChangeHandler("attach", ...)`.
 - Notes: keep validation and important state changes server-side.
-- Notes: this pattern is compatible with `setr sv_stateBagStrictMode true` because the replicated state write happens on the server and clients only render from state.
+- Notes: compatible with `setr sv_stateBagStrictMode true` - the replicated write happens on the server, clients only render from state.
 
 ## Local Attached Prop Pattern
 
 - Pattern: server validates the item/action and syncs a small attach state; each client creates local non-networked props and attaches them to the relevant ped.
 - Use when: props are cosmetic, attached, preview-only, or otherwise render-only.
-- Avoid when: the prop is a shared gameplay entity such as a pickup, storage object, placed world object, blocker, or persistent owned object.
+- Avoid when: the prop is a shared gameplay entity - pickup, storage object, placed world object, blocker, persistent owned object.
 - Example:
   ```lua
-  -- Server: after validation
-  Player(source).state:set("attach", {
-      ["1"] = true,
-  }, true)
+  -- Server, after validation:
+  Player(source).state:set("attach", { ["1"] = true }, true)
 
-  -- Client: render from state
-  local Controller = {
-      ["AttachedProps"] = {},   -- [bagName] = { object, ... }
-  }
+  -- Client renders from state.
+  local Controller = { ["AttachedProps"] = {} }   -- [bagName] = { object, ... }
 
   function Controller:ClearAttachState(bagName)
-      local props = self.AttachedProps[bagName]
-      if not props then return end
-
-      for i = 1, #props do
-          if DoesEntityExist(props[i]) then
-              DeleteEntity(props[i])
-          end
+      for _, object in ipairs(self.AttachedProps[bagName] or {}) do
+          if DoesEntityExist(object) then DeleteEntity(object) end
       end
 
       self.AttachedProps[bagName] = nil
   end
 
-  function Controller:RenderAttachState(bagName, player, attachState)
-      self:ClearAttachState(bagName)
-      -- CreateObject(model, x, y, z, false, false, false)
-      -- AttachEntityToEntity(object, GetPlayerPed(player), boneIndex, ...)
-      -- Track each object in self.AttachedProps[bagName] so cleanup can find it.
-  end
-
   AddStateBagChangeHandler("attach", nil, function(bagName, _, attachState)
-      -- Cleared key: remove props by bag name, even if the player no longer resolves.
-      if type(attachState) ~= "table" then
-          Controller:ClearAttachState(bagName)
-          return
-      end
+      Controller:ClearAttachState(bagName)   -- cleared key: remove by bag name, the player may not resolve
+      if type(attachState) ~= "table" then return end
 
       local player = GetPlayerFromStateBagName(bagName)
       if player == 0 then return end
 
-      Controller:RenderAttachState(bagName, player, attachState)
+      -- CreateObject(model, x, y, z, false, false, false), then AttachEntityToEntity(object,
+      -- GetPlayerPed(player), boneIndex, ...); track each object in Controller.AttachedProps[bagName].
   end)
   ```
-- Notes: local attached props need cleanup on state removal, player stream-out/drop, and resource stop.
-- Notes: a light reattach loop is acceptable for tracked props because attached objects can detach, stream out, or be deleted by the game.
-- Notes: never use a client-created local prop handle as proof of ownership, reward eligibility, or saved state.
-- Notes: do not set replicated attach state from the client when strict state bag mode is enabled; send a validated server request and let the server update the state bag.
+- Notes: clean props up on state removal, player stream-out/drop, and resource stop.
+- Notes: a light reattach loop is acceptable for tracked props - attached objects can detach, stream out, or be deleted by the game.
+- Notes: never treat a client-created local prop handle as proof of ownership, reward eligibility, or saved state.
+- Notes: with strict state bag mode, never set replicated attach state from the client; send a validated server request and let the server write the bag.
 
 ## Event Naming Pattern
 
-- Pattern: name events with the resource prefix and the side that handles the event.
+- Pattern: name events with the resource prefix and the handling side.
 - Rule: every custom event is `resource_name:server:action` or `resource_name:client:action` (see `skills/common/resource-structure.md` -> Events).
 - Concrete shape used in b3sty resources:
   ```lua
-  RegisterNetEvent("resource_name:server:add", function(itemName, state)
-      -- handled on server
-  end)
-
-  RegisterNetEvent("resource_name:client:playerDropped", function(playerId)
-      -- handled on client
-  end)
+  RegisterNetEvent("resource_name:server:add", function(itemName, state) end)
+  RegisterNetEvent("resource_name:client:playerDropped", function(playerId) end)
   ```
 
 ## Cleanup Pattern
@@ -149,40 +115,34 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
 
 ## Simple Resource Pattern
 
-- Pattern: keep small resources direct instead of creating framework-style layers.
+- Pattern: keep small resources direct instead of adding framework-style layers.
 - Use when: a resource has one clear domain and only a few client/server files.
-- Avoid when: the same validation, cleanup, or indexing pattern is repeated enough to justify a helper.
+- Avoid when: the same validation, cleanup, or indexing repeats enough to justify a helper.
 - Notes: b3sty style prefers readable local flow over generic architecture.
 
 ## Config Split Pattern
 
-- Pattern: keep simple shared values in `config.lua` and move large datasets into `configs/*.lua`.
+- Pattern: simple shared values in `config.lua`, large datasets in `configs/*.lua`.
 - Use when: a resource has many positions, zones, objects, categories, shops, rewards, or other long lists.
 - Example:
   ```lua
   local locationsConfig = require("configs.locations")
-  local itemsConfig = require("configs.items")
   ```
 - Notes: plain CfxLua `require` cannot load resource files (fails with "module 'configs.locations' not found"). This shape needs `@ox_lib/init.lua` in the manifest; without ox_lib use the cached `loadConfig` loader in `skills/common/style.md` -> Lua Style. Client-read configs must be listed in `files` either way.
 - Notes: full rules in `skills/common/style.md` -> Config Splitting and `skills/common/fxserver.md`.
 
 ## Player Persistence Pattern
 
-- Pattern: keep player state in RAM, dirty-track changes, spread autosave over time, and force-save on leave/stop.
+- Pattern: keep player state in RAM, dirty-track changes, spread autosave over time, force-save on leave/stop.
 - Use when: a resource owns saved player data (money, inventory, jobs, stats) and must not block the main thread or lose much data on crash.
 - Rule: full persistence rules (dirty tracking, debounce, parameterized SQL, no per-tick writes) are in `skills/common/security-performance.md` -> Database And Persistence.
 - Concrete shape:
   ```lua
-  -- RAM cache + dirty tracking + spread autosave + force-save on exit.
-  -- Non-blocking (`.await` only suspends the calling thread); never lose more than the autosave interval on crash.
   local SAVE_QUERY = "UPDATE players SET data = ? WHERE identifier = ?"
   local MAX_SAVE_FAILS = 5
 
   local Controller = {
-      ["PlayerData"] = {},
-      ["PlayerDirty"] = {},
-      ["PlayerSaving"] = {},
-      ["PlayerSaveFails"] = {},
+      ["PlayerData"] = {}, ["PlayerDirty"] = {}, ["PlayerSaving"] = {}, ["PlayerSaveFails"] = {},
   }
 
   -- Call from a thread: it awaits the write. `force` skips the in-flight guard (final save on leave).
@@ -195,69 +155,54 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
       self.PlayerSaving[source] = true
       self.PlayerDirty[source] = nil
 
-      -- pcall + .await: with default oxmysql settings a callback-style query that errors
-      -- never runs its callback, so the failure path below would be unreachable.
-      local ok, affectedRows = pcall(MySQL.update.await, SAVE_QUERY, {
-          json.encode(data), data.identifier,
-      })
+      -- pcall + .await: with default oxmysql settings a callback-style query that errors never
+      -- runs its callback, so the failure path below would be unreachable.
+      local ok, affected = pcall(MySQL.update.await, SAVE_QUERY, { json.encode(data), data.identifier })
       self.PlayerSaving[source] = nil
 
-      if ok and affectedRows and affectedRows > 0 then
+      if ok and affected and affected > 0 then
           self.PlayerSaveFails[source] = nil
           return
       end
 
-      -- Query error, or 0 rows (no row for this identifier; `0` is truthy in Lua, so check it explicitly).
-      print(("[%s] player save failed for %s: %s"):format(
-          GetCurrentResourceName(), tostring(data.identifier),
-          ok and "0 rows updated" or tostring(affectedRows):match("([^\n]*)$"):sub(1, 120)
-      ))
+      -- Error, or 0 rows (no row for this identifier; `0` is truthy in Lua, so test it).
+      print(("[%s] player save failed for %s: %s"):format(GetCurrentResourceName(),
+          tostring(data.identifier),
+          ok and "0 rows updated" or tostring(affected):match("([^\n]*)$"):sub(1, 120)))
 
       if not self.PlayerData[source] then return end   -- player already cleared
 
       local fails = (self.PlayerSaveFails[source] or 0) + 1
       self.PlayerSaveFails[source] = fails
-
-      if fails < MAX_SAVE_FAILS then
-          self.PlayerDirty[source] = true   -- capped retry on the next autosave pass
-      end
+      if fails < MAX_SAVE_FAILS then self.PlayerDirty[source] = true end   -- capped retry next pass
   end
 
   function Controller:ClearPlayer(source)
-      self.PlayerData[source] = nil
-      self.PlayerDirty[source] = nil
-      self.PlayerSaving[source] = nil
-      self.PlayerSaveFails[source] = nil
+      self.PlayerData[source], self.PlayerDirty[source] = nil, nil
+      self.PlayerSaving[source], self.PlayerSaveFails[source] = nil, nil
   end
 
-  -- Spread autosave: snapshot the dirty set, then save one player at a time with a small
-  -- yield between players so one pass never stalls the main thread and the backlog cannot
-  -- grow unbounded. Never mutate/iterate PlayerDirty across a yield without a snapshot.
-  CreateThread(function()
+  CreateThread(function()   -- spread autosave
       while true do
           Wait(60 * 1000)
 
-          local dirty = {}
-          for source in pairs(Controller.PlayerDirty) do
-              dirty[#dirty + 1] = source
-          end
+          local dirty = {}   -- snapshot: never iterate/mutate PlayerDirty across a yield
+          for source in pairs(Controller.PlayerDirty) do dirty[#dirty + 1] = source end
 
           for i = 1, #dirty do
               Controller:SavePlayer(dirty[i])
-              Wait(50)
+              Wait(50)   -- one player at a time, so a pass never stalls the main thread
           end
       end
   end)
 
-  -- Final save on leave (primary save point). Always issued: wait (bounded) for an
-  -- in-flight autosave so its older snapshot cannot commit last, then force-save and clear.
-  AddEventHandler("playerDropped", function()
+  AddEventHandler("playerDropped", function()   -- primary save point, always issued
       local source = source
       if not Controller.PlayerData[source] then return end
 
       CreateThread(function()
           local waited = 0
-          while Controller.PlayerSaving[source] and waited < 10000 do
+          while Controller.PlayerSaving[source] and waited < 10000 do   -- let an in-flight autosave land first
               Wait(100)
               waited = waited + 100
           end
@@ -267,36 +212,25 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
       end)
   end)
 
-  -- Force-save all dirty players when this resource stops (covers restart/stop).
-  -- Never yield here: the resource is torn down at the first yield, so an awaited loop
-  -- writes at most one player. Dispatch one non-awaited batch; oxmysql finishes it.
-  AddEventHandler("onResourceStop", function(resourceName)
+  AddEventHandler("onResourceStop", function(resourceName)   -- restart/stop: one non-awaited batch, never yield
       if resourceName ~= GetCurrentResourceName() then return end
 
       local batch = {}
       for source in pairs(Controller.PlayerDirty) do
           local data = Controller.PlayerData[source]
-
-          if data then
-              batch[#batch + 1] = { json.encode(data), data.identifier }
-          end
+          if data then batch[#batch + 1] = { json.encode(data), data.identifier } end
       end
 
-      if #batch > 0 then
-          MySQL.prepare(SAVE_QUERY, batch)
-      end
+      if #batch > 0 then MySQL.prepare(SAVE_QUERY, batch) end
   end)
 
-  -- Gameplay code marks a player dirty inline wherever state changes:
-  --   Controller.PlayerDirty[source] = true
+  -- Gameplay code marks dirty inline: Controller.PlayerDirty[source] = true
   ```
-- Notes: interval is a trade-off - shorter = less data loss but more DB load; 60-120s is a sane default.
-- Notes: `Controller:SavePlayer` is kept as a method because the autosave loop and `playerDropped` share its write, failure, and retry logic (real duplication); `onResourceStop` cannot yield, so it batches its own non-awaited write with the shared `SAVE_QUERY`. Dirty marking is inlined because it is one line.
-- Notes: never await in `onResourceStop` (the handler is abandoned at its first yield); dispatch one non-awaited batch there, and for full shutdowns also save from txAdmin's `txAdmin:events:serverShuttingDown` (awaits are fine within its `delay`). Yield rules: `skills/common/runtime.md` -> Yield Hazards.
-- Notes: failed or 0-row saves are logged and retried up to `MAX_SAVE_FAILS` (the next gameplay change marks the player dirty again); error-surfacing rules are in `skills/common/database.md` -> OxMySQL API Shape. Use `INSERT ... ON DUPLICATE KEY UPDATE` if this resource owns row creation.
-- Notes: on `playerDropped` the final save is always issued, ordered after any in-flight autosave (bounded 10s wait), and the RAM cache is cleared only after it returns. A final save that still fails is logged and that data is lost. If a quick reconnect must never load stale data, have the loader wait while a final save for that identifier is still pending.
-- Notes: uses the oxmysql API (`MySQL.update` / `MySQL.update.await`), not the legacy `MySQL.async.*` aliases - see `skills/common/database.md` -> OxMySQL API Shape.
-- Notes: reconnect gating for that final save - on drop, store `Controller.PendingDrop[identifier]` (the save promise) and make the loader wait for it before reading the row:
+- Notes: `.await` suspends only the calling thread, so saves never block the server; the crash window is one autosave interval - shorter = less loss, more DB load, 60-120s is sane.
+- Notes: one shared `SavePlayer` (the autosave loop and `playerDropped` share its write, failure, and retry logic); snapshot + `Wait(50)` keeps the backlog bounded; `onResourceStop` cannot yield, so it batches its own non-awaited write with the same `SAVE_QUERY`; dirty marking is inlined - one line.
+- Notes: never await in `onResourceStop` (abandoned at its first yield, so an awaited loop writes at most one player); for full shutdowns also save from txAdmin's `txAdmin:events:serverShuttingDown` (awaits are fine within its `delay`). Yield rules: `skills/common/runtime.md` -> Yield Hazards.
+- Notes: failed or 0-row saves are logged and retried up to `MAX_SAVE_FAILS` (the next gameplay change re-marks dirty); use `INSERT ... ON DUPLICATE KEY UPDATE` if this resource owns row creation. This is the oxmysql API (`MySQL.update` / `MySQL.update.await`), not the legacy `MySQL.async.*` aliases - error-surfacing rules in `skills/common/database.md` -> OxMySQL API Shape.
+- Notes: the drop save is ordered after any in-flight autosave (bounded 10s wait) and the cache is cleared only after it returns; a final save that still fails is logged and that data is lost. So a quick reconnect cannot load stale data, store `Controller.PendingDrop[identifier]` (the save promise) on drop and gate the loader on it:
   ```lua
   local waited = 0
   while Controller.PendingDrop[identifier] and waited < DROP_SAVE_TIMEOUT do
@@ -315,34 +249,33 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
 ## Save Sequence Guard Pattern
 
 - Pattern: every saved row carries a monotonic `save_seq BIGINT NOT NULL DEFAULT 0`, and each write refuses to land behind a newer one.
-- Use when: saves of one row can overlap - a retry, a late autosave, a second process, or an external saver.
+- Use when: saves of one row can overlap - a retry, a late autosave, a second process, an external saver.
 - Avoid when: exactly one in-process writer ever touches the row.
 - Example:
   ```lua
-  -- Seed from max(DB, local KVP) and record the sequence before the write goes out,
-  -- so a crash can never reuse a sequence.
+  -- Seed from max(DB, local KVP) and record the sequence before the write goes out, so a
+  -- crash can never reuse a sequence.
   local stored = tonumber(GetResourceKvpString("seq:" .. identifier) or "0") or 0
   local seq = math.max(row.save_seq or 0, stored) + 1
   SetResourceKvp("seq:" .. identifier, tostring(seq))
 
   local affected = MySQL.update.await(
       "UPDATE users SET data = ?, save_seq = ? WHERE identifier = ? AND save_seq < ?",
-      { json.encode(data), seq, identifier, seq }
-  )
+      { json.encode(data), seq, identifier, seq })
 
   if affected == 0 then   -- superseded by a newer save: count it, never retry it
       Controller.Superseded = Controller.Superseded + 1
   end
   ```
 - Notes: `NOT NULL DEFAULT 0` matters - with NULL, `save_seq < ?` is never true and that row never saves. Seeding from 0 instead of the stored max silently refuses every save after a relog.
-- Notes: 0 affected rows means superseded, not failed: count it, warn at most once a minute, never retry. Every write changes `save_seq`, so the count is reliable whatever the client-found-rows connection flag is set to.
+- Notes: 0 affected rows means superseded, not failed: count it, warn at most once a minute, never retry. Every write changes `save_seq`, so the count is reliable whatever the client-found-rows connection flag is.
 - Notes: a multi-row batch guards with `WHERE u.save_seq < v.save_seq`; when fewer rows matched than were sent, read the sequences back with one `SELECT ... IN (...)` to see which were refused (`MySQL.transaction` returns only true/false, never counts).
 - Notes: gate joins while a sequence is still unconfirmed in SQL instead of loading an older row; a cache in front of SQL (Redis `appendfsync everysec`) acknowledging a write is not durability (verified: kill -9 harness at 512 players, `seq_regressions`, `dupe_*` and `loss_*` all 0).
 
 ## Linked Trade Save Pattern
 
 - Pattern: when value moves between two owners, build both rows in the same frame and write them in one transaction.
-- Use when: give, transfer, trade, drop + pickup, or any third-party remove + add.
+- Use when: give, transfer, trade, drop + pickup, any third-party remove + add.
 - Avoid when: the mutation changes one row only.
 - Example:
   ```lua
@@ -350,10 +283,7 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
   local giverRow, receiverRow = Controller:BuildRow(giver), Controller:BuildRow(receiver)
   Controller.Linked[giver], Controller.Linked[receiver] = true, true   -- held out of the solo autosave lanes
 
-  local ok = MySQL.transaction.await({
-      { SAVE_QUERY, giverRow },
-      { SAVE_QUERY, receiverRow },
-  })
+  local ok = MySQL.transaction.await({ { SAVE_QUERY, giverRow }, { SAVE_QUERY, receiverRow } })
 
   Controller.Linked[giver], Controller.Linked[receiver] = nil, nil
   if not ok then Controller.PlayerDirty[giver], Controller.PlayerDirty[receiver] = true, true end
@@ -373,13 +303,8 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
       if not rows or #rows == 0 then return end   -- keep the old catalog on failure
 
       local items = {}   -- built aside; self.Items stays readable during the await
-      for i = 1, #rows do
-          items[rows[i].name] = rows[i]
-      end
-
-      for name, item in pairs(self.PendingItems) do   -- registered during the await
-          items[name] = item
-      end
+      for i = 1, #rows do items[rows[i].name] = rows[i] end
+      for name, item in pairs(self.PendingItems) do items[name] = item end   -- registered during the await
 
       self.PendingItems = {}
       self.Items = items   -- one assignment: no reader ever sees a partial table
@@ -390,8 +315,8 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
 
 ## Net Event Guard Injection Pattern
 
-- Pattern: load one shared guard file as the first server script of every protected resource; it replaces `RegisterNetEvent` / `AddEventHandler` in that Lua state, so handlers stay untouched. The installing resource writes the line into each fxmanifest while it starts and runs `refresh`, so every resource ensured after it starts with the guard.
-- Use when: many resources need the same per-event rate limit / schema / signal path and editing every handler is not practical (verified 2026-10-13 against FXServer source 35945, FiveM build 3095).
+- Pattern: load one shared guard file as the first server script of every protected resource; it replaces `RegisterNetEvent` / `AddEventHandler` in that Lua state, so handlers stay untouched. The installer writes that line into each fxmanifest while it starts and runs `refresh`, so every resource ensured after it starts guarded.
+- Use when: many resources need the same per-event rate limit / schema / signal path and editing every handler is impractical (verified 2026-10-13 against FXServer source 35945, FiveM build 3095).
 - Avoid when: the resource is JS/C#, a system resource (`citizen/system_resources`), or registers its net events in `shared_scripts` - the guard never sees those.
 - Example:
   ```
@@ -401,14 +326,14 @@ Track reusable FXServer/CfxLua implementation patterns here. These apply to both
   ensure crest_skillissue
   ```
 - Notes (from source):
-  - `add_filesystem_permission` is accepted only while the startup cfg runs (`FilesystemPermissions.cpp`); `SaveResourceFile` and Lua `io.open` writes into another resource are refused without it (`SaveResourceFile` returns nil).
+  - `add_filesystem_permission` is accepted only while the startup cfg runs (`FilesystemPermissions.cpp`); without it `SaveResourceFile` (returns nil) and Lua `io.open` writes into another resource are refused.
   - fxmanifest is read at scan time, not at start; `refresh` reloads the metadata of every known resource, started ones only take it on restart (`ServerResourceList.cpp`).
   - `@other/file.lua` resolves from disk for any scanned resource, started or not (`ScriptHost.cpp` OpenHostFile; mounts in `ServerResources.cpp` after each scan).
   - `ExecuteCommand` runs synchronously under principal `resource.<name>`: grant `add_ace resource.<name> command.<cmd> allow` (`ResourceScriptFunctions.cpp`).
   - `shared_scripts` load before `server_scripts` (`ResourceScriptingComponent.cpp`).
   - Server-local `TriggerEvent` has `source == ""`; `internal-net:` events such as `playerDropped` get a numeric `source` like client events, so wrap only names the resource `RegisterNetEvent`s, not every `AddEventHandler` (`scheduler.lua` event routine).
-  - Resources that start before the installer (its own dependencies, or anything ensured earlier) only pick the guard up on the next full start; an installer with no dependencies ensured first covers everything on the same boot.
-  - One wrapper per handler double-charges limits when a resource has 2+ handlers on one event: register one raw handler per event and fan out, each handler in its own `Citizen.CreateThreadNow` like the scheduler.
+  - Resources started before the installer (its dependencies, or anything ensured earlier) take the guard only on their next full start; an installer with no dependencies, ensured first, covers everything on the same boot.
+  - One wrapper per handler double-charges limits when a resource has 2+ handlers on one event: register one raw handler per event and fan out, each in its own `Citizen.CreateThreadNow` like the scheduler.
   - Reference implementation with offline tests: `txData/Script/examples/crest_skillissue` (example copy outside `resources/`: `guard.lua`, `core/installer.lua`, `DOCS.md` guard section, `lua5.4 tests/run.lua`).
 
 ## Template

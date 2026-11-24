@@ -1,4 +1,4 @@
 interface:
   display_name: "b3sty RedM/FiveM Lua"
   short_description: "RedM/FiveM Lua resource guidance"
-  default_prompt: "Use $b3sty-skill to implement, review, or debug a RedM/FiveM Lua resource for server authority, events, natives, persistence, cleanup, and performance."
+  default_prompt: "Use $b3sty-skill for this RedM/FiveM Lua resource. SKILL.md routes the request: plain asks like review, build, speed up, or brainstorm pick the matching file in modes/, and every task applies the core defaults for server authority, events, natives, NUI, persistence, cleanup, and performance."

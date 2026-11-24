@@ -1,6 +1,6 @@
 # Audit findings schema
 
-`/b3sty-review` in full-audit mode writes `findings.json`: a top-level JSON
+A full audit in review mode (`modes/review.md`) writes `findings.json`: a top-level JSON
 array of records, each with one of three verdicts. `scripts/validate_audit_findings.py`
 is the machine check; this file is the human contract. The rules exist so prose
 and JSON can never disagree and so a lead can never quietly carry a severity it

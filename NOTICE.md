@@ -6,7 +6,7 @@ This repository contains original b3sty skill rules and memory notes, plus gener
 
 The repository's MIT license covers original b3sty-authored skill rules, memory notes, packaging metadata, and small documentation files.
 
-`commands/b3sty-ideate.md` adapts a third-party method; its upstream notice is under Third-Party Notices below.
+`modes/ideate.md` adapts a third-party method; its upstream notice is under Third-Party Notices below.
 
 The generated native reference files under `references/natives/` include third-party and generated content. They are not relicensed by this repository's MIT license. Follow the source and upstream terms listed in `references/natives/SOURCES.md`.
 
@@ -18,7 +18,7 @@ Before publishing releases or packages that redistribute the generated native re
 
 ### ADHD divergent-ideation method
 
-`commands/b3sty-ideate.md` adapts the method of the ADHD skill (https://github.com/UditAkhourii/adhd), rewritten for RedM/FiveM with b3sty-specific frames and trap rules. Upstream license:
+`modes/ideate.md` adapts the method of the ADHD skill (https://github.com/UditAkhourii/adhd), rewritten for RedM/FiveM with b3sty-specific frames and trap rules. Upstream license:
 
 ```text
 MIT License
