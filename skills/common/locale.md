@@ -1,6 +1,5 @@
 # Localization And Locale Files
 
-Use this file when a RedM/FiveM resource shows text to players and that text should be translatable: shop prompts, notifications, menu labels, error messages, chat output, or NUI copy. The rule is the same whichever backend you use - user-facing strings live in locale files keyed by stable identifiers, never hardcoded inline in gameplay logic, so translators and server owners change wording without touching code.
 
 ## Separate Strings From Logic
 
@@ -29,7 +28,7 @@ When the resource already depends on ox_lib, use its locale module rather than a
 
 ## No-ox_lib Fallback
 
-When the resource must run without ox_lib, keep the same shape with a plain shared table selected by a resource-prefixed convar.
+Same shape without ox_lib: a plain shared table selected by a resource-prefixed convar.
 
 - Put strings in a shared-script table keyed by language, with `en` always present as the default:
   ```lua
@@ -49,8 +48,6 @@ When the resource must run without ox_lib, keep the same shape with a plain shar
   end
   ```
 - `GetConvar(name, default)` is a shared CFX native; use a resource-prefixed convar name, not an engine one. ([citizenfx/fivem `ext/native-decls/GetConvar.md`](https://raw.githubusercontent.com/citizenfx/fivem/master/ext/native-decls/GetConvar.md))
-- Load the locale tables as `shared_scripts` so both sides see them; do not rebuild the table per call.
-- Returning the key on a miss mirrors ox_lib behavior - keep it, so untranslated strings show up in play and in logs instead of erroring.
 
 ## Client vs Server
 

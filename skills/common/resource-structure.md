@@ -1,78 +1,48 @@
 # Shared Resource Structure Rules
 
-Use this file for rules that apply to both RedM and FiveM. Use `skills/fivem/rules.md` or `skills/redm/rules.md` when behavior is game-specific.
+Applies to both RedM and FiveM; game-specific behavior is in `skills/fivem/rules.md` and `skills/redm/rules.md`.
 
 ## Resource Structure
 
-- Keep client, server, shared, and config concerns separated.
-- A common small-resource structure is:
-  - `config.lua`
-  - `configs/*.lua` for large split config/data files
-  - `objects.lua` or another data file when a dataset is large and focused
-  - `core/client.lua`
-  - `core/server.lua`
-  - `addons/` for optional extensions
-- Keep simple hardcoded values close to the logic when that is easier to read.
-- Split large lists and repeated data into config/data files that return tables.
-- Use CfxLua syntax extensions such as supported compound assignment operators only in RedM/FiveM Lua code.
+- Separate client, server, shared and config concerns. Common small-resource layout: `config.lua`, `configs/*.lua` for large split config/data files, `objects.lua` or another data file for a large focused dataset, `core/client.lua`, `core/server.lua`, `addons/` for optional extensions.
+- Simple hardcoded values next to the logic when that reads better; large lists and repeated data in config/data files that return tables.
+- CfxLua syntax extensions (supported compound assignment operators) only in RedM/FiveM Lua code.
 
 ## Events
 
-- Validate server-side event input.
-- Do not trust client-provided state for money, inventory, permissions, or ownership.
-- Prefer explicit event names with the resource prefix.
-- All custom events must use resource-prefixed event names with a side marker.
-- Required format:
-  - `resource_name:server:action` for events handled on the server.
-  - `resource_name:client:action` for events handled on the client.
-- Example names:
-  - `resource_name:server:add`
-  - `resource_name:server:remove`
-  - `resource_name:client:playerDropped`
-- This makes event ownership and direction easy to identify while reading code.
+- Validate event input server-side; never trust client-provided money, inventory, permission or ownership state.
+- Custom events use resource-prefixed names with a side marker - `resource_name:server:action` handled on the server, `resource_name:client:action` on the client (for example `resource_name:server:add`, `resource_name:server:remove`, `resource_name:client:playerDropped`) - so ownership and direction read off the name.
 
 ## State
 
-- The server should own important gameplay state.
-- The client should mainly render, attach objects, show UI, and clean up local entities.
-- `Player(source).state` and state bags are acceptable for syncing visible state to clients.
-- When using state bags, keep the server responsible for changing the state and let clients react to render changes.
-- Prefer server config `setr sv_stateBagStrictMode true` so clients cannot modify replicated player/entity state bags directly.
-- Client-side non-replicated entity state is local-only; do not design gameplay authority around it.
-- Design client flows to request state changes through validated `:server:` events or callbacks, then let the server update the state bag.
+- The server owns important gameplay state; the client renders, attaches objects, shows UI and cleans up local entities.
+- `Player(source).state` and state bags are acceptable for syncing visible state: the server changes it, clients react and render.
+- Prefer server config `setr sv_stateBagStrictMode true` so clients cannot modify replicated player/entity state bags directly. Client-side non-replicated entity state is local-only - never base gameplay authority on it.
+- Client flows request state changes through validated `:server:` events or callbacks; the server updates the state bag.
 
 ## Entities And Objects
 
-- Check entity handles before using them.
-- Load models before creating objects: call `RequestModel(model)` and wait with a timeout until `HasModelLoaded(model)` is true, or use `lib.requestModel(model)` when the resource already depends on ox_lib (see `skills/common/ox-lib.md`). Call `SetModelAsNoLongerNeeded(model)` after spawning.
-- Delete old entities before replacing them when needed.
-- Clean up entities on resource stop, player drop, or when synced state disables them.
-- Reattach loops are acceptable when objects may detach or disappear, but keep the wait time appropriate.
+- Check entity handles before use.
+- Load models first: `RequestModel(model)`, then wait with a timeout until `HasModelLoaded(model)` is true, or `lib.requestModel(model)` when the resource already depends on ox_lib (`skills/common/ox-lib.md`); `SetModelAsNoLongerNeeded(model)` after spawning.
+- Delete old entities before replacing them; clean up on resource stop, player drop, or when synced state disables them.
+- Reattach loops are acceptable when objects may detach or disappear - keep the wait time appropriate.
 
 ## Local Vs Networked Props
 
-- Default to local client-created props for cosmetic, preview, attached, UI, marker, and render-only objects.
-- Use networked/server-owned props only when the object is shared gameplay state: pickup, loot, storage, placement, blocking collision, ownership, persistence, or multi-player interaction.
-- For local attached props, keep the server authoritative over the attach state and let clients render/delete local objects from state bags or validated sync.
-- Do not network attached cosmetic props just so other players can see them; sync the state and let each client render its own local copy.
-- Do not trust client-created prop handles, entity IDs, or net IDs for rewards, ownership, permissions, or saved state.
-- If a prop becomes interactable or valuable after being placed in the world, promote it to server-owned state and validate the entity/model/distance/bucket before use.
-- Local props must have cleanup on state disable, player out of range, player drop, and resource stop.
-- Networked props must have a server registry, ownership rules, validation, and cleanup path.
+- Local client-created props by default: cosmetic, preview, attached, UI, marker, render-only. Networked/server-owned only for shared gameplay state: pickup, loot, storage, placement, blocking collision, ownership, persistence, multi-player interaction.
+- Local attached props keep the server authoritative over attach state; clients render/delete local objects from state bags or validated sync. Never network attached cosmetic props just so other players see them - sync the state and let each client render its own local copy.
+- Never trust client-created prop handles, entity IDs or net IDs for rewards, ownership, permissions or saved state.
+- A prop that becomes interactable or valuable once placed in the world is promoted to server-owned state: validate entity/model/distance/bucket before use.
+- Local props: cleanup on state disable, player out of range, player drop, resource stop. Networked props: server registry, ownership rules, validation, cleanup path.
 
 ## Performance
 
-- Avoid tight loops with `Wait(0)` unless frame-level work is required.
-- Increase wait time when polling inactive state.
-- Cache expensive lookups where safe.
-- Avoid eager-loading large config/data files when only one script needs them.
-- Require only the config modules needed by the current client/server file.
-- Keep hot loops small and avoid repeated native calls inside them when a local cached value is enough.
-- Apply `skills/common/security-performance.md` for event validation, throttles, callback cleanup, dirty saves, and loop optimization.
+- `Wait(0)` loops only where frame-level work is required; raise the wait when polling inactive state; keep hot loops small, caching expensive lookups and repeated native results where safe.
+- Never eager-load large config/data files: require only the config modules the current client/server file needs.
+- Event validation, throttles, callback cleanup, dirty saves and loop optimization: `skills/common/security-performance.md`.
 
 ## Compatibility
 
 - Check whether behavior differs between RedM and FiveM before sharing code.
-- b3sty resources do not assume a default framework. Write framework-free code by default.
-- When a project already depends on a framework, keep framework-specific logic isolated so the rest stays portable.
-- Keep game-specific logic in `skills/fivem/rules.md` or `skills/redm/rules.md` guidance unless it has been confirmed portable.
+- b3sty resources assume no default framework: framework-free by default, with framework-specific logic isolated when a project depends on one so the rest stays portable.
+- Game-specific logic follows `skills/fivem/rules.md` or `skills/redm/rules.md` guidance unless it has been confirmed portable.

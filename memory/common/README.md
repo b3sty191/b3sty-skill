@@ -1,19 +1,17 @@
 # Common Memory
 
-Store learned facts that apply to both RedM and FiveM here.
-
-Use `memory/fivem/` or `memory/redm/` for game-specific facts. Add the date and game build to every real entry; build-independent entries (pure Lua, resource structure) may use `Game build: n/a`.
+Learned facts that apply to both RedM and FiveM; game-specific ones go in `memory/fivem/` or `memory/redm/`. Every real entry carries Date and Game build (`n/a` for build-independent facts: pure Lua, resource structure).
 
 ## Files
 
 - `native-bugs.md` - known shared native issues and workarounds.
 - `common-errors.md` - recurring shared Lua/resource errors and fixes.
-- `cfx-patterns.md` - reusable shared FXServer/CfxLua implementation patterns.
+- `cfx-patterns.md` - reusable shared FXServer/CfxLua patterns.
 - `security-performance.md` - learned shared security and performance patterns.
 
 ## Template
 
-Copy this block when adding a new common entry.
+Copy this block for a new common entry.
 
 - Topic:
 - Date:

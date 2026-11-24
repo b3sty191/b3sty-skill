@@ -1,8 +1,8 @@
 # b3sty-skill evals
 
 Small RedM/FiveM resources with documented, intentionally planted
-vulnerabilities, plus a scorer. They measure the skill's own auditor: run
-`/b3sty-review` against a case and score how many planted defects it catches.
+vulnerabilities, plus a scorer. They measure the skill's own auditor: review a
+case in review mode (`modes/review.md`) and score how many planted defects it catches.
 This is the skill grading itself, not a review of real code.
 
 The fixtures are deliberately insecure teaching samples. Do not copy them into a
@@ -27,7 +27,7 @@ real resource; every "PLANTED" comment marks a bug the rules tell you to fix.
 
 1. Audit a case in full-audit mode, writing findings outside the fixture:
    ```text
-   /b3sty-review evals/cases/fivem_shop   (output to a scratch dir, write findings.json)
+   Review evals/cases/fivem_shop in full-audit mode (findings.json in a scratch dir)
    ```
 2. Score the result:
    ```bash

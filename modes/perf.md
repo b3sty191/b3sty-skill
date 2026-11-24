@@ -1,15 +1,10 @@
----
-description: Find and fix CPU and network performance problems in a RedM/FiveM Lua resource - resmon cost, Wait(0) loops, entity pool scans, event spam, -1 broadcasts, payload size, repeated full fetches, state bag misuse - and report measured versus estimated results. Use when asked to optimize, profile, or fix lag, hitches, high resmon, or network overflow kicks in a FiveM or RedM resource.
-argument-hint: [resource path or symptom]
----
-
 # b3sty Performance Pass
 
-Target: $ARGUMENTS
+Use when: asked to optimize, profile, or fix lag, hitches, high resmon, or network overflow kicks in a FiveM or RedM resource - `Wait(0)` loops, entity pool scans, event spam, `-1` broadcasts, payload size, repeated full fetches, state bag misuse.
 
-Lower CPU time and network traffic without changing gameplay or weakening server validation. Paths under `skills/` below are relative to the b3sty-skill root (the folder holding the main `SKILL.md`; with the plugin install, the plugin root).
+Target: the resource path or symptom the user named.
 
-Open these before proposing fixes:
+Lower CPU time and network traffic without changing gameplay or weakening server validation. Paths are relative to the skill root (the main `SKILL.md`'s folder; the plugin root on a plugin install). Open before proposing fixes:
 
 - `skills/common/debugging.md` -> Performance Debugging - tools and how to measure.
 - `skills/common/performance.md` -> Performance Rules - CPU hot paths.
@@ -17,8 +12,7 @@ Open these before proposing fixes:
 
 ## 1. Measure Or Mark Estimates
 
-- Ask for (or use provided) numbers: client `resmon` idle and during the slow action, `netEventLog` if the complaint is network, server profiler or hitch warnings if the complaint is server-side.
-- If nothing can be measured, continue, but every figure in the report is an estimate and labeled as one.
+Ask for (or use the provided) numbers: client `resmon` idle and during the slow action, `netEventLog` for a network complaint, the server profiler or hitch warnings for a server-side one. If nothing can be measured, continue - but label every figure in the report an estimate.
 
 ## 2. Find Candidates
 
@@ -30,21 +24,21 @@ rg -n "GetGamePool|GetActivePlayers|GetPlayers\(\)|GetHashKey|json\.(en|de)code"
 rg -n "MySQL\.|\.state\b|\.state\.|GlobalState|AddStateBagChangeHandler|lib\.callback" --type lua
 ```
 
-For each hit record: side, loop or one-shot, how often it runs, payload shape, recipients.
+Record per hit: side, loop or one-shot, how often it runs, payload shape, recipients.
 
 ## 3. Rank
 
 - **Critical** - events or pool scans per frame, `-1` broadcast of large data, full fetch per UI open, SQL inside a loop.
 - **High** - short-wait loops doing real work far from the player, large payloads, repeated `SELECT` on hot paths.
 - **Medium** - allocations and repeated natives in loops, unthrottled HUD streams.
-- **Low** - micro-optimizations `resmon` will not show. Do not touch Low while Critical remains.
+- **Low** - micro-optimizations `resmon` will not show. Never touch Low while Critical remains.
 
 ## 4. Fix Safely
 
 - Search the whole resource and its dependents before removing or renaming an event, export, or state key.
-- Keep behavior of money, items, permissions, ownership, routing buckets, NUI, and framework state unchanged unless asked; if a fix must change behavior, say so.
+- Keep money, item, permission, ownership, routing-bucket, NUI, and framework behavior unchanged unless asked; if a fix must change behavior, say so.
 - Keep every server check (`source`, amount, ownership, distance, bucket, cooldown) after the change.
-- Change one class of problem at a time so each can be measured.
+- Change one class of problem at a time, so each can be measured.
 
 ## 5. Report
 

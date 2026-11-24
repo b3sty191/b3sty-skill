@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Score a `/b3sty-review` run against the planted defects in an eval case.
+"""Score a review-mode audit against the planted defects in an eval case.
 
 The eval cases under `evals/cases/` are small resources with documented,
-intentionally planted vulnerabilities (see `evals/EXPECTATIONS.json`). Run
-`/b3sty-review` in full-audit mode against a case, point it at an output
+intentionally planted vulnerabilities (see `evals/EXPECTATIONS.json`). Run the
+skill in review mode (`modes/review.md`), full audit, against a case, point it at an output
 directory, then score the `findings.json` it produced:
 
     python3 evals/score.py --expectations evals/EXPECTATIONS.json \\

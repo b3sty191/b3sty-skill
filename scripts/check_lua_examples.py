@@ -18,7 +18,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DOC_GLOBS = ["SKILL.md", "skills/**/*.md", "memory/**/*.md", "commands/*.md"]
+DOC_GLOBS = ["SKILL.md", "skills/**/*.md", "memory/**/*.md", "modes/*.md"]
 SKIP_MARKER = "<!-- lua-check: skip -->"
 FENCE = re.compile(r"^(?P<indent>[ \t]*)```lua[ \t]*$")
 COMPOUND = re.compile(

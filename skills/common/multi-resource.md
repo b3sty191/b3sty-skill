@@ -1,102 +1,67 @@
 # Multi-Resource Rules
 
-Use this file when a RedM/FiveM feature crosses resource boundaries through exports, events, callbacks, dependencies, shared libraries, state bags, convars, or framework integration.
+Use when a RedM/FiveM feature crosses resource boundaries: exports, events, callbacks, dependencies, shared libraries, state bags, convars, framework integration.
 
 ## Defaults
 
-- Prefer explicit dependencies and narrow interfaces.
-- Keep resource boundaries obvious while reading code.
-- Validate data at every public/shared boundary, even when the caller is another local resource.
-- Do not create generic dispatchers that call arbitrary exports, functions, event names, config keys, or methods from a caller-provided string.
-- Avoid circular dependencies; move shared data into a small shared resource only when there is real reuse.
+- Explicit dependencies, narrow interfaces, obvious boundaries; validate at every public/shared boundary, even from a local caller.
+- No dispatcher calling arbitrary exports/functions/event names/config keys/methods from a caller-provided string.
+- No circular dependencies; a shared resource only for real reuse.
 
 ## Choosing The Interface
 
-- Use a local function when the caller is inside the same file/resource.
-- Use an export for explicit request/response calls from another resource.
-- Use a server event only when a fire-and-forget notification is appropriate.
-- Use a callback when the caller needs a response and the project already has a callback system.
-- Use state bags for replicated visible state, not for hidden authority or secrets.
-- Use convars for operator/server configuration, not for per-player gameplay state.
-- Use shared scripts for constants/helpers that are safe on both client and server.
+- Local function: same file/resource. Export: request/response from another resource. Server event: fire-and-forget notification. Callback: caller needs a response and a callback system exists.
+- State bags: replicated visible state, never hidden authority or secrets. Convars: operator/server config, not per-player gameplay state. Shared scripts: constants/helpers safe on both sides.
 
 ## Exports
 
-- Keep export names small and specific.
-- Validate every export argument, especially `source`, item names, amounts, coords, entity/net IDs, job/group names, and permission flags.
-- Public exports that mutate player state must check that the source is a real player and is allowed to perform the action.
-- Return explicit success/failure values instead of relying on side effects or thrown errors. Never `return nil, reason`: export returns are unpacked with `table.unpack`, so a `nil` first value can drop the rest - see `skills/common/runtime.md` -> Exports And Stale References.
-- Do not expose internal tables directly; return copies or narrow values when callers should not mutate state.
-- Do not let an export bypass validation used by the matching server event/callback.
-- Add LuaDoc annotations when export parameter meaning is not obvious.
+- Small specific names; LuaDoc when a parameter's meaning is unclear; return copies or narrow values, never internal tables callers could mutate.
+- Validate every argument (`source`, item names, amounts, coords, entity/net IDs, job/group names, permission flags) as strictly as the matching server event/callback; exports mutating player state also check the source is a real player allowed to act.
+- Return explicit success/failure, not side effects or thrown errors. Never `return nil, reason`: returns unpack with `table.unpack`, so a `nil` first value drops the rest (`skills/common/runtime.md` -> Exports And Stale References).
 
 ## Events Across Resources
 
-- Use resource-prefixed event names with side markers:
-  - `provider_resource:server:action`
-  - `provider_resource:client:action`
-- Use `RegisterNetEvent` only when the event must be callable across network context.
-- Use non-networked local events or direct exports for same-side server-to-server communication when possible.
-- Check `GetInvokingResource()` when an event is intended only for another server resource, but do not treat it as the only security control for client-callable net events.
-- Reject unknown caller resources for internal server-resource events when the allowed caller set is known.
-- Keep event payloads explicit and bounded.
+- Resource-prefixed names with side markers: `provider_resource:server:action`, `provider_resource:client:action`; payloads explicit and bounded.
+- `RegisterNetEvent` only when the event must cross network context; same-side server-to-server traffic uses non-networked local events or direct exports.
+- `GetInvokingResource()` for events meant only for another server resource, rejecting unknown callers where the allowed set is known - not the only control for client-callable net events.
 
 ## Dependencies And Load Order
 
-- Declare required resources in `fxmanifest.lua` with `dependency` or `dependencies`.
-- Do not assume another resource has started unless it is declared or checked.
-- Use `GetResourceState(resourceName)` before optional integration calls.
-- Fail loudly at startup when a required dependency is missing.
-- Degrade cleanly when an optional dependency is missing.
-- Avoid `Wait(...)` startup races as a substitute for dependencies or resource state checks.
-- Keep manifest paths and dependency names exact; resource folder names are the runtime names.
+- Declare required resources in `fxmanifest.lua` (`dependency`/`dependencies`); never assume one started unless it is declared or checked with `GetResourceState(resourceName)` before optional integration calls, and never race startup with `Wait(...)`.
+- Missing required dependency: fail loudly at startup. Missing optional one: degrade cleanly.
+- Manifest paths and dependency names exact - resource folder names are the runtime names.
 
 ## Optional Integrations
 
-- Isolate optional framework/dependency code in one small section or file.
-- Check dependency state before registering integration-specific exports, targets, zones, or menus.
-- Keep the default resource path framework-free when the project does not require a framework.
-- Do not let optional integration code change the core event contract unexpectedly.
-- Provide clear no-op or error behavior when a dependency is not available.
+- Isolate optional framework/dependency code in one small section or file; check dependency state before registering integration exports, targets, zones or menus.
+- The default path stays framework-free unless the project requires a framework; integration never changes the core event contract, and no-ops or errors clearly when its dependency is unavailable.
 
 ## Shared Libraries And Config
 
-- Put shared constants/helpers in a shared script only if both sides need them and the data is safe for clients.
-- Keep server-only prices, rewards, drop rates, permission gates, secrets, SQL details, and webhook data out of shared config.
-- Use split config files for large datasets and require only what each script needs.
-- Avoid one shared utility resource becoming a hidden framework for unrelated resources.
-- Version shared exports or provide compatibility shims when multiple resources depend on them.
+- Shared scripts: constants/helpers both sides need, client-safe only; server-only prices, rewards, drop rates, permission gates, secrets, SQL details and webhook data stay out.
+- Large datasets split into config files, required only where needed; no shared utility becoming a hidden framework for unrelated resources.
+- Version shared exports, or ship compatibility shims, when several resources depend on them.
 
 ## State Bags
 
-- Let the server write important replicated player/entity state.
-- Let clients read state bags and render local visuals from state.
-- With strict state bag mode enabled, client replicated writes will not be valid; route changes through validated server events/callbacks.
-- Keep state bag payloads small and stable.
-- Do not store secrets or server-only economy rules in state bags.
-- Clean state bag keys when resource-owned state ends.
+- The server writes important replicated player/entity state; clients read it and render local visuals. Strict state bag mode invalidates client replicated writes - route changes through validated server events/callbacks.
+- Payloads small and stable, no secrets or server-only economy rules, keys cleaned when resource-owned state ends.
 
 ## Versioning And Compatibility
 
-- Add a simple version export or convar only when dependent resources need to check behavior.
-- Keep interface changes backward-compatible when possible.
-- When breaking an export/event contract, update every in-repo caller in the same change.
-- Avoid accepting multiple legacy payload shapes forever; migrate callers and remove old paths when practical.
-- Document required dependency versions when a feature relies on a specific API.
+- A version export or convar only when dependents must check behavior; document required dependency versions when a feature relies on a specific API.
+- Keep changes backward-compatible where possible; a breaking export/event contract updates every in-repo caller in the same change, and legacy payload shapes get migrated off, not kept forever.
 
 ## Failure Handling
 
-- Handle missing resources, stopped dependencies, nil exports, callback timeouts, and malformed responses.
-- Do not crash a hot gameplay path because an optional dependency is absent.
-- Log boundary failures with caller, provider, interface name, and bounded payload metadata.
-- Rate-limit boundary failure logs when a missing dependency can trigger repeated calls.
-- Keep fallback behavior explicit: reject action, no-op, use default data, or queue retry.
+- Handle missing resources, stopped dependencies, nil exports, callback timeouts, malformed responses; never crash a hot gameplay path for an absent optional dependency.
+- Log boundary failures with caller, provider, interface name, bounded payload metadata; rate-limit when a missing dependency triggers repeated calls.
+- Explicit fallback: reject action, no-op, default data, or queued retry.
 
 ## Review Questions
 
 - Is this interface narrow enough for another resource to call safely?
-- Is the dependency required, optional, or accidental?
-- Is load order declared instead of guessed with waits?
+- Is the dependency required, optional or accidental - and load order declared, not guessed with waits?
 - Can a malicious client reach this server event through a shared event name?
 - Are exports validating as strictly as server events?
 - Does optional integration fail cleanly when the dependency is stopped?

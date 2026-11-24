@@ -1,20 +1,17 @@
 # b3sty-skill Agent Guide
 
-This repository stores reusable rules and working memory for b3sty RedM/FiveM Lua development.
+Reusable rules and working memory for b3sty RedM/FiveM Lua development.
 
-`SKILL.md` is the single source of truth for trigger scope, core defaults, and load guidance. Start there - it tells you which file to open for which task.
+`SKILL.md` is the single source of truth: trigger scope, modes, workflow, core defaults, and which file to open for which task. Start there. There are no slash commands - the user asks in plain words and `SKILL.md` routes the request.
 
 The rest of the repo:
 
-- `skills/common/` - stable rules shared by RedM and FiveM.
-- `skills/fivem/` - FiveM-only rules.
-- `skills/redm/` - RedM-only rules.
-- `memory/common/` - learned facts shared by RedM and FiveM.
-- `memory/fivem/` - FiveM-only learned facts.
-- `memory/redm/` - RedM-only learned facts.
-- `commands/` - Claude Code slash commands (`/b3sty-review`, `/b3sty-new-resource`, `/b3sty-perf`, `/b3sty-ideate`) that drive a task using the rules above.
-- `evals/` - planted-bug resource fixtures and `score.py` that benchmark `/b3sty-review`'s recall.
+- `modes/` - one file per workflow, loaded when the request matches: review/audit, new resource, performance, ideation.
+- `skills/common/` - stable rules shared by RedM and FiveM; `skills/fivem/`, `skills/redm/` - game-only rules.
+- `memory/common/` - learned facts shared by both games; `memory/fivem/`, `memory/redm/` - game-only learned facts.
+- `evals/` - planted-bug resource fixtures and `score.py`, which benchmark review mode's recall.
 - `references/natives/` - generated native lookup files for FiveM/GTA V and RedM/RDR3.
+- `scripts/` - package validators plus the audit ledger and findings checkers.
 
 ## Working Rules
 
@@ -34,3 +31,4 @@ The rest of the repo:
 ## Agent Configs
 
 - `agents/openai.yaml` - OpenAI Codex skill UI metadata (display name, short description, default prompt); Codex loads the skill itself from `SKILL.md`.
+- `.claude-plugin/marketplace.json` - Claude Code plugin manifest; `skills.sh.json` - skills.sh grouping.

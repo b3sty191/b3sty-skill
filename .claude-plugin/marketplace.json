@@ -5,7 +5,7 @@
         {
             "name": "b3sty-skill",
             "source": "./",
-            "description": "b3sty rules for RedM/FiveM Lua resources: server-authority security, event hardening, natives, NUI, OxMySQL persistence, performance, and cleanup.",
+            "description": "Ask in plain words to build, review, debug, or speed up RedM/FiveM Lua resources: server-authority security, events, natives, NUI, OxMySQL, performance.",
             "skills": ["./"],
             "strict": false
         }

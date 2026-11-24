@@ -41,10 +41,10 @@ REQUIRED_PATHS = [
     "skills/common/multi-resource.md",
     "skills/common/asset-protection.md",
     "skills/common/frameworks.md",
-    "commands/b3sty-review.md",
-    "commands/b3sty-new-resource.md",
-    "commands/b3sty-perf.md",
-    "commands/b3sty-ideate.md",
+    "modes/review.md",
+    "modes/new-resource.md",
+    "modes/perf.md",
+    "modes/ideate.md",
     "scripts/b3sty_audit_ledger.py",
     "scripts/validate_audit_findings.py",
     "references/audit-findings-schema.md",
@@ -105,16 +105,30 @@ def check_skill_frontmatter(skill_text: str, failures: list[str]) -> None:
         fail("SKILL.md description should mention RedM and FiveM", failures)
 
 
-def check_commands(failures: list[str]) -> None:
-    # Commands, not nested SKILL.md files: a skill folder may hold only one SKILL.md.
+def check_modes(failures: list[str]) -> None:
+    # Modes, not nested SKILL.md files: a skill folder may hold only one SKILL.md.
     nested = [p for p in ROOT.rglob("SKILL.md") if p != ROOT / "SKILL.md" and ".git" not in p.parts]
     for path in nested:
         fail(f"Nested SKILL.md breaks skill upload: {path.relative_to(ROOT).as_posix()}", failures)
-    for command_path in sorted((ROOT / "commands").glob("*.md")):
-        relative = command_path.relative_to(ROOT).as_posix()
-        match = re.match(r"^---\n(?P<body>.*?)\n---\n", read_text(command_path), re.DOTALL)
-        if not match or not re.search(r"^description:\s*\S", match.group("body"), re.MULTILINE):
-            fail(f"{relative} needs frontmatter with a description", failures)
+    for mode_path in sorted((ROOT / "modes").glob("*.md")):
+        relative = mode_path.relative_to(ROOT).as_posix()
+        text = read_text(mode_path)
+        if not text.startswith("# "):
+            fail(f"{relative} must start with a '# ' title line", failures)
+        if not re.search(r"^Use when:\s*\S", text, re.MULTILINE):
+            fail(f"{relative} needs a 'Use when:' trigger line", failures)
+
+
+def check_routing_table(skill_text: str, failures: list[str]) -> None:
+    """Routing rows use bare names for skills/common; make sure each resolves."""
+    for line in skill_text.splitlines():
+        if not line.startswith("| ") or line.startswith(("| Open", "| Request", "|---")):
+            continue
+        name = line.split("|")[1].strip()
+        if "/" in name or "`" in name or " " in name:
+            continue  # written-out path, or a Modes-table trigger phrase
+        if not (ROOT / "skills" / "common" / f"{name}.md").exists():
+            fail(f"SKILL.md routing row has no skills/common/{name}.md", failures)
 
 
 # Hex values and CAPS names in the rules that are not natives (constants,
@@ -254,7 +268,8 @@ def main() -> int:
     check_marketplace_json(failures)
     check_memory_readmes(failures)
     check_reference_toc(failures)
-    check_commands(failures)
+    check_modes(failures)
+    check_routing_table(skill_text, failures)
 
     # Validate cross-links (backticked skill/memory/references paths) everywhere
     # rules live, not only the top-level entry points. Skip the large generated
@@ -266,12 +281,12 @@ def main() -> int:
     cross_link_files = [ROOT / "SKILL.md", ROOT / "README.md", ROOT / "AGENTS.md"]
     cross_link_files += sorted((ROOT / "skills").rglob("*.md"))
     cross_link_files += sorted((ROOT / "memory").rglob("*.md"))
-    cross_link_files += sorted((ROOT / "commands").glob("*.md"))
+    cross_link_files += sorted((ROOT / "modes").glob("*.md"))
     cross_link_files += [
         path for path in (ROOT / "references").rglob("*.md") if path not in generated_natives
     ]
     rule_files = [ROOT / "SKILL.md"] + sorted((ROOT / "skills").rglob("*.md"))
-    rule_files += sorted((ROOT / "memory").rglob("*.md")) + sorted((ROOT / "commands").glob("*.md"))
+    rule_files += sorted((ROOT / "memory").rglob("*.md")) + sorted((ROOT / "modes").glob("*.md"))
     check_native_refs(rule_files, failures)
 
     for markdown_path in cross_link_files:

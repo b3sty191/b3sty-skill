@@ -1,10 +1,10 @@
 # Security And Performance Memory
 
-Lessons learned from security/performance work on b3sty RedM/FiveM resources. These are confirmations of what works in practice, not the rule text - see `skills/common/security-performance.md` for the full rules.
+What worked in practice on b3sty RedM/FiveM resources - confirmations, not the rule text. Full rules: `skills/common/security-performance.md`.
 
 ## Learned Patterns
 
-These patterns have paid off repeatedly in real b3sty resources:
+Proven repeatedly in real b3sty resources:
 
 - Reverse indexes for config lists make runtime lookups O(1).
 - Rate-limiting callback requests per player and per callback name stops abuse.
@@ -14,19 +14,18 @@ These patterns have paid off repeatedly in real b3sty resources:
 - Optimistic client state works only when paired with a rejection/rollback path.
 - Sequence numbers and signatures help reject old/spoofed client sync packets, but client-held secrets are tamper resistance only - never real security.
 - `setr sv_stateBagStrictMode true` keeps replicated player/entity state bag writes server-side and forces clients to request changes through validated server paths; local-only entity state stays local and is not gameplay authority.
-- Dirty-tracking player data and debouncing database saves cuts write load.
-- Saving raw encoded JSON for unchanged fields avoids re-encoding large data every save.
+- Dirty-tracking player data and debouncing database saves cuts write load; keep raw encoded JSON for unchanged fields to skip re-encoding large data every save.
 - Batching/capping logs and redacting secret-looking fields before logging keeps logs safe.
 
 ## Keep It Simple
 
-- Do not build framework structure when a smaller direct b3sty-style resource is enough.
+- No framework structure when a smaller direct b3sty-style resource is enough.
 - Do not eager-load config modules a runtime does not need.
-- Keep the security/performance ideas, but keep the code shape simple and readable.
+- Keep the security/performance ideas; keep the code shape simple and readable.
 
 ## Quick-Reference Checklists
 
-Condensed reminders - the full rules and examples live in `skills/common/security-performance.md`.
+Condensed reminders; full rules and examples in `skills/common/security-performance.md`.
 
 ### Security
 - Server owns important state.
@@ -37,7 +36,7 @@ Condensed reminders - the full rules and examples live in `skills/common/securit
 - Valuable actions have duplicate/replay protection, not just cooldowns.
 - Rewards, money, items, jobs, permissions, and ownership are checked server-side.
 - Replicated state bag writes are server-side; clients only request changes and render from state.
-- Client-provided coords, entity IDs, and net IDs are validated against server-side state or ignored.
+- Client-provided coords, entity IDs, and net IDs are validated against server state or ignored.
 - Shared/client config is public; secrets and authoritative economy logic stay server-side.
 - Public inter-resource interfaces validate bad input at the boundary.
 - Secrets are server-only; logs redact and cap.

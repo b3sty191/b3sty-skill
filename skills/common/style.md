@@ -2,8 +2,7 @@
 
 ## Core Principles
 
-- Prefer direct, readable code over heavy abstraction.
-- Hardcoded values are preferred when they make the logic easier to read in place.
+- Prefer direct, readable code over heavy abstraction; hardcoded values are preferred when they make the logic easier to read in place.
 - Treat performance and optimization as important requirements, not optional cleanup.
 - Keep related logic and data close together when jumping between files would make the flow harder to understand.
 - Add abstraction only when it removes real duplication or clearly improves maintenance.
@@ -44,7 +43,7 @@
       -- ...
   end
   ```
-- Config and data files should usually return a table:
+- Config and data files usually return a table:
   ```lua
   return {
       ["Category Limit"] = {
@@ -71,32 +70,21 @@
 - Runtime access may use bracket or dot style based on the existing code and hot-path readability.
 - Use bracket access for keys with spaces or dynamic names.
 - In hot paths, cache config/data lookup results in locals instead of repeating deep table access.
-- For static runtime fields, dot access is acceptable when it is already the project style and reads clearly.
 - Inline values such as model names, bones, positions, rotations, categories, limits, and event names are fine when they are clearer beside the logic that uses them.
 - Add LuaDoc `---@param` annotations for reusable helper functions, exports, callbacks, and native wrappers when parameter meaning is not obvious.
 
 ## CfxLua Syntax
 
-- In RedM/FiveM CfxLua code, b3sty uses the supported compound assignment operators when they make code shorter and clearer.
-- Supported CfxLua compound assignment operators:
-  - `+=`
-  - `-=`
-  - `*=`
-  - `/=`
-  - `<<=`
-  - `>>=`
-  - `&=`
-  - `|=`
-  - `^=` - bitwise XOR (`x = x ~ y`), NOT exponentiation. Binary `^` is power in Lua, so write `x = x ^ y` for powers; `^=` needs integer-representable operands.
+- In RedM/FiveM CfxLua code, b3sty uses the supported compound assignment operators when they make code shorter and clearer: `+=`, `-=`, `*=`, `/=`, `<<=`, `>>=`, `&=`, `|=`, `^=`.
+- `^=` is bitwise XOR (`x = x ~ y`), NOT exponentiation. Binary `^` is power in Lua, so write `x = x ^ y` for powers; `^=` needs integer-representable operands.
 - Do not use `++` or `--`; CfxLua does not implement increment/decrement operators.
 - Do not assume these operators work in standard Lua, standalone Lua tools, or non-Cfx runtimes.
-- Prefer compound assignment for simple updates such as counters, bit flags, and accumulated values:
+- Prefer compound assignment for simple updates such as counters, bit flags, and accumulated values, unless the expression becomes harder to read than the expanded form:
   ```lua
   count += 1
   flags |= visibleFlag
   mask &= allowedFlag
   ```
-- Avoid compound assignment when the expression becomes harder to read than the expanded form.
 
 ## Config Splitting
 

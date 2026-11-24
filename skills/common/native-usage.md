@@ -1,96 +1,44 @@
 # Native Usage — Calling Natives From Lua
 
-Use this file when writing or reviewing CfxLua code that calls game natives, when translating an entry from the generated native references into a working Lua call, or when a native call compiles but misbehaves.
-
-The generated references that document every native are:
-
-- `references/natives/fivem-gta5-natives.md` — GTA V / FiveM.
-- `references/natives/redm-rdr3-natives.md` — RDR3 / RedM.
-
-`skills/common/native-rules.md` holds the policy layer (safety, caching, performance, when to wrap). This file holds the mechanics: how to read a doc entry and turn it into a correct Lua call.
+Mechanics: read a doc entry, turn it into a correct CfxLua call, debug a call that compiles but misbehaves. Policy (safety, caching, performance, when to wrap): `skills/common/native-rules.md`. References: `references/natives/fivem-gta5-natives.md` (GTA V / FiveM), `references/natives/redm-rdr3-natives.md` (RDR3 / RedM).
 
 ## Contents
 
-- Lookup Workflow
-- Search Recipes
-- Reading A Doc Entry
-- RedM Confidence Policy
-- Name Conversion (Docs To Lua)
-- Type Mapping
-- Hashes
-- Vectors
-- Named Native Calls And Out Params
-- Calling By Hash With Citizen.InvokeNative
-- InvokeNative Pitfalls
-- Struct Natives (RDR3 `Any*`)
-- Client, Server, And Shared Context
-- Game Builds
-- Wrappers And LuaDoc
-- Verification Loop
+Lookup Workflow · Search Recipes · Reading A Doc Entry · RedM Confidence Policy · Name Conversion · Type Mapping · Hashes · Vectors · Named Native Calls And Out Params · Calling By Hash · InvokeNative Pitfalls · Struct Natives · Client, Server, And Shared Context · Game Builds · Wrappers And LuaDoc · Verification Loop
 
 ## Lookup Workflow
 
-1. Pick the reference file for the target game. Never assume a native exists or behaves the same in the other game.
-2. Search the file with `rg` (recipes below); do not open the whole file.
-3. Read the full entry: hash, return type, parameters, behavior, notes, and (RedM) build + confidence.
-4. Check `memory/common/native-bugs.md` and the matching `memory/fivem/` or `memory/redm/` file for known quirks before trusting the documented behavior.
-5. Write the call using the conversion rules below.
-6. Verify in game following the Verification Loop, and record new quirks in `memory/` with date and game build.
+1. Pick the reference for the target game; never assume a native exists or behaves the same in the other game.
+2. `rg` the entry (recipes below) rather than opening the file, and read it whole: hash, return type, params, behavior, notes, and (RedM) build + confidence.
+3. Check `memory/common/native-bugs.md` and the matching `memory/fivem/` or `memory/redm/` file for known quirks before trusting documented behavior.
+4. Write the call with the rules below, verify in game (Verification Loop), and record new quirks in `memory/` with date and game build.
 
 ## Search Recipes
 
-Headings in both files have the shape `` ### `NATIVE_NAME` ``. Use `.` in the pattern to avoid shell-escaping backticks.
+Headings are `` ### `NATIVE_NAME` ``; use `.` in the pattern to avoid shell-escaping backticks. Search only the matching game file; raise `-A` for long Behavior/Notes blocks.
 
-- Exact native by name:
-  ```
-  rg -n -A 20 '^### .SET_PED_AMMO_BY_TYPE.' references/natives/redm-rdr3-natives.md
-  ```
-- Native by hash (works even when only the hash is known):
-  ```
-  rg -n -B 3 -A 20 '0x5FD1E1F011E76D7E' references/natives/redm-rdr3-natives.md
-  ```
-- Fuzzy discovery by keyword (list candidates first, then open the winner):
-  ```
-  rg -n '^### ' references/natives/redm-rdr3-natives.md | rg -i 'ammo'
-  ```
-- Jump to a namespace section:
-  ```
-  rg -n '^## WEAPON$' references/natives/redm-rdr3-natives.md
-  ```
-
-Increase `-A` when an entry has long Behavior/Notes blocks. Search the one matching game file only.
+- Name: `rg -n -A 20 '^### .SET_PED_AMMO_BY_TYPE.' references/natives/redm-rdr3-natives.md`
+- Hash only: `rg -n -B 3 -A 20 '0x5FD1E1F011E76D7E' references/natives/redm-rdr3-natives.md`
+- Fuzzy, then open the winner: `rg -n '^### ' references/natives/redm-rdr3-natives.md | rg -i 'ammo'`
+- Namespace: `rg -n '^## WEAPON$' references/natives/redm-rdr3-natives.md`
 
 ## Reading A Doc Entry
 
-FiveM entry shape (verbatim from the upstream repo):
-
-- Heading: `` ### `NATIVE_NAME` ``.
-- Meta line: `0x<long hash>` (the native's identity hash — the one used with `Citizen.InvokeNative`), optionally `0x<short hash>` (a legacy/alternate hash — do not invoke with it), and the return type.
-- A C signature block, then verbatim description and parameter list.
-- `cs_type(...)` markers in signatures are upstream codegen type overrides; trust the effective outer type and test in game when the marshalling looks ambiguous.
-
-RedM entry shape (generated analysis):
-
-- Heading, then a meta line: hash · return type · minimum `build` · `confidence` · closest GTA V equivalent.
-- Summary, **Parameters**, **Returns**, **Behavior**, and **Notes** sections.
-- Notes may name the `apiset` (client/server) and struct field layouts (`f_0`, `f_1`, ...). Respect both.
-- The GTA V equivalent is for porting orientation only; verify the RDR3 signature independently before sharing code.
-
-The namespace heading a native sits under is organization only. It never appears in the Lua function name.
+- FiveM (verbatim upstream): heading, meta line with `0x<long hash>` (identity hash, the one for `Citizen.InvokeNative`), optionally `0x<short hash>` (legacy/alternate — never invoke with it) and return type, then a C signature, description and params. `cs_type(...)` markers are upstream codegen type overrides: trust the effective outer type, test in game when marshalling looks ambiguous.
+- RedM (generated analysis): heading, meta line of hash · return type · minimum `build` · `confidence` · closest GTA V equivalent, then Summary, **Parameters**, **Returns**, **Behavior**, **Notes**. Notes may name the `apiset` (client/server) and struct field layouts (`f_0`, `f_1`, ...) — respect both. The GTA V equivalent is porting orientation only; verify the RDR3 signature independently before sharing code.
+- The namespace heading a native sits under is organization only; it never appears in the Lua function name.
 
 ## RedM Confidence Policy
 
-RedM entries carry a confidence level. Calibrate trust to it:
-
-- `documented` — trust the entry; still check `memory/redm/native-bugs.md` for runtime quirks.
-- `high` — trust for normal use; sanity-check the effect the first time it runs.
-- `medium` / `inferred` — treat as a hypothesis. Test in game before shipping, and do not build server authority or valuable outcomes on the inferred behavior.
-- `low` — verify everything in game first. Prefer a `documented`/`high` alternative when one exists.
-- When testing confirms or refutes an entry, record the result in `memory/redm/native-bugs.md` with date and game build so the next task starts from a fact.
+- `documented` — trust it; still check `memory/redm/native-bugs.md` for runtime quirks.
+- `high` — trust for normal use; sanity-check the effect on first run.
+- `medium` / `inferred` — a hypothesis: test in game before shipping, never put server authority or valuable outcomes on it.
+- `low` — verify everything in game first; prefer a `documented`/`high` alternative.
+- Record what testing confirms or refutes in `memory/redm/native-bugs.md` with date and game build.
 
 ## Name Conversion (Docs To Lua)
 
-This is not a style convention — it is the literal codegen the CitizenFX Lua runtime uses to register every native global, shared by FiveM and RedM (`ext/natives/codegen_out_lua.lua`, function `printFunctionName`):
+Not a style convention — the literal codegen the CitizenFX Lua runtime uses to register every native global in both games (`ext/natives/codegen_out_lua.lua`, `printFunctionName`):
 
 ```lua
 native.name:lower():gsub('0x', 'n_0x'):gsub('_(%a)', string.upper):gsub('(%a)(.+)', function(a, b)
@@ -98,27 +46,15 @@ native.name:lower():gsub('0x', 'n_0x'):gsub('_(%a)', string.upper):gsub('(%a)(.+
 end)
 ```
 
-Read as four passes over the doc name, applied identically to every native in both games:
+Four passes: lowercase; literal `0x` → `n_0x` (only hash-only names); every `_` immediately followed by a **letter** collapses into that letter uppercased, anywhere including a leading `_`; uppercase the first letter. So `GET_ENTITY_HEALTH` → `GetEntityHealth(entity)`, `SET_PED_AMMO_BY_TYPE` → `SetPedAmmoByType(ped, ammoType, ammo)`, `_ACTIVATE_COVER_LAYER` → `ActivateCoverLayer(coverLayer)`.
 
-1. Lowercase the whole name.
-2. Replace a literal `0x` substring with `n_0x` (only matters for hash-only names with no friendly name).
-3. Collapse every `_` immediately followed by a **letter** into that letter, uppercased, dropping the underscore — regardless of position, including a leading underscore.
-4. Uppercase the first letter of the result.
-
-Worked examples:
-
-- `GET_ENTITY_HEALTH` → `GetEntityHealth(entity)`.
-- `SET_PED_AMMO_BY_TYPE` → `SetPedAmmoByType(ped, ammoType, ammo)`.
-- `_ACTIVATE_COVER_LAYER` → `ActivateCoverLayer(coverLayer)` (the leading `_` collapses the same as any other).
-- Hash-only heading (no friendly name, e.g. `0x1234ABCD...`) → `N_0x1234abcd...` (step 2 turns `0x` into `n_0x` before capitalization; the identifier must start with a letter). This global exists, but calling by explicit hash with a `--[[NAME]]` comment reads better in review.
-
-Edge case — **an underscore followed by a digit does not collapse**, because the pattern only matches a following letter (`%a`), not a digit. A native with a trailing `_2`-style segment keeps the underscore in the Lua name (for example a hypothetical `..._INDEX_2` becomes `...Index_2`, not `...Index2`). Check the actual global in an F8/server console with `type(FunctionName)` when a name has a digit segment and the direct call is `nil`.
-
-- If the expected global is still `nil` at runtime after accounting for the digit edge case, the running artifact's codegen predates the name (renamed/newer native); fall back to `Citizen.InvokeNative` with the doc hash. That works on the client when the running game build has the native. It does not work on the server: FXServer registers no game hashes (its server-side natives, including the OneSync entity subset, use CFX hashes), so a hash from these references hits no handler and silently returns `false`/nothing.
-- A native can have multiple registered names (`aliases` in the codegen); each alias name goes through this same conversion and becomes its own valid global for the same underlying call. The generated reference files here do not enumerate aliases — if a project uses a different name than the doc heading for what looks like the same native, verify the hash matches before assuming it is unrelated.
-- When calling by hash, keep the doc name beside it so the call stays greppable against the reference:
+- Hash-only heading (no friendly name, e.g. `0x1234ABCD...`) → global `N_0x1234abcd...`; pass 2 makes the identifier start with a letter. It exists, but an explicit hash call with a `--[[NAME]]` comment reads better in review.
+- Edge case: `_` before a **digit** does not collapse (`%a` is letters only), so a trailing `_2`-style segment keeps it (`..._INDEX_2` → `...Index_2`, not `...Index2`). When a digit segment leaves the direct call `nil`, check the real global with `type(FunctionName)` in an F8/server console.
+- Still `nil`? The artifact's codegen predates the name (renamed/newer native): use `Citizen.InvokeNative` with the doc hash. Client only, and only if the running build has the native — never the server, which registers no game hashes (FXServer's server-side natives, including the OneSync entity subset, use CFX hashes), so a reference hash hits no handler and silently returns `false`/nothing.
+- A native can have several registered names (`aliases` in the codegen), each converting into its own valid global for the same call. These references do not list aliases: when a project uses a different name for what looks like the same native, verify the hash before assuming it is unrelated.
+- Keep the doc name beside a hash call so it stays greppable against the reference:
   ```lua
-  -- RDR3 hash (GTA V: 0xEEF059FAD016D209)
+  -- int GET_ENTITY_HEALTH(Entity entity) — RDR3 hash (GTA V: 0xEEF059FAD016D209)
   local health = Citizen.InvokeNative(0x82368787EA73C0F7 --[[GET_ENTITY_HEALTH]], entity, Citizen.ResultAsInteger())
   ```
 
@@ -130,7 +66,7 @@ Edge case — **an underscore followed by a digit does not collapse**, because t
 | `Hash` | integer hash — see Hashes |
 | `int` | integer number |
 | `float` | float number — see InvokeNative Pitfalls |
-| `BOOL` | non-zero integer (usually `1`) or `false` from named natives and from a bare `Citizen.InvokeNative` (0 becomes `false`); `1`/`0` only when `Citizen.ResultAsInteger()` is appended |
+| `BOOL` | non-zero integer (usually `1`) or `false`, from named natives and bare `Citizen.InvokeNative` alike; `1`/`0` only with `Citizen.ResultAsInteger()` |
 | `char*` (param) | Lua string |
 | `char*` (return) | Lua string or `nil` — guard before use |
 | `float x, float y, float z` | three separate numbers |
@@ -140,82 +76,64 @@ Edge case — **an underscore followed by a digit does not collapse**, because t
 
 ## Hashes
 
-- `joaat("weapon_revolver_cattleman")` computes a Jenkins hash at runtime; CfxLua provides `joaat` as a built-in.
-- Backtick hash literals compile the hash at load time and are preferred for constants: `` `WEAPON_REVOLVER_CATTLEMAN` ``.
-- Both are CfxLua extensions — RedM/FiveM code only, never standalone Lua tooling (same rule as compound operators in `skills/common/style.md`).
+- `joaat("weapon_revolver_cattleman")` hashes at runtime (CfxLua built-in); backtick literals compile at load time and are preferred for constants: `` `WEAPON_REVOLVER_CATTLEMAN` ``. Both are CfxLua extensions — RedM/FiveM only, never standalone Lua tooling (as with compound operators in `skills/common/style.md`).
 - `GetHashKey(name)` works too but is a native call; prefer `joaat`/backtick literals in hot paths.
-- Lua may print hashes as negative numbers (signed 32-bit). Compare hashes to hashes (`GetEntityModel(ped) == joaat("player_zero")`), never to hex strings or manually typed decimal values.
+- Lua may print hashes as negative numbers (signed 32-bit): compare hashes to hashes (`GetEntityModel(ped) == joaat("player_zero")`), never to hex strings or typed decimals.
 
 ## Vectors
 
-- Construct with `vector3(x, y, z)`; `vector2`, `vector4`, and `quat` also exist.
-- Natives declared with `Vector3` params take one vector3; natives declared `float x, float y, float z` take three numbers — read the signature, do not guess.
-- Coordinate-returning natives like `GetEntityCoords` return a real `vector3`; use `.x/.y/.z` fields directly.
-- `#(a - b)` returns the distance between two vectors; per `skills/common/native-rules.md`, prefer cheap early-out checks before exact distance work in hot paths.
+- `vector3(x, y, z)`; `vector2`, `vector4`, `quat` also exist. A `Vector3` param takes one vector3, a `float x, float y, float z` signature three numbers — read the signature, do not guess.
+- Coordinate returns like `GetEntityCoords` are real `vector3`s; use `.x/.y/.z` directly.
+- `#(a - b)` is the distance; per `skills/common/native-rules.md`, prefer cheap early-outs before exact distance work in hot paths.
 
 ## Named Native Calls And Out Params
 
-- Named natives are plain global functions. `BOOL` params take `true`/`false`. `BOOL` returns come back as `1`/`false`, not real booleans: use them directly in `if`/`not` and never compare `== true`.
-- Output pointer params (`int*`, `float*`, `Vector3*`) usually do not appear in the Lua argument list (exception: when a native's only pointer is its last param, the generated function keeps a positional slot for it - an optional initial value for `int*`/`float*`, see the caveat under Calling By Hash). They come back as extra return values after the primary return, in declaration order:
+- Named natives are plain globals; `BOOL` params take `true`/`false`, and `BOOL` returns are `1`/`false`, never real booleans: use them directly in `if`/`not` (see pitfalls).
+- Out pointers (`int*`, `float*`, `Vector3*`) are usually absent from the Lua arg list — exception: a native whose only pointer is its last param keeps a positional slot for it (an optional initial value for `int*`/`float*`; see the Calling By Hash caveat). They return as extra values after the primary return, in declaration order:
   ```lua
   -- BOOL GET_GROUND_Z_FOR_3D_COORD(float x, float y, float z, float* groundZ, BOOL includeWater)
   local found, groundZ = GetGroundZFor_3dCoord(x + 0.0, y + 0.0, z + 0.0, false)
   ```
-- When a native is void with output pointers, the outputs are the only return values.
-- Some upstream signatures still show an initial value being passed for an out param; when the runtime asks for it, pass a sane default (usually `0` or `0.0`).
+- Void native with out pointers: the outputs are the only return values.
+- When an upstream signature shows an initial value for an out param and the runtime asks for it, pass a sane default (`0` or `0.0`).
 
 ## Calling By Hash With Citizen.InvokeNative
 
-`Citizen.InvokeNative(hash, args...)` invokes any native by its identity hash. Marshal results explicitly:
+`Citizen.InvokeNative(hash, args...)` invokes any native by identity hash (example under Name Conversion). Marshal results explicitly:
 
-- With no `ResultAs*` marker, a zero result becomes `false` and a non-zero result an integer (see pitfalls). Append `Citizen.ResultAsInteger()` to any int result that can legitimately be 0.
-- `float` result: append `Citizen.ResultAsFloat()`.
-- `char*` result: append `Citizen.ResultAsString()`.
-- `Vector3` result: append `Citizen.ResultAsVector()`.
-- 64-bit results (rare): `Citizen.ResultAsLong()`.
-- When you pass any `Citizen.PointerValue*` marker and also want the native's own return value, append `Citizen.ReturnResultAnyway()` or the matching `Citizen.ResultAs*`. Without it, only the pointer outputs are returned.
-
-```lua
--- int GET_ENTITY_HEALTH(Entity entity) — RDR3 0x82368787EA73C0F7
-local health = Citizen.InvokeNative(0x82368787EA73C0F7 --[[GET_ENTITY_HEALTH]], entity, Citizen.ResultAsInteger())
-```
-
-Output pointers by hash use placeholder markers. The outputs come back in order after the primary return value only if you also pass `Citizen.ReturnResultAnyway()` or a `Citizen.ResultAs*`. Otherwise the outputs are the only return values:
-
-- `Citizen.PointerValueInt()`, `Citizen.PointerValueFloat()`, `Citizen.PointerValueVector()` for plain out params.
-- `Citizen.PointerValueIntInitialized(v)` / `Citizen.PointerValueFloatInitialized(v)` when the native reads the value before writing it.
-- Caveat: in current CfxLua, `Citizen.PointerValueFloatInitialized(v)` ignores `v` and starts the pointer at 0.0 (upstream bug in `Lua_GetPointerField`). This also affects named natives whose only pointer is a trailing `float*` (codegen passes it through `PointerValueFloatInitialized`). For in/out float params, verify in game, or pass a writable buffer (`string.blob(string.pack('<f', v))` or DataView, never a plain short string - see Struct Natives) and `string.unpack` the value back.
+- No `ResultAs*` marker: a zero result becomes `false`, non-zero an integer. Append `Citizen.ResultAsInteger()` to any int result that can legitimately be 0.
+- `Citizen.ResultAsFloat()` for `float`, `Citizen.ResultAsString()` for `char*`, `Citizen.ResultAsVector()` for `Vector3`, `Citizen.ResultAsLong()` for 64-bit results (rare).
+- Any `Citizen.PointerValue*` marker makes the pointer outputs the only return values; add `Citizen.ReturnResultAnyway()` or the matching `Citizen.ResultAs*` to also get the native's own return, which then comes first with the outputs in order after it.
+- Markers: `Citizen.PointerValueInt()`, `Citizen.PointerValueFloat()`, `Citizen.PointerValueVector()`; `Citizen.PointerValueIntInitialized(v)` / `Citizen.PointerValueFloatInitialized(v)` when the native reads the value before writing it.
+- Caveat: current CfxLua `Citizen.PointerValueFloatInitialized(v)` ignores `v` and starts the pointer at 0.0 (upstream bug in `Lua_GetPointerField`); it also hits named natives whose only pointer is a trailing `float*` (codegen routes it through `PointerValueFloatInitialized`). For in/out floats, verify in game or pass a writable buffer (`string.blob(string.pack('<f', v))` or DataView, never a plain short string — see Struct Natives) and `string.unpack` the value back.
 
 ```lua
 -- void native(Entity transport, int* flags) — flags returns as the call result
 local flags = Citizen.InvokeNative(hash, transport, Citizen.PointerValueInt())
 
 -- BOOL GET_GROUND_Z_FOR_3D_COORD(float x, float y, float z, float* groundZ, BOOL includeWater)
--- GTA V hash (RDR3: 0x24FA4267BB8D2431). Without ReturnResultAnyway, `found` would hold the ground Z and `groundZ` would be nil.
+-- GTA V hash (RDR3: 0x24FA4267BB8D2431); without ReturnResultAnyway, found would hold the ground Z and groundZ nil
 local found, groundZ = Citizen.InvokeNative(0xC906A7DAB05C8D2B --[[GET_GROUND_Z_FOR_3D_COORD]], x + 0.0, y + 0.0, z + 0.0, Citizen.PointerValueFloat(), false, Citizen.ReturnResultAnyway())
 ```
 
 ## InvokeNative Pitfalls
 
-- **BOOL results are `1`/`false`, never `true`, and `0` is truthy in Lua.** A bare InvokeNative or named BOOL is `1`/`false` and is safe in `if`. With `Citizen.ResultAsInteger()` it is `1`/`0`, and `0` is truthy, so compare `~= 0` (or `== 1`). Never compare any BOOL `== true`.
-- **Float params must be float-subtype numbers, in named and hash calls alike.** The invoker marshals by the Lua value, not the native signature: `1` marshals as an integer and corrupts a float argument, so `SetEntityHeading(ped, 90)` is as broken as the hash call. Write literals as `1.0` and coerce computed values with `+ 0.0` (check with `math.type(v) == "float"` when unsure).
-- **Pass the documented default explicitly** (`0`, `0.0`, `false`) instead of `nil` for "optional" params. `nil` silently marshals as a raw 0 (reads as 0/0.0/false/NULL), which hides intent and can mask a missing or misspelled variable.
+- **BOOL results are `1`/`false`, never `true`, and `0` is truthy in Lua.** A bare InvokeNative or named BOOL is `1`/`false` and safe in `if`; under `Citizen.ResultAsInteger()` it is `1`/`0`, so compare `~= 0` (or `== 1`). Never compare any BOOL `== true`.
+- **Float params must be float-subtype numbers, named and hash calls alike.** The invoker marshals by Lua value, not signature: `1` marshals as an integer and corrupts a float argument, so `SetEntityHeading(ped, 90)` is as broken as the hash call. Write `1.0`, coerce with `+ 0.0` (check `math.type(v) == "float"`).
+- **Pass the documented default explicitly** (`0`, `0.0`, `false`), never `nil`, for "optional" params: `nil` silently marshals as a raw 0 (reads as 0/0.0/false/NULL), hiding intent and masking a missing or misspelled variable.
 - **String returns can be `nil`;** guard before concatenation or `joaat`.
 - **Argument count must match the signature exactly.** Extra or missing args silently corrupt the call; recount against the doc entry when a hash call misbehaves.
-- **An unregistered native, and every argument past a native's known parameter count, mangles 64-bit integers.** The invoker overwrites the upper 32 bits of each non-zero, non-pointer integer argument with a fixed DEADBEEF marker, so only the low 32 bits survive. Pass large values as strings, or split them into two 32-bit arguments (verified: `ScriptInvoker.cpp`, FXServer 35945).
-- Prefer the named global when it exists: it self-documents and handles out-params and Hash-name strings for you. It does not coerce floats, so float params still need float-subtype values (`90.0`, `v + 0.0`). BOOL returns are still `1`/`false`.
+- **An unregistered native, and every argument past a native's known parameter count, mangles 64-bit integers.** The invoker overwrites the upper 32 bits of each non-zero, non-pointer integer argument with a fixed DEADBEEF marker, so only the low 32 bits survive. Pass large values as strings or split them into two 32-bit args (verified: `ScriptInvoker.cpp`, FXServer 35945).
+- Prefer the named global when it exists: it self-documents and handles out-params and Hash-name strings. It still does not coerce floats (`90.0`, `v + 0.0` required) and its BOOL returns are still `1`/`false`.
 
 ## Struct Natives (RDR3 `Any*`)
 
-Many RDR3 natives pack arguments or results into one struct pointer instead of discrete params. The RedM reference marks these as `Any*` and its Notes often give the field layout (`f_0`, `f_1`, `f_2`, ...).
+Many RDR3 natives pack args or results into one struct pointer instead of discrete params; the RedM reference marks these `Any*` and its Notes often give the field layout (`f_0`, `f_1`, `f_2`, ...).
 
-- **CfxLua passes a Lua string argument as a pointer to its bytes**, so an `Any*` struct can be built in pure Lua with `string.pack` (or `string.blob` plus a writer). For output structs, use a `string.blob` buffer or one longer than 40 bytes, so the native never writes into an interned short string. Then read the fields back with `string.unpack`.
-- **`dataview.lua` (gottfriedleibniz) is the common pure-Lua helper for this.** It defines a global `DataView` (`DataView.ArrayBuffer(size)`, `:SetInt32`, `:GetInt32`, `:Buffer()`). Copy it into the resource as a `client_script`/`shared_script` listed before the code that uses it, or reference it with `'@otherresource/dataview.lua'`. Do not assume the global exists. Before using it:
-  - Confirm the target project already ships `dataview.lua` (or an equivalent helper), or get explicit sign-off to add it.
-  - List the file in `fxmanifest.lua` before its users. Declare a `dependency` only when the project really ships DataView as its own resource (see `skills/common/multi-resource.md`).
-  - Verify the exact API surface (method names, buffer sizing, endianness) against whatever `DataView` build the project actually uses; names above are illustrative, not a spec.
-- Script struct fields are commonly 8-byte slots: `f_0` at offset 0, `f_1` at offset 8, `f_2` at offset 16, and so on — but confirm this against the doc Notes for the specific native, not by assumption.
-- Illustrative shape once `dataview.lua` (or an equivalent) is confirmed loaded, plus the same struct with stock `string.pack`:
+- **CfxLua passes a Lua string argument as a pointer to its bytes**, so an `Any*` struct can be built in pure Lua with `string.pack` (or `string.blob` plus a writer). Output structs need a `string.blob` buffer or one longer than 40 bytes, so the native never writes into an interned short string; read fields back with `string.unpack`.
+- Fields are commonly 8-byte slots (`f_0` at offset 0, `f_1` at 8, `f_2` at 16, ...) — confirm against the doc Notes for that native, never by assumption.
+- **`dataview.lua` (gottfriedleibniz) is the common pure-Lua helper**, defining a global `DataView` (`DataView.ArrayBuffer(size)`, `:SetInt32`, `:GetInt32`, `:Buffer()`). Copy it in as a `client_script`/`shared_script` listed before its users, or reference `'@otherresource/dataview.lua'`; never assume the global exists. First confirm the project already ships it or an equivalent (otherwise get explicit sign-off to add it), list it in `fxmanifest.lua` before its users — a `dependency` only if DataView really ships as its own resource (`skills/common/multi-resource.md`) — and verify the exact API surface (method names, buffer sizing, endianness) against the build in use; names here are illustrative, not a spec.
+- Example (DataView, then the same struct with stock `string.pack`):
   ```lua
   -- _ADD_COVER_BLOCKING_AREA (0x733077295AB51304): f_0 volume handle, f_1 = 1, f_2 = flags
   local struct = DataView.ArrayBuffer(8 * 3)
@@ -228,22 +146,22 @@ Many RDR3 natives pack arguments or results into one struct pointer instead of d
   local packed = string.pack('<i4xxxxi4xxxxi4xxxx', volumeHandle, 1, -1)
   Citizen.InvokeNative(0x733077295AB51304 --[[_ADD_COVER_BLOCKING_AREA]], packed)
   ```
-- For output structs, size the buffer generously, call the native, then read fields back at the matching offsets (`string.unpack`, or DataView `GetInt32`/`GetFloat32`/`GetInt64`).
-- An undersized buffer or wrong layout can crash the client. Verify the layout from the doc Notes, test in game, and record the confirmed layout and the buffer helper actually used (`string.pack` or `dataview.lua`) in `memory/redm/native-bugs.md`.
-- Prefer a non-struct alternative native when one exists — struct natives should be a last resort given the extra helper and crash risk. Wrap unavoidable struct natives in one controller method so the buffer layout and helper assumption live in exactly one place.
+- Output structs: size the buffer generously, call the native, read fields at the matching offsets (`string.unpack`, or DataView `GetInt32`/`GetFloat32`/`GetInt64`).
+- An undersized buffer or wrong layout can crash the client: verify the layout from the doc Notes, test in game, and record the confirmed layout and helper used (`string.pack` or `dataview.lua`) in `memory/redm/native-bugs.md`.
+- Prefer a non-struct alternative when one exists — struct natives are a last resort given the extra helper and crash risk. Wrap unavoidable ones in one controller method so layout and helper assumption live in exactly one place.
 
 ## Client, Server, And Shared Context
 
-- Most game natives in these references are client-only. The server runs CFX runtime natives plus a limited OneSync subset of game natives (entity getters/setters, player state).
-- CFX natives (`RegisterCommand`, `GetResourceState`, state bag APIs, `GetGameBuildNumber`, ...) are not in the generated files; verify them against the CFX namespace at `docs.fivem.net/natives` instead.
+- Most game natives here are client-only; the server runs CFX runtime natives plus a limited OneSync subset of game natives (entity getters/setters, player state).
+- CFX natives (`RegisterCommand`, `GetResourceState`, state bag APIs, `GetGameBuildNumber`, ...) are not in the generated files; verify them against the CFX namespace at `docs.fivem.net/natives`.
 - When a RedM entry names an `apiset`, respect it — a client-apiset native does nothing useful on the server.
-- `IsDuplicityVersion()` returns `true` on the server; use it in shared scripts that must branch by side.
-- Server-side game natives can behave differently from their client versions. Known cases live in `memory/`: RedM server `GetEntityHealth` returning `0`, server `GetVehiclePedIsIn` returning the last vehicle, `GetEntityModel` returning `0` during `entityCreating`. Check the matching `memory/*/native-bugs.md` before building server logic on a native read.
+- `IsDuplicityVersion()` returns `true` on the server; use it in shared scripts that branch by side.
+- Server-side game natives can differ from their client versions; known cases in `memory/`: RedM server `GetEntityHealth` returning `0`, server `GetVehiclePedIsIn` returning the last vehicle, `GetEntityModel` returning `0` during `entityCreating`. Check the matching `memory/*/native-bugs.md` before building server logic on a native read.
 
 ## Game Builds
 
-- RedM entries carry a minimum `build` (for example `build 1207`); FiveM natives may require a newer GTA V build than the server enforces.
-- The running build must satisfy the native's minimum. On the client, compare `GetGameBuildNumber()` against the native's minimum build. On the server, `GetGameBuildNumber()` returns 0, so read the enforced build with `GetConvarInt('sv_enforceGameBuild', 0)` instead. Treat 0 as the server default or unknown build and verify behavior.
+- RedM entries carry a minimum `build` (e.g. `build 1207`); FiveM natives may need a newer GTA V build than the server enforces. The running build must satisfy the minimum.
+- Client: compare `GetGameBuildNumber()` against it. Server: `GetGameBuildNumber()` returns 0, so read the enforced build with `GetConvarInt('sv_enforceGameBuild', 0)`, treating 0 as the server default or unknown build, then verify behavior.
 - Guard optional newer-build natives with a build check and an explicit fallback instead of letting them fail silently on older servers.
 - When behavior differs by build, record the build number in the `memory/` entry — the templates already require the `Game build:` field.
 
@@ -252,8 +170,6 @@ Many RDR3 natives pack arguments or results into one struct pointer instead of d
 - Keep one-off native calls inline beside the behavior they control (b3sty style).
 - Wrap a native in a controller method when it is called by hash, needs a workaround, or is reused across call sites — the quirk then lives in exactly one place:
   ```lua
-  local Controller = {}
-
   ---@param ped number
   ---@return number vehicle Current vehicle handle, or 0 when not seated.
   function Controller:GetCurrentVehicle(ped)
@@ -264,17 +180,9 @@ Many RDR3 natives pack arguments or results into one struct pointer instead of d
       return GetVehiclePedIsIn(ped, false)
   end
   ```
-- Add LuaDoc `---@param`/`---@return` to wrappers whose parameter meaning is not obvious, matching `skills/common/native-rules.md`.
-- Reference the `memory/` entry above wrappers that encode a workaround so the reason survives review.
-- Caching, loop hygiene, and per-frame budgets stay under `skills/common/native-rules.md` — do not duplicate them here.
+- Add LuaDoc `---@param`/`---@return` to wrappers whose parameter meaning is not obvious, matching `skills/common/native-rules.md`, and reference the `memory/` entry above a wrapper that encodes a workaround so the reason survives review.
+- Caching, loop hygiene, and per-frame budgets stay in `skills/common/native-rules.md` — do not duplicate them here.
 
 ## Verification Loop
 
-Before finishing native-heavy work, confirm:
-
-1. Name, hash, parameter order, and return type match the doc entry for the **target game**.
-2. The call runs on the right side (client/server) and the running build satisfies the native's minimum build.
-3. `memory/common/native-bugs.md` and the game-specific `memory/` file were checked for known quirks.
-4. Calls marshal correctly: floats are float-subtype (named and hash calls), BOOL results are never compared `== true` (compare `~= 0` under `Citizen.ResultAsInteger()`), int results that can be 0 use `Citizen.ResultAsInteger()`, pointer-marker calls add `Citizen.ReturnResultAnyway()` when the return value is needed, results use the right `Citizen.ResultAs*`, struct buffers match the documented layout.
-5. The effect was observed in game (or the closest available repro) with no console errors.
-6. Newly confirmed quirks, refuted doc entries, or build-specific behavior were recorded in the right `memory/` namespace with date and game build.
+Before finishing native-heavy work: name/hash/param order/return type match the doc entry for the **target game**; the call runs on the right side and the running build meets the native's minimum; `memory/common/native-bugs.md` and the game-specific `memory/` file were checked; marshalling follows the pitfalls above (float subtype, no BOOL `== true`, `Citizen.ResultAsInteger()` on ints that can be 0, `Citizen.ReturnResultAnyway()` with pointer markers, right `Citizen.ResultAs*`, struct buffer matching the layout); the effect was observed in game (or the closest repro) with no console errors; new quirks, refuted entries, or build-specific behavior were recorded in the right `memory/` namespace with date and game build.

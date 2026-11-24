@@ -1,24 +1,12 @@
 # NUI Rules
 
-Use this file when a RedM/FiveM resource has an in-game browser UI (NUI): HTML/CSS/JS (React, Svelte, Vue, or plain JS), `SendNUIMessage`, `RegisterNUICallback`, `SetNuiFocus`, or a `ui_page` in the manifest.
+For in-game browser UI (NUI): HTML/CSS/JS (React, Svelte, Vue, plain JS), `SendNUIMessage`, `RegisterNUICallback`, `SetNuiFocus`, or a `ui_page` in the manifest.
 
-NUI is client-local only. It never carries authority. Treat the Lua<->browser bridge as one more untrusted boundary and keep the server as the source of truth (see `skills/common/security-performance.md`).
+NUI is client-local and never authoritative. Treat the Lua<->browser bridge as one more untrusted boundary; the server stays the source of truth (`skills/common/security-performance.md`).
 
 ## Contents
 
-- Bridge Overview
-- Manifest
-- Lua To Browser
-- Browser To Lua
-- Focus And Input
-- Message Contracts
-- Validation
-- Frontend Hygiene
-- Performance
-- Security
-- Lifecycle And Cleanup
-- Debugging
-- Review Questions
+Bridge Overview, Manifest, Lua To Browser, Browser To Lua, Focus And Input, Message Contracts, Validation, Frontend Hygiene, Performance, Security, Lifecycle And Cleanup, Debugging, Review Questions.
 
 ## Bridge Overview
 
@@ -29,7 +17,7 @@ NUI is client-local only. It never carries authority. Treat the Lua<->browser br
 
 ## Manifest
 
-- Declare the UI entry point and every asset the browser loads:
+- Declare the entry point and every asset the browser loads:
   ```lua
   ui_page 'web/dist/index.html'
 
@@ -41,13 +29,12 @@ NUI is client-local only. It never carries authority. Treat the Lua<->browser br
       'web/fonts/*',
   }
   ```
-- A missing file in `files` is a silent blank or 404 UI. List HTML, CSS, JS, fonts, images, and any nested asset globs explicitly.
-- Keep the built UI in a stable path such as `web/dist/`. Build the framework output into that path; do not ship source/build tooling in the resource.
-- Keep NUI code client-side; never load `ui_page` resources on the server.
+- A file missing from `files` is a silent blank or 404 UI: list HTML, CSS, JS, fonts, images, nested globs explicitly.
+- Build framework output to a stable path such as `web/dist/`, shipping no source or build tooling; never load `ui_page` resources on the server.
 
 ## Lua To Browser
 
-- `SendNUIMessage(table)` JSON-encodes the table and posts it to the browser's `window` `message` event:
+- `SendNUIMessage(table)` JSON-encodes and posts to the browser `window` `message` event, read with `window.addEventListener("message", e => ...)`:
   ```lua
   SendNUIMessage({ action = "open", items = items, title = "Shop" })
   ```
@@ -129,10 +116,9 @@ end)
 
 ## Performance
 
-- Send messages on state change, not on every frame or every UI tick.
-- Debounce rapid client state into a single update message (for example, a search box) instead of sending per keystroke.
-- Keep payloads small; send deltas for large lists instead of re-sending the whole dataset.
-- Avoid polling Lua from the browser on a timer; use Lua-initiated messages or a single request/response.
+- Send on state change, not every frame or UI tick; debounce rapid client state (a search box) into one update instead of one per keystroke.
+- Keep payloads small - deltas for large lists, not the whole dataset.
+- No timer polling of Lua from the browser; use Lua-initiated messages or a single request/response.
 
 ## Security
 
@@ -145,9 +131,7 @@ end)
 - Never round-trip authority through NUI. The UI must not decide money, items, permissions, or access; it only requests them. A `cb({ ok = true })` is a display signal, not a grant.
 - Never grant money/items/permissions directly from a NUI response. Grants happen server-side.
 - Never send webhook URLs, API tokens, server secrets, admin flags, hidden reward logic, or full economy data to the UI.
-- Do not let the UI drive trust: a "you are admin" flag in the UI means nothing. Permission is checked server-side with ACE.
-- A NUI callback that forwards a valuable action must go through the same server validation as the matching `:server:` event.
-- Full hardening rules and the give-value checklist are in `skills/common/client-input-validation.md` -> NUI Callback Hardening and `skills/common/give-value-hardening.md` -> Give-Value Event Hardening.
+- Full hardening and the give-value checklist: `skills/common/client-input-validation.md` -> NUI Callback Hardening and `skills/common/give-value-hardening.md` -> Give-Value Event Hardening.
 
 ## Lifecycle And Cleanup
 
