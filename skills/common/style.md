@@ -12,15 +12,10 @@
 ## Code Shape
 
 - Use explicit names and straightforward control flow.
-- Keep functions focused, but do not split tiny helpers just for the sake of splitting.
-- Do not create helper functions for one-off code unless the inline version is genuinely hard to read or unsafe.
-- Do not create local variables just to avoid hardcoded literals; inline one-off model names, event names, config keys, vector values, and limits when they read clearly beside the logic.
-- Create a local only when the value is reused, expensive to compute, validated before use, mutated, or the inline expression would hide intent.
-- Prefer a clear single-file flow for small resources.
-- Split files when the data or logic becomes large enough that separation improves scanning.
-- Add comments only for non-obvious behavior or temporary workarounds.
-- Do not create framework-like abstractions, dispatchers, or class systems for small resources.
-- Do not make code generic before there is real repeated use.
+- Keep functions focused, but do not split tiny helpers for the sake of splitting, nor create a helper for one-off code unless the inline version is genuinely hard to read or unsafe.
+- Do not create local variables just to avoid hardcoded literals; inline one-off model names, event names, config keys, vector values, and limits when they read clearly beside the logic. Create a local only when the value is reused, expensive to compute, validated before use, mutated, or the inline expression would hide intent.
+- Prefer a clear single-file flow for small resources; split files when the data or logic becomes large enough that separation improves scanning.
+- Do not create framework-like abstractions, dispatchers, or class systems for small resources, and do not make code generic before there is real repeated use.
 - Security and performance matter, but the final code should still be easy to read in b3sty style.
 
 ## Formatting
@@ -34,8 +29,7 @@
 
 ## Lua Style
 
-- Use table modules or local controller objects for resource logic.
-- Prefer method syntax for controller behavior:
+- Use table modules or local controller objects for resource logic, method syntax for controller behavior:
   ```lua
   local Controller = {}
 
@@ -51,7 +45,7 @@
       },
   }
   ```
-- Plain CfxLua `require` cannot load resource files; it only returns already-loaded or built-in modules. With ox_lib loaded (`'@ox_lib/init.lua'` in the manifest), `require('configs.items')` works through ox_lib's `lib.require`. Without ox_lib, load split configs through a small cached loader. Either way, a config read on the client must be listed in `files`.
+- Plain CfxLua `require` cannot load resource files - it only returns already-loaded or built-in modules. With ox_lib loaded (`'@ox_lib/init.lua'` in the manifest), `require('configs.items')` works through ox_lib's `lib.require`; without ox_lib, load split configs through a small cached loader. Either way, a config read on the client must be listed in `files`.
   ```lua
   local loaded = {}
 
@@ -65,10 +59,8 @@
       return loaded[name]
   end
   ```
-- Prefer bracket key declarations like `["Name"] = value` for config/data tables.
-- Bracket keys are especially preferred when the data is meant to be edited by humans or may contain spaces.
-- Runtime access may use bracket or dot style based on the existing code and hot-path readability.
-- Use bracket access for keys with spaces or dynamic names.
+- Prefer bracket key declarations like `["Name"] = value` for config/data tables, especially data edited by humans or containing spaces.
+- Runtime access may use bracket or dot style based on existing code and hot-path readability: bracket for keys with spaces or dynamic names, dot for static runtime fields when it is already the project style and reads clearly.
 - In hot paths, cache config/data lookup results in locals instead of repeating deep table access.
 - Inline values such as model names, bones, positions, rotations, categories, limits, and event names are fine when they are clearer beside the logic that uses them.
 - Add LuaDoc `---@param` annotations for reusable helper functions, exports, callbacks, and native wrappers when parameter meaning is not obvious.
@@ -88,20 +80,17 @@
 
 ## Config Splitting
 
-- Use `config.lua` for small/shared config that is broadly needed by the resource.
-- When config/data grows large or has separate concerns, split it into `configs/*.lua` as the standard pattern.
-- Each split config file should return a table with `return { ... }`.
+- Use `config.lua` for small/shared config broadly needed by the resource.
+- When config/data grows large or has separate concerns, split it into `configs/*.lua`; each split file returns a table with `return { ... }`.
 - Do not turn `config.lua` into an eager aggregator that requires every split config file.
-- Load split config files directly in the script that actually uses them: `require` only when ox_lib is loaded, otherwise the `loadConfig` loader (see Lua Style above).
-- Store loaded config modules in local variables near the top of the script.
+- Load split config files directly in the script that uses them (`require` only when ox_lib is loaded, otherwise the `loadConfig` loader in Lua Style above), stored in locals near the top of the script.
 - Split large position lists, object lists, category lists, shop locations, zone data, and similar datasets into separate config files.
 - Do not over-split small configs; keep simple values in one readable file.
 
 ## Performance
 
-- Prefer RAM/cache/indexes over repeated CPU work only when it keeps hot paths or expensive repeated work cheaper.
-- CPU single-core time is limited in FXServer workloads, but bad caches can waste memory and increase GC pressure.
-- Avoid loading config/data modules that the current script does not use.
+- Prefer RAM/cache/indexes over repeated CPU work only when it keeps hot paths or expensive repeated work cheaper: FXServer single-core CPU time is limited, but bad caches waste memory and increase GC pressure.
+- Avoid loading config/data modules the current script does not use.
 - Cache repeated lookups in locals when they are used often in a loop.
 - Avoid unnecessary loops, repeated native calls, and repeated table scans.
 - Prefer simple direct code, but do not trade away performance for convenience.

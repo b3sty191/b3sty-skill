@@ -6,16 +6,9 @@ Order of strength: architecture (value server-side) > CFX Asset Escrow (the sanc
 
 ## Server Authority Is The Real Protection
 
-- The code worth stealing is the logic, and the logic belongs on the server. A
-  client file that only renders UI and sends validated `:server:` events is
-  worth little when leaked, because the decisions live where the attacker cannot
-  read them. This is the same server-authority rule the skill already enforces
-  for security (`skills/common/security-performance.md` -> Server Authority); it
-  doubles as anti-leak design.
-- Keep prices, rewards, drop tables, business rules, and anything you consider
-  the "secret sauce" in server scripts, not shipped to clients.
-- A leaked client bundle should let no one reconstruct the server behavior or
-  run the resource without the entitlement.
+- The logic is what is worth stealing, so it belongs server-side: a leaked client that only renders UI and sends validated `:server:` events gives up little, because the decisions live where the attacker cannot read them. Same rule as security (`skills/common/security-performance.md` -> Server Authority), doubling as anti-leak design.
+- Prices, rewards, drop tables, business rules, "secret sauce": server scripts only, never shipped to clients.
+- A leaked client bundle must not let anyone reconstruct server behavior or run the resource without the entitlement.
 
 ## CFX Asset Escrow (the sanctioned mechanism)
 
@@ -33,12 +26,8 @@ Escrow encrypts the resource server-side so others cannot read or modify protect
       'shared/config/**/*.lua',
   }
   ```
-  Patterns support a single file, a folder glob (`stream/*.yft`), and a
-  recursive glob (`stream/**/*.yft`). Manifest rules are in
-  `skills/common/fxserver.md` -> fxmanifest.
-- Escrow is a Portal/web upload step; there is no documented public API to
-  automate the encryption or upload. CI can prepare the zip (strip dev files,
-  run lint, check `escrow_ignore`), but the upload is manual.
+  Patterns: one file, a folder glob (`stream/*.yft`), a recursive glob (`stream/**/*.yft`). Manifest rules: `skills/common/fxserver.md` -> fxmanifest.
+- No documented public API automates escrow: CI can prepare the zip (strip dev files, lint, check `escrow_ignore`), the Portal upload stays manual.
 
 ## Do Not Roll Your Own Obfuscation
 
@@ -54,17 +43,10 @@ Escrow encrypts the resource server-side so others cannot read or modify protect
 
 ## Packaging Checklist
 
-Before uploading a paid resource:
-
-- The valuable logic runs server-side; the client only renders and sends
-  validated events.
-- `config.lua`, `configs/`, and locale files are in `escrow_ignore` so buyers
-  can configure without cracking.
-- No secret is shipped in any file (client, NUI, or escrowed Lua).
-- Dev-only files are removed from the zip (tests, `.git`, editor configs,
-  internal docs).
-- The resource starts cleanly from the escrowed build, and a functional smoke
-  test passes against it, not only against the unescrowed source.
+- Valuable logic server-side; the client only renders and sends validated events.
+- `config.lua`, `configs/`, and locale files in `escrow_ignore`, so buyers configure without cracking.
+- No secret in any file (client, NUI, escrowed Lua); dev-only files out of the zip (tests, `.git`, editor configs, internal docs).
+- The resource starts cleanly from the escrowed build and passes a functional smoke test there, not only on unescrowed source.
 
 ## Review Questions
 

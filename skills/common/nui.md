@@ -10,10 +10,10 @@ Bridge Overview, Manifest, Lua To Browser, Browser To Lua, Focus And Input, Mess
 
 ## Bridge Overview
 
-- NUI runs in CEF (Chromium Embedded Framework). The browser has no access to Lua globals, game natives, or the server. Every value crosses the bridge as JSON.
-- The bridge is message-based, not a function call. Lua cannot read a DOM value directly and the browser cannot call a native; both sides must send messages and react.
-- The browser only exists while the resource's `ui_page` is loaded and reachable. Messages sent before the page is ready are lost unless you queue them.
-- NUI is client-side. Any data the client sends onward to the server must be re-validated there. NUI itself is UX and display, never security.
+- NUI runs in CEF (Chromium Embedded Framework): no Lua globals, no game natives, no server; every value crosses as JSON.
+- Message-based, not calls - Lua cannot read a DOM value, the browser cannot call a native; both send messages and react.
+- The browser exists only while the resource's `ui_page` is loaded and reachable; messages sent before it is ready are lost unless queued.
+- NUI is UX and display, never security: whatever it forwards is re-validated server-side.
 
 ## Manifest
 
@@ -38,14 +38,12 @@ Bridge Overview, Manifest, Lua To Browser, Browser To Lua, Focus And Input, Mess
   ```lua
   SendNUIMessage({ action = "open", items = items, title = "Shop" })
   ```
-- The browser listens with `window.addEventListener("message", e => ...)`.
-- Use one stable top-level key that names the message (`action`, `type`, or `event`), not an arbitrary payload the UI must pattern-match blindly.
-- Do not send updated full data every frame. Send one open/update message and let the UI render its own state between updates.
-- Functions, userdata, CfxLua vector values (`vector3` etc.), and cyclic tables do not survive JSON. Convert vectors to explicit `{ x = v.x, y = v.y, z = v.z }` tables. Do not send entity handles: they are client-local integers that mean nothing in the browser, so send display data or a server-issued ID instead. Send plain data: numbers, strings, booleans, arrays, plain tables.
+- One stable top-level key names the message (`action`, `type`, `event`), not a payload the UI pattern-matches blindly. Send one open/update message and let the UI hold its own state between updates; never resend full data per frame.
+- JSON drops functions, userdata, CfxLua vectors (`vector3` etc.) and cyclic tables: convert vectors to `{ x = v.x, y = v.y, z = v.z }`. Entity handles are client-local integers meaningless in the browser - send display data or a server-issued ID. Plain numbers, strings, booleans, arrays, tables only.
 
 ## Browser To Lua
 
-- The browser calls back into Lua with `fetch` against the resource URL:
+- The browser calls back with `fetch` on the resource URL; `GetParentResourceName()` names the resource inside the browser, keeping it rename-safe:
   ```js
   const res = await fetch(`https://${GetParentResourceName()}/selectItem`, {
       method: "POST",
@@ -54,39 +52,32 @@ Bridge Overview, Manifest, Lua To Browser, Browser To Lua, Focus And Input, Mess
   });
   const data = await res.json();
   ```
-- `GetParentResourceName()` returns the resource name from inside the browser; use it so the resource stays rename-safe.
-- Lua registers the handler with `RegisterNUICallback(name, cb)` (the `RegisterNuiCallback` alias is equivalent):
+- Lua handles it with `RegisterNUICallback(name, cb)` (alias `RegisterNuiCallback`):
   ```lua
   RegisterNUICallback("selectItem", function(data, cb)
       -- validate data, do client-side UX, then forward to a :server: event
       cb({ ok = true })
   end)
   ```
-- The `cb` argument sends the response that resolves the browser `fetch`. Call `cb` exactly once per request. Forgetting it makes the request time out and the browser `fetch` reject with an error (wrap `fetch` in try/catch in the bridge helper); calling it twice is undefined.
-- Always pass an explicit response object (for example `cb({ ok = true })`) even when there is no useful return value, so the browser promise resolves cleanly.
+- `cb` resolves that `fetch`: call it exactly once per request, always with an explicit object (`cb({ ok = true })`) even when there is nothing to return, so the promise resolves cleanly. Forgetting it times the request out and rejects the `fetch` with an error (wrap `fetch` in try/catch in the bridge helper); calling it twice is undefined.
 
 ## Focus And Input
 
-- `SetNuiFocus(hasFocus, hasCursor)`: `hasFocus = true` gives the NUI page input focus; `hasCursor = true` shows the mouse cursor over the UI.
-  - Clickable menus use `SetNuiFocus(true, true)`. `SetNuiFocus(true, false)` gives keyboard focus with no cursor (for example a text prompt).
-  - To let the game keep receiving input while NUI is focused, use `SetNuiFocusKeepInput(true)` (see below).
-- `SetNuiFocusKeepInput(true)` lets game controls (keyboard and mouse) keep reaching the game while NUI has focus (HUDs, chat-style overlays); disable any controls you do not want with `DisableControlAction` each frame. On close, call `SetNuiFocusKeepInput(false)` to restore the default (focused NUI captures input) so the next focused UI does not leak input to the game. `SetNuiFocus(false, false)` is what returns input to the game.
-- Treat focus as a toggle: set focus on open, clear it on close. Never call `SetNuiFocus(true, true)` every frame.
-- A stuck cursor after the UI closes is almost always a missing `SetNuiFocus(false, false)` on the close path.
+- `SetNuiFocus(hasFocus, hasCursor)`: `hasFocus = true` gives the page input focus, `hasCursor = true` shows the cursor. Clickable menu: `SetNuiFocus(true, true)`; text prompt: `SetNuiFocus(true, false)` - keyboard focus, no cursor.
+- `SetNuiFocusKeepInput(true)` keeps keyboard and mouse controls reaching the game while NUI has focus (HUDs, chat-style overlays); block unwanted ones with `DisableControlAction` each frame. Call `SetNuiFocusKeepInput(false)` on close to restore the default (focused NUI captures input), or the next focused UI leaks input to the game.
+- Focus is a toggle: set on open, clear on close, never every frame. `SetNuiFocus(false, false)` returns input to the game; a stuck cursor after close is almost always a missing one there.
 
 ## Message Contracts
 
-- Keep a single source of truth for the message names and shapes on the Lua side, and mirror them in the browser with a small typed module.
-- Version the payload when the shape changes (`{ v = 2, action = "open", ... }`) so an older built UI can reject shapes it does not understand instead of rendering garbage.
-- Send only the fields the UI needs. Do not push full player data, full inventory, prices the client should not know, or server-only config to the UI (see Security).
+- One source of truth for message names and shapes on the Lua side, mirrored by a small typed module in the browser.
+- Version the payload when the shape changes (`{ v = 2, action = "open", ... }`), so an older built UI rejects what it does not understand instead of rendering garbage.
+- Send only fields the UI needs - never full player data, full inventory, prices the client should not know, or server-only config (see Security).
 
 ## Validation
 
-- Treat every `RegisterNUICallback` payload as untrusted, exactly as hostile as a client-triggered `:server:` event: the browser can be devtooled or scripted.
-- Validate `type(...)` and bounds for fields that drive client behavior or that get forwarded to the server.
-- For actions forwarded to the server, do the authoritative validation server-side and treat the NUI path as a UX hint.
-- Never grant money, items, permissions, or access from a NUI callback alone. Forward a validated `:server:` event and let the server decide.
-- The recipient of any value is still `source` (resolved server-side); never let a NUI payload pick a target player.
+- Every `RegisterNUICallback` payload is untrusted, as hostile as a client-triggered `:server:` event: the browser can be devtooled or scripted.
+- Check `type(...)` and bounds for fields that drive client behavior or get forwarded; forwarded actions get authoritative validation server-side, the NUI path is a UX hint.
+- Never grant money, items, permissions, or access from a NUI callback - forward a validated `:server:` event and let the server decide. The recipient is still `source` resolved server-side; a NUI payload never picks a target player.
 
 ```lua
 -- hardened: validate schema, forward a single server request, cb() is a display signal only
@@ -108,11 +99,10 @@ end)
 
 ## Frontend Hygiene
 
-- Use one bridge module in the framework that owns `window.addEventListener("message")` and the `fetch` helper, so message names live in one place.
-- Queue messages received before the framework is mounted, then flush on mount, so an early `SendNUIMessage` is not lost.
-- Build the framework to a static bundle in `web/dist`; do not expect a dev server at runtime.
-- Keep the bundle small and framework-light where it fits the resource style. b3sty prefers direct, readable UI code over heavy client frameworks when the UI is small.
-- Avoid infinite render loops from message handlers that immediately post back to Lua; debounce rapid updates.
+- One bridge module owns `window.addEventListener("message")` and the `fetch` helper, keeping message names in one place.
+- Queue messages arriving before mount and flush on mount, so an early `SendNUIMessage` is not lost.
+- Build to a static bundle in `web/dist`; no dev server at runtime. Keep it small and framework-light where it fits: b3sty prefers direct, readable UI code over heavy frameworks for small UIs.
+- Avoid render loops from handlers that post straight back to Lua; debounce rapid updates.
 
 ## Performance
 
@@ -122,41 +112,35 @@ end)
 
 ## Security
 
-- NUI is client-local and client-editable. It is display and UX, not authority.
-- **XSS**: any string another player can influence (player names, chat, notes, item labels, shop names) is an XSS payload candidate crossing from an attacker to a victim's screen. Render it as text - framework text interpolation (React/Svelte `{value}`, Vue `{{ value }}`) escapes safely; `innerHTML`, `insertAdjacentHTML`, `document.write`, `{@html}`, and `v-html` are the sinks that execute it. Never feed player-controlled data to a raw-HTML sink; if rich text is unavoidable, sanitize with a vetted library and a strict allowlist.
-- XSS inside CEF is not "just UI": injected script can call every `RegisterNUICallback` and trigger anything the UI can - as the victim player. Treat a rendering sink as full compromise of that player's client-side surface.
-- Validate the scheme of any dynamic `href`/`src` (`https:`/`nui:` only); a `javascript:` URL executes on click. Build `nui://` asset paths from a restricted character set so a crafted name cannot traverse (`../`) out of the intended folder.
-- Bound the length of player-controlled strings before rendering so one giant value cannot freeze or break the HUD.
-- Ship all JS/CSS in the local bundle; never load remote scripts at runtime - a compromised CDN becomes code inside every player's NUI. Remote image URLs from data are a tracking/bandwidth vector: allowlist hosts or proxy them, with an `onerror` fallback.
-- Never round-trip authority through NUI. The UI must not decide money, items, permissions, or access; it only requests them. A `cb({ ok = true })` is a display signal, not a grant.
-- Never grant money/items/permissions directly from a NUI response. Grants happen server-side.
+- NUI is client-local and client-editable: display and UX, not authority.
+- **XSS**: any string another player can influence (player names, chat, notes, item labels, shop names) is an XSS payload on the victim's screen. Framework interpolation (React/Svelte `{value}`, Vue `{{ value }}`) escapes it as text; `innerHTML`, `insertAdjacentHTML`, `document.write`, `{@html}`, `v-html` are the sinks that execute it. Never feed player-controlled data to a raw-HTML sink; if rich text is unavoidable, sanitize with a vetted library and a strict allowlist.
+- XSS in CEF is not "just UI": injected script can call every `RegisterNUICallback` as the victim player, so a rendering sink is full compromise of that player's client-side surface.
+- Validate the scheme of dynamic `href`/`src` (`https:`/`nui:` only); a `javascript:` URL executes on click. Build `nui://` asset paths from a restricted character set so a crafted name cannot traverse (`../`) out of the folder.
+- Bound player-controlled string length before rendering; one giant value can freeze or break the HUD.
+- Ship all JS/CSS in the local bundle, never loading remote scripts at runtime - a compromised CDN becomes code in every player's NUI. Remote image URLs from data are a tracking/bandwidth vector: allowlist hosts or proxy them, with an `onerror` fallback.
+- Never round-trip authority through NUI: the UI requests money, items, permissions, access, never decides or grants them - `cb({ ok = true })` is a display signal. A "you are admin" flag in the UI means nothing; permission is checked server-side with ACE, and a callback forwarding a valuable action takes the same server validation as the matching `:server:` event.
 - Never send webhook URLs, API tokens, server secrets, admin flags, hidden reward logic, or full economy data to the UI.
 - Full hardening and the give-value checklist: `skills/common/client-input-validation.md` -> NUI Callback Hardening and `skills/common/give-value-hardening.md` -> Give-Value Event Hardening.
 
 ## Lifecycle And Cleanup
 
 - Clear NUI focus (`SetNuiFocus(false, false)`) on UI close, player drop, and resource stop.
-- Send a teardown message (for example `{ action = "close" }`) so the framework can unmount and stop timers/listeners.
-- Remove client event handlers, threads, and local state created to feed the UI on resource stop.
-- If the UI is hidden but persistent, prefer hide over destroy for fast re-open; still stop per-frame work while hidden.
+- Send a teardown message (`{ action = "close" }`) so the framework unmounts and stops timers/listeners; on resource stop remove the handlers, threads, and local state that fed the UI.
+- A hidden-but-persistent UI prefers hide over destroy for fast re-open, but still stops per-frame work while hidden.
 
 ## Debugging
 
-- Use the browser devtools console and network tab for JS errors and failed `fetch` calls. Lua logs cannot see a JS exception.
-- Confirm `ui_page` and every referenced file are present in `fxmanifest.lua` `files` when the UI is blank or assets 404.
-- Confirm the browser `fetch` URL matches the `RegisterNUICallback` name exactly.
-- Confirm `cb` is called once and returns JSON-encodable data.
-- Confirm `GetParentResourceName()` resolves to the running resource name.
-- See `skills/common/debugging.md` -> NUI Debugging for the full flow.
+- Browser devtools console and network tab show JS errors and failed `fetch` calls; Lua logs cannot see a JS exception.
+- Blank UI or 404 assets: check `ui_page` and every referenced file in `fxmanifest.lua` `files`.
+- Failed or hanging `fetch`: the URL matches the `RegisterNUICallback` name exactly, `cb` is called once with JSON-encodable data, and `GetParentResourceName()` resolves to the running resource name.
+- Full flow: `skills/common/debugging.md` -> NUI Debugging.
 
 ## Review Questions
 
-- Is the server still the source of truth for everything the UI can affect?
-- Is every `RegisterNUICallback` payload validated before it drives behavior or is forwarded to the server?
-- Is focus cleared on close, drop, and stop?
-- Does every callback call `cb` exactly once with JSON-encodable data?
-- Are all UI files listed in `files`, and is `ui_page` correct?
-- Are messages sent on change, not every frame?
-- Is anything secret or authoritative leaking into the UI payload?
-- Does any player-controlled string reach a raw-HTML sink (`innerHTML`, `{@html}`, `v-html`) or a dynamic `href`/`src` without scheme validation?
-- Is every script/style shipped locally in the bundle, with no runtime remote loads?
+- Server still the source of truth for everything the UI affects, with nothing secret or authoritative in the payload?
+- Every `RegisterNUICallback` payload validated before it drives behavior or is forwarded, and `cb` called exactly once with JSON-encodable data?
+- Focus cleared on close, drop, and stop?
+- All UI files in `files`, `ui_page` correct?
+- Messages sent on change, not every frame?
+- Player-controlled string reaching a raw-HTML sink (`innerHTML`, `{@html}`, `v-html`) or an unvalidated dynamic `href`/`src`?
+- All scripts/styles shipped locally, no runtime remote loads?
