@@ -84,6 +84,16 @@ Track common errors and fixes here.
 - Date: 2026-10-28
 - Game build: n/a (server artifact 37850 and later)
 
+## Native Component Crashes The txAdmin Host At Boot
+
+- Error: the server never comes up; `run.sh` dies with SIGSEGV (exit 139) before the first log line, and rolling back the artifact does not help as long as the component stays in `components.json`. `gdb` shows thread `luv_svMain`, faulting address in the component's `.so`.
+- Context: a native add-on component that creates convars or globals in `fx::ServerInstanceBase::OnServerCreate` and reads them from a resource hook (`fx::Resource::OnStart` / `OnBeforeStart`).
+- Cause: the txAdmin host process loads the same components and starts its `monitor` resource but never fires `OnServerCreate`, so the convar's `shared_ptr` is still null when the hook runs.
+- Fix: guard every resource-level hook on the state `OnServerCreate` sets (`if (!g_var || !g_var->GetValue()) return;`).
+- Prevention: `skills/common/fxserver-components.md` -> Hooks And Process Lifecycle. To find the culprit, map the faulting address to a library with gdb `info proc mappings`, then `addr2line -e <lib>.dbg <pc - load base>`.
+- Date: 2026-11-26
+- Game build: n/a (server artifact 38781)
+
 ## Template
 
 Copy this block when adding a new entry, then fill it in. Leave it blank intentionally - it is a skeleton for future entries, not a real error.
