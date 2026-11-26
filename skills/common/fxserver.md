@@ -27,6 +27,7 @@
 - Client code requests state changes through validated `:server:` events or callbacks, then renders the replicated state.
 - Audit existing resources before enabling strict mode: client-side replicated state bag writes stop working.
 - `ensure [name]` starts every resource under any bracketed folder called `[name]`, at any depth under `resources/`, so a generic category name collides with existing trees: `ensure [maps]` also started cfx-server-data's `[gamemodes]/[maps]` (fivem-map-hipster, fivem-map-skater), which ESX then stopped with script errors (verified 2026-11-26, artifact 38781). Give a category you `ensure` a project-unique name (`[crest-maps]`, `[dropin-maps]`).
+- Never put `;` in a `.cfg` comment: `;` separates commands even after `#`, so the rest of the line runs as a command. `## ... entwhy); resgate_accept and` ran `resgate_accept and`, and ordinary prose comments print `No such command the.` at every boot (verified 2026-11-26, artifact 38781). Grep for it: `grep -n ';' *.cfg | grep '#'`.
 
 ## Resource Lifecycle
 
