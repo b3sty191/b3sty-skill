@@ -26,6 +26,7 @@
 - Prefer `setr sv_stateBagStrictMode true` where the artifact supports it: only the server may then modify networked entity state and player state. Client-side non-replicated entities are unaffected, but are not authoritative replicated state.
 - Client code requests state changes through validated `:server:` events or callbacks, then renders the replicated state.
 - Audit existing resources before enabling strict mode: client-side replicated state bag writes stop working.
+- `ensure [name]` starts every resource under any bracketed folder called `[name]`, at any depth under `resources/`, so a generic category name collides with existing trees: `ensure [maps]` also started cfx-server-data's `[gamemodes]/[maps]` (fivem-map-hipster, fivem-map-skater), which ESX then stopped with script errors (verified 2026-11-26, artifact 38781). Give a category you `ensure` a project-unique name (`[crest-maps]`, `[dropin-maps]`).
 
 ## Resource Lifecycle
 

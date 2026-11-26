@@ -61,7 +61,7 @@ A bare name is a file in `skills/common/` (`nui` is `skills/common/nui.md`); oth
 | operations | live server: saving before a txAdmin scheduled restart, admin-action events, performance budgets |
 | multi-resource | cross-resource exports, events, callbacks, dependencies, shared scripts, convars, state bags, framework integration |
 | asset-protection | selling or distributing a resource: CFX Asset Escrow, `escrow_ignore`, server-side value, secret hygiene |
-| fxserver-components | C++ server components added to an official artifact via `components.json`: portability, build pins, never replace `citizen-server-impl` |
+| fxserver-components | C++ server components added to an official artifact via `components.json`: portability, build pins, never replace `citizen-server-impl`, hooks (`OnServerCreate` order, `OnBeforeStart` gate, export attribution), the txAdmin host process |
 | `skills/fivem/rules.md`, `skills/redm/rules.md` | game-specific resource, or shared behavior might differ |
 | `skills/redm/vorp.md` | VORP server (`vorp_core`, `vorp_inventory`): users and character snapshots, currency, `Core.Callback`, notifications, state bags, inventory export signatures and traps, usable items, context menus |
 | `references/server.cfg.example` | setting up or reviewing `server.cfg` |

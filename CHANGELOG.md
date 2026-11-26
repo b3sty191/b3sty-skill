@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-11-26 - Native component hooks, learned the hard way
+
+### What this update helps with
+
+**Writing a native add-on component that touches resources.** `skills/common/fxserver-components.md` has a new section, Hooks And Process Lifecycle, from building four add-ons (pack installer, pre-start backdoor gate, dependency auditor, OneSync scope explainer) against artifact 38781. Every line was checked against citizenfx/fivem `8cbec36a`:
+- The txAdmin host loads your component too but never fires `OnServerCreate`. A convar read from a resource hook there is null, and on a live server that kept the whole box down with a SIGSEGV before any log line.
+- `ServerResources` scans at `OnServerCreate` order 50, so a lower order can drop resources in before the scan.
+- `OnBeforeStart` returning `false` cancels a start.
+- `dependencies { }` is stored as `dependencie`.
+- Exports reach the dispatcher once per consumer, and the caller comes from the script runtime stack, except for JS.
+- The official impl is stripped and hidden-visibility: only virtuals and inlines are usable.
+- A keyless boot test starts no resource at all, so it proves load and guard only.
+
+**`ensure [category]` collisions.** `ensure [maps]` also starts cfx-server-data's `[gamemodes]/[maps]` (`skills/common/fxserver.md`).
+
+**A new common error:** a component crashing the txAdmin host at boot, with how to map the faulting address to the library.
+
 ## 2026-11-25 - VORP layer, fresher platform facts, evals you can trust
 
 ### What this update helps with
